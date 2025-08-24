@@ -21,6 +21,7 @@ public class LlamaModelTest {
 
 	@BeforeClass
 	public static void setup() {
+//		System.setProperty("de.kherud.llama.lib.path", "src/main/resources/linux_cuda/de/kherud/llama/Linux/x86_64");
 //		LlamaModel.setLogger(LogFormat.TEXT, (level, msg) -> System.out.println(level + ": " + msg));
 		model = new LlamaModel(
 				new ModelParameters()
@@ -134,7 +135,7 @@ public class LlamaModelTest {
 		Assert.assertTrue(output + " doesn't match [ab]+", output.matches("[ab]+"));
 		int generated = model.encode(output).length;
 		Assert.assertTrue("generated count is: " + generated,  generated > 0 && generated <= nPredict + 1);
-		
+
 	}
 
 	@Test
@@ -158,15 +159,15 @@ public class LlamaModelTest {
 		float[] embedding = model.embed(prefix);
 		Assert.assertEquals(4096, embedding.length);
 	}
-	
-	
+
+
 	@Ignore
 	/**
 	 * To run this test download the model from here https://huggingface.co/mradermacher/jina-reranker-v1-tiny-en-GGUF/tree/main
 	 * remove .enableEmbedding() from model setup and add .enableReRanking() and then enable the test.
 	 */
 	public void testReRanking() {
-		
+
 		String query = "Machine learning is";
 		String [] TEST_DOCUMENTS = new String[] {
 				                  "A machine is a physical system that uses power to apply forces and control movement to perform an action. The term is commonly applied to artificial devices, such as those employing engines or motors, but also to natural biological macromolecules, such as molecular machines.",
@@ -175,7 +176,7 @@ public class LlamaModelTest {
 				                  "Paris, capitale de la France, est une grande ville européenne et un centre mondial de l'art, de la mode, de la gastronomie et de la culture. Son paysage urbain du XIXe siècle est traversé par de larges boulevards et la Seine."
 		};
 		LlamaOutput llamaOutput = model.rerank(query, TEST_DOCUMENTS[0], TEST_DOCUMENTS[1], TEST_DOCUMENTS[2], TEST_DOCUMENTS[3] );
-		
+
 		System.out.println(llamaOutput);
 	}
 
@@ -291,7 +292,7 @@ public class LlamaModelTest {
 			this.text = text;
 		}
 	}
-	
+
 	@Test
 	public void testJsonSchemaToGrammar() {
 		String schema = "{\n" +
@@ -302,7 +303,7 @@ public class LlamaModelTest {
                 "    },\n" +
                 "    \"additionalProperties\": false\n" +
                 "}";
-		
+
 		String expectedGrammar = "a-kv ::= \"\\\"a\\\"\" space \":\" space string\n" +
                 "a-rest ::= ( \",\" space b-kv )? b-rest\n" +
                 "b-kv ::= \"\\\"b\\\"\" space \":\" space string\n" +
@@ -312,18 +313,18 @@ public class LlamaModelTest {
                 "root ::= \"{\" space  (a-kv a-rest | b-kv b-rest | c-kv )? \"}\" space\n" +
                 "space ::= | \" \" | \"\\n\"{1,2} [ \\t]{0,20}\n" +
                 "string ::= \"\\\"\" char* \"\\\"\" space\n";
-		
+
 		String actualGrammar = LlamaModel.jsonSchemaToGrammar(schema);
 		Assert.assertEquals(expectedGrammar, actualGrammar);
 	}
-	
+
 	@Test
 	public void testTemplate() {
-		
+
 		List<Pair<String, String>> userMessages = new ArrayList<>();
         userMessages.add(new Pair<>("user", "What is the best book?"));
         userMessages.add(new Pair<>("assistant", "It depends on your interests. Do you like fiction or non-fiction?"));
-        
+
 		InferenceParameters params = new InferenceParameters("A book recommendation system.")
 				.setMessages("Book", userMessages)
 				.setTemperature(0.95f)

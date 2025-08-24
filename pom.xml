@@ -50,6 +50,8 @@
 		<jna.version>5.13.0</jna.version>
 		<junit.version>4.13.2</junit.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- Classifier for platform-specific natives -->
+		<llama.cpp.natives>natives-${os.detected.name}-${os.detected.arch}</llama.cpp.natives>
 	</properties>
 
 	<dependencies>
@@ -68,6 +70,13 @@
 	</dependencies>
 
 	<build>
+		<extensions>
+			<extension>
+				<groupId>kr.motd.maven</groupId>
+				<artifactId>os-maven-plugin</artifactId>
+				<version>1.7.1</version>
+			</extension>
+		</extensions>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -110,7 +119,7 @@
 							<resources>
 								<resource>
 									<directory>
-										${basedir}/src/main/resources_linux_cuda/</directory>
+										${basedir}/src/main/resources/linux_cuda/</directory>
 									<includes>
 										<include>**/*.*</include>
 									</includes>
@@ -120,11 +129,121 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			<!-- Package native libraries with classifiers -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.4.2</version>
+				<executions>
+					<!-- Package default natives (CPU) -->
+					<execution>
+						<id>package-natives-cpu</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>natives-${os.detected.name}-${os.detected.arch}</classifier>
+							<includes>
+								<include>de/kherud/llama/${os.detected.name}/${os.detected.arch}/**</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.3.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
 	<profiles>
+		<!-- Profile for building native libraries for current platform -->
+		<profile>
+			<id>build-native</id>
+			<activation>
+				<property>
+					<name>build.native</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>3.4.2</version>
+						<executions>
+							<!-- Package natives with classifier for current platform -->
+							<execution>
+								<id>package-current-platform-natives</id>
+								<phase>package</phase>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+								<configuration>
+									<classifier>${llama.cpp.natives}</classifier>
+									<classesDirectory>${project.build.directory}/native-libs</classesDirectory>
+									<includes>
+										<include>**/*.so</include>
+										<include>**/*.dll</include>
+										<include>**/*.dylib</include>
+										<include>**/*.metal</include>
+									</includes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- Profile for CUDA builds -->
+		<profile>
+			<id>cuda</id>
+			<properties>
+				<llama.cpp.natives>natives-linux-x86_64-cuda12</llama.cpp.natives>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>3.4.2</version>
+						<executions>
+							<execution>
+								<id>package-cuda-natives</id>
+								<phase>package</phase>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+								<configuration>
+									<classifier>${llama.cpp.natives}</classifier>
+									<!-- Package from the staging directory with correct path structure -->
+									<classesDirectory>${project.build.directory}/native-libs</classesDirectory>
+									<includes>
+										<include>**/*.so</include>
+										<include>**/*.dll</include>
+										<include>**/*.dylib</include>
+									</includes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
 		<profile>
 			<id>release</id>
 			<build>
@@ -143,7 +262,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-source-plugin</artifactId>
-						<version>3.3.0</version>
+						<version>3.3.1</version>
 						<executions>
 							<execution>
 								<id>attach-sources</id>
@@ -156,7 +275,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>3.5.0</version>
+						<version>3.11.3</version>
 						<executions>
 							<execution>
 								<id>attach-javadocs</id>
@@ -169,7 +288,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>3.1.0</version>
+						<version>3.2.8</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>

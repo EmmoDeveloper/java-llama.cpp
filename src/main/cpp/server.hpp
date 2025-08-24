@@ -121,7 +121,14 @@ struct slot_params {
 
         auto grammar_triggers = json::array();
         for (const auto &trigger : sampling.grammar_triggers) {
-            grammar_triggers.push_back(trigger.to_json<json>());
+            json trigger_json = json{
+                {"type", (int) trigger.type},
+                {"value", trigger.value},
+            };
+            if (trigger.type == COMMON_GRAMMAR_TRIGGER_TYPE_TOKEN) {
+                trigger_json["token"] = (int) trigger.token;
+            }
+            grammar_triggers.push_back(trigger_json);
         }
 
         return json{
@@ -341,7 +348,7 @@ struct server_task {
             auto it = data.find("chat_format");
             if (it != data.end()) {
                 params.oaicompat_chat_format = static_cast<common_chat_format>(it->get<int>());
-                SRV_INF("Chat format: %s\n", common_chat_format_name(params.oaicompat_chat_format).c_str());
+                SRV_INF("Chat format: %s\n", common_chat_format_name(params.oaicompat_chat_format));
             } else {
                 params.oaicompat_chat_format = defaults.oaicompat_chat_format;
             }
@@ -366,7 +373,12 @@ struct server_task {
             const auto grammar_triggers = data.find("grammar_triggers");
             if (grammar_triggers != data.end()) {
                 for (const auto &t : *grammar_triggers) {
-                    auto ct = common_grammar_trigger::from_json(t);
+                    common_grammar_trigger ct;
+                    ct.type = (common_grammar_trigger_type)t.at("type").get<int>();
+                    ct.value = t.at("value").get<std::string>();
+                    if (ct.type == COMMON_GRAMMAR_TRIGGER_TYPE_TOKEN) {
+                        ct.token = t.at("token").get<int>();
+                    }
                     if (ct.type == COMMON_GRAMMAR_TRIGGER_TYPE_WORD) {
                         const auto &word = ct.value;
                         auto ids = common_tokenize(vocab, word, /* add_special= */ false, /* parse_special= */ true);
@@ -385,7 +397,10 @@ struct server_task {
                             params.sampling.grammar_triggers.push_back(trigger);
                         } else {
                             SRV_DBG("Grammar trigger word: `%s`\n", word.c_str());
-                            params.sampling.grammar_triggers.push_back({COMMON_GRAMMAR_TRIGGER_TYPE_WORD, word});
+                            common_grammar_trigger trigger;
+                            trigger.type = COMMON_GRAMMAR_TRIGGER_TYPE_WORD;
+                            trigger.value = word;
+                            params.sampling.grammar_triggers.push_back(trigger);
                         }
                     } else {
                         params.sampling.grammar_triggers.push_back(ct);
@@ -708,7 +723,8 @@ struct server_task_result_cmpl_final : server_task_result {
         common_chat_msg msg;
         if (stop == STOP_TYPE_WORD || stop == STOP_TYPE_EOS) {
             SRV_DBG("Parsing chat message: %s\n", content.c_str());
-            msg = common_chat_parse(content, oaicompat_chat_format);
+            common_chat_syntax syntax = {oaicompat_chat_format};
+            msg = common_chat_parse(content, false, syntax);
             finish_reason = msg.tool_calls.empty() ? "stop" : "tool_calls";
         } else {
             msg.content = content;
@@ -1760,7 +1776,7 @@ struct server_context {
     }
 
     bool load_model(const common_params &params) {
-        SRV_INF("loading model '%s'\n", params.model.c_str());
+        SRV_INF("loading model '%s'\n", params.model.path.c_str());
 
         params_base = params;
 
@@ -1770,7 +1786,7 @@ struct server_context {
         ctx = llama_init.context.get();
 
         if (model == nullptr) {
-            SRV_ERR("failed to load model, '%s'\n", params_base.model.c_str());
+            SRV_ERR("failed to load model, '%s'\n", params_base.model.path.c_str());
             return false;
         }
 
@@ -1781,16 +1797,13 @@ struct server_context {
         add_bos_token = llama_vocab_get_add_bos(vocab);
         has_eos_token = llama_vocab_eos(vocab) != LLAMA_TOKEN_NULL;
 
-        if (!params_base.speculative.model.empty() || !params_base.speculative.hf_repo.empty()) {
-            SRV_INF("loading draft model '%s'\n", params_base.speculative.model.c_str());
+        if (!params_base.speculative.model.path.empty()) {
+            SRV_INF("loading draft model '%s'\n", params_base.speculative.model.path.c_str());
 
             auto params_dft = params_base;
 
             params_dft.devices = params_base.speculative.devices;
-            params_dft.hf_file = params_base.speculative.hf_file;
-            params_dft.hf_repo = params_base.speculative.hf_repo;
             params_dft.model = params_base.speculative.model;
-            params_dft.model_url = params_base.speculative.model_url;
             params_dft.n_ctx = params_base.speculative.n_ctx == 0 ? params_base.n_ctx / params_base.n_parallel
                                                                   : params_base.speculative.n_ctx;
             params_dft.n_gpu_layers = params_base.speculative.n_gpu_layers;
@@ -1801,13 +1814,13 @@ struct server_context {
             model_dft = llama_init_dft.model.get();
 
             if (model_dft == nullptr) {
-                SRV_ERR("failed to load draft model, '%s'\n", params_base.speculative.model.c_str());
+                SRV_ERR("failed to load draft model, '%s'\n", params_base.speculative.model.path.c_str());
                 return false;
             }
 
             if (!common_speculative_are_compatible(ctx, llama_init_dft.context.get())) {
                 SRV_ERR("the draft model '%s' is not compatible with the target model '%s'\n",
-                        params_base.speculative.model.c_str(), params_base.model.c_str());
+                        params_base.speculative.model.path.c_str(), params_base.model.path.c_str());
 
                 return false;
             }
@@ -1827,7 +1840,8 @@ struct server_context {
 
         chat_templates = common_chat_templates_init(model, params_base.chat_template);
         try {
-            common_chat_format_example(chat_templates.get(), params.use_jinja);
+            std::map<std::string, std::string> chat_template_kwargs;
+            common_chat_format_example(chat_templates.get(), params.use_jinja, chat_template_kwargs);
         } catch (const std::exception &e) {
             SRV_WRN("%s: The chat template that comes with this model is not yet supported, falling back to chatml. "
                     "This may cause the model to output suboptimal responses\n",
@@ -1860,7 +1874,7 @@ struct server_context {
                     return;
                 }
 
-                slot.spec = common_speculative_init(slot.ctx_dft);
+                slot.spec = common_speculative_init(slot.ctx_dft, ctx);
                 if (slot.spec == nullptr) {
                     SRV_ERR("%s", "failed to create speculator\n");
                     return;
@@ -2022,7 +2036,7 @@ struct server_context {
         SRV_DBG("%s", "clearing KV cache\n");
 
         // clear the entire KV cache
-        llama_kv_cache_clear(ctx);
+        llama_memory_clear(llama_get_memory(ctx), true);
         clean_kv_cache = false;
     }
 
@@ -2553,8 +2567,8 @@ struct server_context {
             res->n_tasks_deferred = queue_tasks.queue_tasks_deferred.size();
             res->t_start = metrics.t_start;
 
-            res->kv_cache_tokens_count = llama_get_kv_cache_token_count(ctx);
-            res->kv_cache_used_cells = llama_get_kv_cache_used_cells(ctx);
+            res->kv_cache_tokens_count = 0; // No longer available in newer API
+            res->kv_cache_used_cells = 0; // No longer available in newer API
 
             res->n_prompt_tokens_processed_total = metrics.n_prompt_tokens_processed_total;
             res->t_prompt_processing_total = metrics.t_prompt_processing_total;
@@ -2670,7 +2684,7 @@ struct server_context {
 
             // Erase token cache
             const size_t n_erased = slot->cache_tokens.size();
-            llama_kv_cache_seq_rm(ctx, slot->id, -1, -1);
+            llama_memory_seq_rm(llama_get_memory(ctx), slot->id, -1, -1);
             slot->cache_tokens.clear();
 
             auto res = std::make_unique<server_task_result_slot_erase>();
@@ -2738,8 +2752,8 @@ struct server_context {
                 SLT_WRN(slot, "slot context shift, n_keep = %d, n_left = %d, n_discard = %d\n", n_keep, n_left,
                         n_discard);
 
-                llama_kv_cache_seq_rm(ctx, slot.id, n_keep, n_keep + n_discard);
-                llama_kv_cache_seq_add(ctx, slot.id, n_keep + n_discard, slot.n_past, -n_discard);
+                llama_memory_seq_rm(llama_get_memory(ctx), slot.id, n_keep, n_keep + n_discard);
+                llama_memory_seq_add(llama_get_memory(ctx), slot.id, n_keep + n_discard, slot.n_past, -n_discard);
 
                 if (slot.params.cache_prompt) {
                     for (size_t i = n_keep + n_discard; i < slot.cache_tokens.size(); i++) {
@@ -2945,8 +2959,8 @@ struct server_context {
 
                                             const int64_t kv_shift = (int64_t)head_p - (int64_t)head_c;
 
-                                            llama_kv_cache_seq_rm(ctx, slot.id, head_p, head_c);
-                                            llama_kv_cache_seq_add(ctx, slot.id, head_c, head_c + n_match, kv_shift);
+                                            llama_memory_seq_rm(llama_get_memory(ctx), slot.id, head_p, head_c);
+                                            llama_memory_seq_add(llama_get_memory(ctx), slot.id, head_c, head_c + n_match, kv_shift);
 
                                             for (size_t i = 0; i < n_match; i++) {
                                                 slot.cache_tokens[head_p + i] = slot.cache_tokens[head_c + i];
@@ -2987,9 +3001,9 @@ struct server_context {
                     }
 
                     // keep only the common part
-                    if (!llama_kv_cache_seq_rm(ctx, slot.id, slot.n_past, -1)) {
+                    if (!llama_memory_seq_rm(llama_get_memory(ctx), slot.id, slot.n_past, -1)) {
                         // could not partially delete (likely using a non-Transformer model)
-                        llama_kv_cache_seq_rm(ctx, slot.id, -1, -1);
+                        llama_memory_seq_rm(llama_get_memory(ctx), slot.id, -1, -1);
 
                         // there is no common part left
                         slot.n_past = 0;
@@ -3231,7 +3245,7 @@ struct server_context {
                 slot.cache_tokens.push_back(id);
                 slot.cache_tokens.insert(slot.cache_tokens.end(), ids.begin(), ids.end() - 1);
 
-                llama_kv_cache_seq_rm(ctx, slot.id, slot.n_past, -1);
+                llama_memory_seq_rm(llama_get_memory(ctx), slot.id, slot.n_past, -1);
 
                 for (size_t i = 0; i < ids.size(); ++i) {
                     completion_token_output result;

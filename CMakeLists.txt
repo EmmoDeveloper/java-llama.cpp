@@ -22,12 +22,9 @@ FetchContent_MakeAvailable(json)
 #################### llama.cpp ####################
 
 set(LLAMA_BUILD_COMMON ON)
-FetchContent_Declare(
-	llama.cpp
-	GIT_REPOSITORY https://github.com/ggerganov/llama.cpp.git
-	GIT_TAG        b4916
-)
-FetchContent_MakeAvailable(llama.cpp)
+# Use local llama.cpp instead of fetching from git
+set(llama.cpp_SOURCE_DIR /opt/llama.cpp)
+add_subdirectory(/opt/llama.cpp llama.cpp_build)
 
 #################### jllama ####################
 
@@ -60,7 +57,7 @@ if(NOT OS_ARCH)
 endif()
 
 if(GGML_CUDA)
-    set(JLLAMA_DIR ${CMAKE_SOURCE_DIR}/src/main/resources_linux_cuda/de/kherud/llama/${OS_NAME}/${OS_ARCH})
+    set(JLLAMA_DIR ${CMAKE_SOURCE_DIR}/src/main/resources/linux_cuda/de/kherud/llama/${OS_NAME}/${OS_ARCH})
     message(STATUS "GPU (CUDA Linux) build - Installing files to ${JLLAMA_DIR}")
 else()
     set(JLLAMA_DIR ${CMAKE_SOURCE_DIR}/src/main/resources/de/kherud/llama/${OS_NAME}/${OS_ARCH})

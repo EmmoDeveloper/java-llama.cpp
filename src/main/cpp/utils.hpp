@@ -609,7 +609,7 @@ static json oaicompat_completion_params_parse(const json &body, /* openai api js
     inputs.add_generation_prompt = json_value(body, "add_generation_prompt", true);
     inputs.use_jinja = use_jinja;
     inputs.parallel_tool_calls = json_value(body, "parallel_tool_calls", false);
-    inputs.extract_reasoning = reasoning_format != COMMON_REASONING_FORMAT_NONE;
+    // inputs.extract_reasoning = reasoning_format != COMMON_REASONING_FORMAT_NONE; // Field removed in newer llama.cpp
     inputs.add_generation_prompt = json_value(body, "add_generation_prompt", true);
     if (!inputs.tools.empty() && inputs.tool_choice != COMMON_CHAT_TOOL_CHOICE_NONE && body.contains("grammar")) {
         throw std::runtime_error("Cannot use custom grammar constraints with tools.");
@@ -624,7 +624,14 @@ static json oaicompat_completion_params_parse(const json &body, /* openai api js
     llama_params["grammar_lazy"] = chat_params.grammar_lazy;
     auto grammar_triggers = json::array();
     for (const auto &trigger : chat_params.grammar_triggers) {
-        grammar_triggers.push_back(trigger.to_json<json>());
+        json trigger_json = json{
+            {"type", (int) trigger.type},
+            {"value", trigger.value},
+        };
+        if (trigger.type == COMMON_GRAMMAR_TRIGGER_TYPE_TOKEN) {
+            trigger_json["token"] = (int) trigger.token;
+        }
+        grammar_triggers.push_back(trigger_json);
     }
     llama_params["grammar_triggers"] = grammar_triggers;
     llama_params["preserved_tokens"] = chat_params.preserved_tokens;

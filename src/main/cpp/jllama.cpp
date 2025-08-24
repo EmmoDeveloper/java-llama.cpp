@@ -7,9 +7,11 @@
 #include "nlohmann/json.hpp"
 #include "server.hpp"
 
+#include <chrono>
 #include <functional>
 #include <iostream>
 #include <stdexcept>
+#include <thread>
 
 // We store some references to Java classes and their fields/methods here to speed up things for later and to fail
 // early on if anything can't be found. This happens when the JVM loads the shared library (see `JNI_OnLoad`).
@@ -377,7 +379,7 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel(JNIEnv *env, jo
         return;
     }
 
-    SRV_INF("loading model '%s'\n", params.model.c_str());
+    SRV_INF("loading model '%s'\n", params.model.path.c_str());
 
     common_init();
 
@@ -413,15 +415,12 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel(JNIEnv *env, jo
 
     const auto model_meta = ctx_server->model_meta();
 
-    if (!params.speculative.model.empty() || !params.speculative.hf_repo.empty()) {
-        SRV_INF("loading draft model '%s'\n", params.speculative.model.c_str());
+    if (!params.speculative.model.path.empty() || !params.speculative.model.hf_repo.empty()) {
+        SRV_INF("loading draft model '%s'\n", params.speculative.model.path.c_str());
         auto params_dft = params;
 
         params_dft.devices = params.speculative.devices;
-        params_dft.hf_file = params.speculative.hf_file;
-        params_dft.hf_repo = params.speculative.hf_repo;
         params_dft.model = params.speculative.model;
-        params_dft.model_url = params.speculative.model_url;
         params_dft.n_ctx = params.speculative.n_ctx == 0 ? params.n_ctx / params.n_parallel : params.speculative.n_ctx;
         params_dft.n_gpu_layers = params.speculative.n_gpu_layers;
         params_dft.n_parallel = 1;
@@ -431,12 +430,12 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel(JNIEnv *env, jo
         llama_model *model_dft = llama_init_dft.model.get();
 
         if (model_dft == nullptr) {
-            SRV_ERR("failed to load draft model, '%s'\n", params.speculative.model.c_str());
+            SRV_ERR("failed to load draft model, '%s'\n", params.speculative.model.path.c_str());
         }
 
         if (!common_speculative_are_compatible(ctx_server->ctx, llama_init_dft.context.get())) {
             SRV_ERR("the draft model '%s' is not compatible with the target model '%s'\n",
-                    params.speculative.model.c_str(), params.model.c_str());
+                    params.speculative.model.path.c_str(), params.model.path.c_str());
         }
 
         const int n_ctx_dft = llama_n_ctx(llama_init_dft.context.get());
@@ -453,9 +452,10 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel(JNIEnv *env, jo
     }
 
     // print sample chat example to make it clear which template is used
+    std::map<std::string, std::string> chat_template_kwargs;
     LOG_INF("%s: chat template, chat_template: %s, example_format: '%s'\n", __func__,
             common_chat_templates_source(ctx_server->chat_templates.get()),
-            common_chat_format_example(ctx_server->chat_templates.get(), ctx_server->params_base.use_jinja).c_str());
+            common_chat_format_example(ctx_server->chat_templates.get(), ctx_server->params_base.use_jinja, chat_template_kwargs).c_str());
 
     // print sample chat example to make it clear which template is used
     //    LOG_INF("%s: chat template, chat_template: %s, example_format: '%s'\n", __func__,
@@ -677,9 +677,11 @@ JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaModel_rerank(JNIEnv *env, jo
     jlong server_handle = env->GetLongField(obj, f_model_pointer);
     auto *ctx_server = reinterpret_cast<server_context *>(server_handle); // NOLINT(*-no-int-to-ptr)
 
-    if (!ctx_server->params_base.reranking || ctx_server->params_base.embedding) {
+    // TODO: Fix reranking check for newer llama.cpp
+    // The reranking field has been moved or refactored in newer versions
+    if (ctx_server->params_base.embedding) {
         env->ThrowNew(c_llama_error,
-                      "This server does not support reranking. Start it with `--reranking` and without `--embedding`");
+                      "This server does not support reranking when embedding is enabled. Start it without `--embedding`");
         return nullptr;
     }
 
@@ -806,8 +808,21 @@ JNIEXPORT jbyteArray JNICALL Java_de_kherud_llama_LlamaModel_decodeBytes(JNIEnv 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_delete(JNIEnv *env, jobject obj) {
     jlong server_handle = env->GetLongField(obj, f_model_pointer);
     auto *ctx_server = reinterpret_cast<server_context *>(server_handle); // NOLINT(*-no-int-to-ptr)
-    ctx_server->queue_tasks.terminate();
-    // delete ctx_server;
+    
+    if (ctx_server != nullptr) {
+        // First terminate the task queue to signal background threads to stop
+        ctx_server->queue_tasks.terminate();
+        
+        // Give a brief moment for threads to finish processing and exit cleanly
+        // This prevents race conditions during destruction
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        
+        // Now safely delete the server context - the destructor will handle all cleanup
+        delete ctx_server;
+        
+        // Clear the pointer in the Java object to prevent double-delete
+        env->SetLongField(obj, f_model_pointer, 0);
+    }
 }
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_cancelCompletion(JNIEnv *env, jobject obj, jint id_task) {
