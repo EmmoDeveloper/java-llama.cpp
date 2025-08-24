@@ -470,13 +470,21 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel(JNIEnv *env, jo
     std::thread t([ctx_server]() {
         JNIEnv *env;
         jint res = g_vm->GetEnv((void **)&env, JNI_VERSION_1_6);
+        bool attached = false;
         if (res == JNI_EDETACHED) {
             res = g_vm->AttachCurrentThread((void **)&env, nullptr);
             if (res != JNI_OK) {
                 throw std::runtime_error("Failed to attach thread to JVM");
             }
+            attached = true;
         }
+        
         ctx_server->queue_tasks.start_loop();
+        
+        // Detach from JVM when the thread is done
+        if (attached) {
+            g_vm->DetachCurrentThread();
+        }
     });
     t.detach();
 
@@ -813,9 +821,10 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_delete(JNIEnv *env, jobje
         // First terminate the task queue to signal background threads to stop
         ctx_server->queue_tasks.terminate();
         
-        // Give a brief moment for threads to finish processing and exit cleanly
-        // This prevents race conditions during destruction
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        // Give sufficient time for the detached background thread to exit cleanly
+        // The background thread created by start_loop() needs time to process the terminate signal
+        // and exit its loop. We use a longer timeout to ensure proper cleanup.
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         
         // Now safely delete the server context - the destructor will handle all cleanup
         delete ctx_server;
