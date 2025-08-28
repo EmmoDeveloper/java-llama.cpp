@@ -490,7 +490,7 @@ public final class InferenceParameters extends JsonParameters {
 		parameters.put(PARAM_USE_JINJA, String.valueOf(useChatTemplate));
 		return this;
 	}
-	
+
 	/**
      * Set the messages for chat-based inference.
      * - Allows **only one** system message.
@@ -513,8 +513,8 @@ public final class InferenceParameters extends JsonParameters {
         // Add user/assistant messages
         for (int i = 0; i < messages.size(); i++) {
             Pair<String, String> message = messages.get(i);
-            String role = message.getKey();
-            String content = message.getValue();
+            String role = message.key();
+            String content = message.value();
 
             if (!role.equals("user") && !role.equals("assistant")) {
                 throw new IllegalArgumentException("Invalid role: " + role + ". Role must be 'user' or 'assistant'.");

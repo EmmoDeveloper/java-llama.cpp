@@ -69,9 +69,9 @@ public class LlamaModel implements AutoCloseable {
 	public LlamaIterable generate(InferenceParameters parameters) {
 		return () -> new LlamaIterator(this, parameters);
 	}
-	
-	
-    
+
+
+
 	/**
 	 * Get the embedding of a string. Note, that the prompt isn't preprocessed in any way, nothing like
 	 * "User: ", "###Instruction", etc. is added.
@@ -81,7 +81,7 @@ public class LlamaModel implements AutoCloseable {
 	 * @throws IllegalStateException if embedding mode was not activated (see {@link ModelParameters#enableEmbedding()})
 	 */
 	public  native float[] embed(String prompt);
-		
+
 
 	/**
 	 * Tokenize a prompt given the native tokenizer
@@ -132,38 +132,38 @@ public class LlamaModel implements AutoCloseable {
 	private native void loadModel(String... parameters) throws LlamaException;
 
 	private native void delete();
-	
+
 	native void releaseTask(int taskId);
 
 	private static native byte[] jsonSchemaToGrammarBytes(String schema);
-	
+
 	public static String jsonSchemaToGrammar(String schema) {
 		return new String(jsonSchemaToGrammarBytes(schema), StandardCharsets.UTF_8);
 	}
-	
+
 	public List<Pair<String, Float>> rerank(boolean reRank, String query, String ... documents) {
 		LlamaOutput output = rerank(query, documents);
-		
+
 		Map<String, Float> scoredDocumentMap = output.probabilities;
-		
+
 		List<Pair<String, Float>> rankedDocuments = new ArrayList<>();
-		
+
 		if (reRank) {
-            // Sort in descending order based on Float values
-            scoredDocumentMap.entrySet()
-                    .stream()
-                    .sorted((a, b) -> Float.compare(b.getValue(), a.getValue())) // Descending order
-                    .forEach(entry -> rankedDocuments.add(new Pair<>(entry.getKey(), entry.getValue())));
-        } else {
-            // Copy without sorting
-            scoredDocumentMap.forEach((key, value) -> rankedDocuments.add(new Pair<>(key, value)));
-        }
-		
+			// Sort in descending order based on Float values
+			scoredDocumentMap.entrySet()
+				.stream()
+				.sorted((a, b) -> Float.compare(b.getValue(), a.getValue())) // Descending order
+				.forEach(entry -> rankedDocuments.add(new Pair<>(entry.getKey(), entry.getValue())));
+		} else {
+			// Copy without sorting
+			scoredDocumentMap.forEach((key, value) -> rankedDocuments.add(new Pair<>(key, value)));
+		}
+
 		return rankedDocuments;
 	}
-	
+
 	public native LlamaOutput rerank(String query, String... documents);
-	
+
 	public  String applyTemplate(InferenceParameters parameters) {
 		return applyTemplate(parameters.toString());
 	}

@@ -22,9 +22,12 @@ FetchContent_MakeAvailable(json)
 #################### llama.cpp ####################
 
 set(LLAMA_BUILD_COMMON ON)
-# Use local llama.cpp instead of fetching from git
-set(llama.cpp_SOURCE_DIR /opt/llama.cpp)
-add_subdirectory(/opt/llama.cpp llama.cpp_build)
+FetchContent_Declare(
+	llama.cpp
+	GIT_REPOSITORY https://github.com/ggerganov/llama.cpp.git
+	GIT_TAG        b6301
+)
+FetchContent_MakeAvailable(llama.cpp)
 
 #################### jllama ####################
 
@@ -56,13 +59,8 @@ if(NOT OS_ARCH)
     message(FATAL_ERROR "Could not determine CPU architecture")
 endif()
 
-if(GGML_CUDA)
-    set(JLLAMA_DIR ${CMAKE_SOURCE_DIR}/src/main/resources/linux_cuda/de/kherud/llama/${OS_NAME}/${OS_ARCH})
-    message(STATUS "GPU (CUDA Linux) build - Installing files to ${JLLAMA_DIR}")
-else()
-    set(JLLAMA_DIR ${CMAKE_SOURCE_DIR}/src/main/resources/de/kherud/llama/${OS_NAME}/${OS_ARCH})
-    message(STATUS "CPU build - Installing files to ${JLLAMA_DIR}")
-endif()
+set(JLLAMA_DIR ${CMAKE_SOURCE_DIR}/src/main/resources/de/kherud/llama/${OS_NAME}/${OS_ARCH})
+message(STATUS "Installing files to ${JLLAMA_DIR}")
 
 # include jni.h and jni_md.h
 if(NOT DEFINED JNI_INCLUDE_DIRS)

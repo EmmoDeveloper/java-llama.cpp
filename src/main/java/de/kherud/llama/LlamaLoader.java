@@ -106,23 +106,6 @@ class LlamaLoader {
 				triedPaths.add(nativeLibPath);
 			}
 		}
-
-		// Try to load from classifier-based JAR first
-		String classifier = System.getProperty("llama.cpp.natives");
-		if (classifier != null) {
-			// Try loading from classifier-based JAR
-			String classifierPath = getNativeResourcePathFromClassifier(classifier);
-			if (hasNativeLib(classifierPath, nativeLibName)) {
-				String tempFolder = getTempDir().getAbsolutePath();
-				if (extractAndLoadLibraryFile(classifierPath, nativeLibName, tempFolder)) {
-					return;
-				}
-				else {
-					triedPaths.add(classifierPath + " (from classifier: " + classifier + ")");
-				}
-			}
-		}
-
 		if (OSInfo.isAndroid()) {
 			try {
 				// loadLibrary can load directly from packed apk file automatically
@@ -281,41 +264,6 @@ class LlamaLoader {
 		String packagePath = LlamaLoader.class.getPackage().getName().replace(".", "/");
 		return String.format("/%s/%s", packagePath, OSInfo.getNativeLibFolderPathForCurrentOS());
 	}
-
-	private static String getNativeResourcePathFromClassifier(String classifier) {
-		String packagePath = LlamaLoader.class.getPackage().getName().replace(".", "/");
-		// Parse classifier format: natives-<os>-<arch>[-<variant>]
-		if (classifier.startsWith("natives-")) {
-			String platformPart = classifier.substring(8); // Remove "natives-" prefix
-			// Split only on first hyphen to get OS name
-			int firstHyphen = platformPart.indexOf('-');
-			if (firstHyphen > 0) {
-				String os = translateClassifierOSName(platformPart.substring(0, firstHyphen));
-				String archAndVariant = platformPart.substring(firstHyphen + 1);
-				// The path should be: /de/kherud/llama/<OS>/<arch-variant>/
-				// For example: /de/kherud/llama/Linux/x86_64-cuda12/
-				return String.format("/%s/%s/%s", packagePath, os, archAndVariant);
-			}
-		}
-		// Fall back to using classifier as-is
-		return String.format("/%s/%s", packagePath, classifier);
-	}
-
-	private static String translateClassifierOSName(String os) {
-		// Translate Maven OS classifier names to folder names
-		switch (os.toLowerCase()) {
-			case "linux":
-				return "Linux";
-			case "windows":
-				return "Windows";
-			case "osx":
-			case "macos":
-				return "Mac";
-			default:
-				return os;
-		}
-	}
-
 	private static boolean hasNativeLib(String path, String libraryName) {
 		return LlamaLoader.class.getResource(path + "/" + libraryName) != null;
 	}
