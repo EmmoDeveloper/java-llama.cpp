@@ -91,17 +91,21 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel
     ctx_params.n_ctx = 512; // Default context size for streaming
     
     // Parse additional parameters
-    for (jsize i = 0; i < args_length - 1; i++) {
+    bool embedding_mode = false;
+    for (jsize i = 0; i < args_length; i++) {
         jstring arg = (jstring)env->GetObjectArrayElement(args, i);
         std::string arg_str = JniUtils::jstring_to_string(env, arg);
-        if (arg_str == "--ctx-size") {
+        if (arg_str == "--ctx-size" && i + 1 < args_length) {
             jstring value_jstr = (jstring)env->GetObjectArrayElement(args, i + 1);
             std::string value_str = JniUtils::jstring_to_string(env, value_jstr);
             ctx_params.n_ctx = std::stoi(value_str);
-        } else if (arg_str == "--threads") {
+        } else if (arg_str == "--threads" && i + 1 < args_length) {
             jstring value_jstr = (jstring)env->GetObjectArrayElement(args, i + 1);
             std::string value_str = JniUtils::jstring_to_string(env, value_jstr);
             ctx_params.n_threads = std::stoi(value_str);
+        } else if (arg_str == "--embedding") {
+            embedding_mode = true;
+            ctx_params.embeddings = true;
         }
     }
     
@@ -124,6 +128,7 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel
     server->model = model;
     server->ctx = ctx;
     server->sampler = sampler;
+    server->embedding_mode = embedding_mode;
     
     // Start the background server
     server->start_server();
@@ -227,13 +232,91 @@ JNIEXPORT jfloatArray JNICALL Java_de_kherud_llama_LlamaModel_embed
     LlamaServer* server = get_server(handle);
     if (!server) return nullptr;
     
-    // Create a simple dummy embedding for now
-    int n_embd = llama_model_n_embd(server->model);
-    jfloatArray result = env->NewFloatArray(n_embd);
-    if (result) {
-        std::vector<float> dummy_embd(n_embd, 0.0f);
-        env->SetFloatArrayRegion(result, 0, n_embd, dummy_embd.data());
+    // Check if embedding mode is enabled
+    if (!server->embedding_mode) {
+        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), 
+                     "Model was not loaded with embedding support (see ModelParameters#enableEmbedding())");
+        return nullptr;
     }
+    
+    std::string input = JniUtils::jstring_to_string(env, text);
+    
+    // Tokenize the input text
+    const llama_vocab* vocab = llama_model_get_vocab(server->model);
+    std::vector<llama_token> tokens;
+    tokens.resize(input.length() + 1);
+    
+    int n_tokens = llama_tokenize(vocab, input.c_str(), input.length(), 
+                                  tokens.data(), tokens.size(), true, false);
+    
+    if (n_tokens < 0) {
+        tokens.resize(-n_tokens);
+        n_tokens = llama_tokenize(vocab, input.c_str(), input.length(),
+                                  tokens.data(), tokens.size(), true, false);
+    }
+    
+    if (n_tokens < 0) {
+        env->ThrowNew(env->FindClass("java/lang/RuntimeException"), 
+                     "Failed to tokenize input for embedding");
+        return nullptr;
+    }
+    
+    tokens.resize(n_tokens);
+    
+    // Clear previous memory (embeddings don't need persistent context)
+    llama_memory_clear(llama_get_memory(server->ctx), true);
+    
+    // Create batch for embedding computation
+    llama_batch batch = llama_batch_init(n_tokens, 0, 1);
+    for (int i = 0; i < n_tokens; i++) {
+        batch.token[i] = tokens[i];
+        batch.pos[i] = i;
+        batch.n_seq_id[i] = 1;
+        batch.seq_id[i][0] = 0;
+        batch.logits[i] = true; // We need embeddings for all tokens or just the last one
+    }
+    batch.n_tokens = n_tokens;
+    
+    // Process the batch to compute embeddings
+    if (llama_decode(server->ctx, batch) != 0) {
+        llama_batch_free(batch);
+        env->ThrowNew(env->FindClass("java/lang/RuntimeException"), 
+                     "Failed to compute embeddings");
+        return nullptr;
+    }
+    
+    // Get embedding dimension
+    int n_embd = llama_model_n_embd(server->model);
+    
+    // Get embeddings based on pooling type
+    const float* embd = nullptr;
+    enum llama_pooling_type pooling_type = llama_pooling_type(server->ctx);
+    
+    if (pooling_type == LLAMA_POOLING_TYPE_NONE) {
+        // For models without pooling, get embedding from the last token
+        embd = llama_get_embeddings_ith(server->ctx, n_tokens - 1);
+    } else {
+        // For models with pooling, get the sequence embedding
+        embd = llama_get_embeddings_seq(server->ctx, 0);
+    }
+    
+    llama_batch_free(batch);
+    
+    if (!embd) {
+        env->ThrowNew(env->FindClass("java/lang/RuntimeException"), 
+                     "Failed to get embeddings from context");
+        return nullptr;
+    }
+    
+    // Create Java float array and copy embeddings
+    jfloatArray result = env->NewFloatArray(n_embd);
+    if (!result) {
+        env->ThrowNew(env->FindClass("java/lang/OutOfMemoryError"), 
+                     "Could not allocate embedding array");
+        return nullptr;
+    }
+    
+    env->SetFloatArrayRegion(result, 0, n_embd, embd);
     
     return result;
 }
