@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.kherud</groupId>
@@ -10,7 +10,8 @@
 
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>Java Bindings for llama.cpp - A Port of Facebook's LLaMA model
-		in C/C++.</description>
+		in C/C++.
+	</description>
 	<url>https://github.com/kherud/java-llama.cpp</url>
 
 	<licenses>
@@ -28,23 +29,23 @@
 		</developer>
 	</developers>
 
-<!--	<scm>-->
-<!--		<connection>scm:git:git://github.com/kherud/java-llama.cpp.git</connection>-->
-<!--		<developerConnection>scm:git:ssh://github.com:kherud/java-llama.cpp.git</developerConnection>-->
-<!--		<url>https://github.com/kherud/java-llama.cpp/tree/master</url>-->
-<!--	</scm>-->
+	<!--	<scm>-->
+	<!--		<connection>scm:git:git://github.com/kherud/java-llama.cpp.git</connection>-->
+	<!--		<developerConnection>scm:git:ssh://github.com:kherud/java-llama.cpp.git</developerConnection>-->
+	<!--		<url>https://github.com/kherud/java-llama.cpp/tree/master</url>-->
+	<!--	</scm>-->
 
-<!--	<distributionManagement>-->
-<!--		<snapshotRepository>-->
-<!--			<id>ossrh</id>-->
-<!--			<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>-->
-<!--		</snapshotRepository>-->
-<!--		<repository>-->
-<!--			<id>ossrh</id>-->
-<!--			<url>-->
-<!--				https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
-<!--		</repository>-->
-<!--	</distributionManagement>-->
+	<!--	<distributionManagement>-->
+	<!--		<snapshotRepository>-->
+	<!--			<id>ossrh</id>-->
+	<!--			<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>-->
+	<!--		</snapshotRepository>-->
+	<!--		<repository>-->
+	<!--			<id>ossrh</id>-->
+	<!--			<url>-->
+	<!--				https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
+	<!--		</repository>-->
+	<!--	</distributionManagement>-->
 
 	<properties>
 		<maven.compiler.source>17</maven.compiler.source>
@@ -73,6 +74,21 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>3.1.3</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.4.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>3.5.3</version>
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-gpg-plugin</artifactId>
@@ -125,7 +141,8 @@
 								<arg>src/main/cpp</arg>
 							</compilerArgs>
 							<outputDirectory>
-								${project.build.outputDirectory}_cuda</outputDirectory>
+								${project.build.outputDirectory}_cuda
+							</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
@@ -142,11 +159,13 @@
 						</goals>
 						<configuration>
 							<outputDirectory>
-								${project.build.outputDirectory}_cuda</outputDirectory>
+								${project.build.outputDirectory}_cuda
+							</outputDirectory>
 							<resources>
 								<resource>
 									<directory>
-										${basedir}/src/main/resources/linux_cuda/</directory>
+										${basedir}/src/main/resources/linux_cuda/
+									</directory>
 									<includes>
 										<include>**/*.*</include>
 									</includes>

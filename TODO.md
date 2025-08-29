@@ -19,10 +19,7 @@
 ## 🚧 In Progress / Needs Attention
 
 ### Grammar Support Issues
-- [ ] **Fix grammar generation tests** - `testGenerateGrammar` and `testCompleteGrammar` are returning empty strings instead of expected patterns
-  - Current error: `", doesn't match [ab]+`
-  - Issue: Grammar functionality not properly implemented in the new architecture
-  - Priority: Medium (streaming API is working, this is additional functionality)
+  - Issue: Grammar functionality not properly implemented in c++ architecture. (missing negation regex implementation)
 
 ### Code Quality
 - [ ] **Remove debug printf statements** - Clean up debug output from `requestCompletion` and `receiveCompletion` once confident everything is stable
@@ -39,10 +36,10 @@
 - [ ] **Memory management** - Review and optimize memory allocation patterns
 
 ### API Completeness
-- [ ] **Implement embedding functionality** - Currently returns dummy embeddings (line 447 in jllama.cpp)
-- [ ] **Implement reranking support** - Currently returns null (line 746 in jllama.cpp)
-- [ ] **Complete template support** - Currently has hardcoded template response (line 753 in jllama.cpp)
-- [ ] **Implement proper logging system** - Currently placeholder (line 467 in jllama.cpp)
+- [ ] **Implement embedding functionality** - Currently returns dummy embeddings
+- [ ] **Implement reranking support** - Currently returns null
+- [ ] **Complete template support** - Currently has hardcoded template response
+- [ ] **Implement proper logging system** - Currently placeholder
 
 ### Testing & Validation
 - [ ] **Add integration tests** - Test streaming API with various model configurations
@@ -57,11 +54,6 @@
 
 ## 🐛 Known Issues
 
-### Minor Issues
-- [ ] **Grammar tests failing** - Need to implement proper grammar support in new architecture
-- [ ] **Maven warnings** - Version not locked for default bindings plugins
-- [ ] **Native access warnings** - Consider adding `--enable-native-access=ALL-UNNAMED` flag
-
 ### Deprecated Warnings
 - [ ] **Unsafe method warnings** - Address deprecated sun.misc.Unsafe usage from dependencies
 - [ ] **JNI access warnings** - Consider migrating to newer Java native access APIs
@@ -69,7 +61,7 @@
 ## 🎯 Priority Order
 
 ### High Priority
-1. **Grammar functionality** - Fix failing grammar tests to complete API coverage
+1. **C++ functionality** - [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1.
 
 ### Medium Priority  
 2. **Error handling improvements** - Better exception handling and error messages
