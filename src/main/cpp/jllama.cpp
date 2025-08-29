@@ -15,6 +15,8 @@
 #include "llama_server.h"
 #include "pattern_preprocessor.h"
 #include "memory_manager.h"
+#include "jni_logger.h"
+#include "jni_error_handler.h"
 
 // Global server management
 
@@ -38,6 +40,18 @@ extern "C" {
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel
   (JNIEnv* env, jobject obj, jobjectArray args) {
+    
+    JNIExceptionGuard exception_guard(env);
+    
+    // Initialize JNI logger to prevent channel corruption
+    JNILogger::initialize(env);
+    
+    JNI_TRY(env)
+    
+    // Validate input parameters
+    if (!JNIErrorHandler::validate_array(env, args, "args", 2)) {
+        return;
+    }
     
     // Initialize llama backend
     llama_backend_init();
@@ -152,19 +166,33 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel
     if (field) {
         env->SetLongField(obj, field, handle);
     }
+    
+    JNI_CATCH(env)
 }
 
 JNIEXPORT jintArray JNICALL Java_de_kherud_llama_LlamaModel_encode
   (JNIEnv* env, jobject obj, jstring text) {
     
+    // Validate input parameters first 
+    if (!JNIErrorHandler::validate_string(env, text, "text")) {
+        return nullptr; // Exception is already set, just return immediately
+    }
+    
+    JNI_TRY(env)
+    
     // Get server handle
     jclass cls = env->GetObjectClass(obj);
+    if (!cls) {
+        JNIErrorHandler::throw_runtime_exception(env, "Failed to get object class");
+        return nullptr;
+    }
+    
     jfieldID field = env->GetFieldID(cls, "ctx", "J");
-    if (!field) return nullptr;
+    JNI_CHECK_NULL(env, field, "ctx field");
     
     jlong handle = env->GetLongField(obj, field);
     LlamaServer* server = get_server(handle);
-    if (!server) return nullptr;
+    JNI_CHECK_NULL(env, server, "server");
     
     std::string input = JniUtils::jstring_to_string(env, text);
     
@@ -192,6 +220,8 @@ JNIEXPORT jintArray JNICALL Java_de_kherud_llama_LlamaModel_encode
     }
     
     return result;
+    
+    JNI_CATCH_RET(env, nullptr)
 }
 
 JNIEXPORT jbyteArray JNICALL Java_de_kherud_llama_LlamaModel_decodeBytes
@@ -354,7 +384,7 @@ JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_requestCompletion
     if (!server) return -1;
     
     std::string param_str = JniUtils::jstring_to_string(env, params);
-    printf("DEBUG: requestCompletion params: %s\n", param_str.c_str());
+    JNI_LOG_DEBUG("requestCompletion params: %s", param_str.c_str());
     
     // Parse JSON parameters to extract prompt, n_predict, and grammar
     int n_predict = 10;  // Default value
@@ -495,11 +525,11 @@ JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_requestCompletion
     
     // Create grammar sampler if grammar is provided
     if (!grammar.empty()) {
-        printf("DEBUG: Creating grammar sampler with original grammar: '%s'\n", grammar.c_str());
+        JNI_LOG_DEBUG("Creating grammar sampler with original grammar: '%s'", grammar.c_str());
         
         // Preprocess the regex pattern for llama.cpp's constraint system
         std::string processed_pattern = PatternPreprocessor::preprocess(grammar);
-        printf("DEBUG: Adapted pattern: '%s'\n", processed_pattern.c_str());
+        JNI_LOG_DEBUG("Adapted pattern: '%s'", processed_pattern.c_str());
         
         // Create a grammar sampler
         const llama_vocab* vocab = llama_model_get_vocab(server->model);
@@ -516,9 +546,9 @@ JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_requestCompletion
             llama_sampler_chain_add(chain, llama_sampler_init_greedy());
             
             task->task_sampler = chain;
-            printf("DEBUG: Grammar sampler created successfully\n");
+            JNI_LOG_DEBUG("Grammar sampler created successfully");
         } else {
-            printf("DEBUG: Failed to create grammar sampler - this is a hard error like in original llama.cpp\n");
+            JNI_LOG_ERROR("Failed to create grammar sampler - this is a hard error like in original llama.cpp");
             // Match original llama.cpp behavior: if grammar fails to parse, the entire request fails
             return -1;  // Return error to indicate grammar parsing failure
         }
@@ -530,7 +560,7 @@ JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_requestCompletion
         server->active_tasks[task_id] = std::move(task);
     }
     
-    printf("DEBUG: requestCompletion created task with id %d, prompt: '%s', grammar: '%s'\n", 
+    JNI_LOG_DEBUG("requestCompletion created task with id %d, prompt: '%s', grammar: '%s'", 
            task_id, prompt.c_str(), grammar.c_str());
     return task_id;
 }
@@ -542,7 +572,7 @@ JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaModel_receiveCompletion
         env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
     LlamaServer* server = get_server(handle);
     if (!server) {
-        printf("DEBUG: receiveCompletion server is null for id %d\n", id);
+        JNI_LOG_DEBUG("receiveCompletion server is null for id %d", id);
         return nullptr;
     }
     
@@ -550,7 +580,7 @@ JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaModel_receiveCompletion
     std::lock_guard<std::mutex> tasks_lock(server->active_tasks_mutex);
     auto task_it = server->active_tasks.find(id);
     if (task_it == server->active_tasks.end()) {
-        printf("DEBUG: receiveCompletion task not found for id %d\n", id);
+        JNI_LOG_DEBUG("receiveCompletion task not found for id %d", id);
         return nullptr;
     }
     
@@ -614,7 +644,7 @@ JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaModel_receiveCompletion
     if (piece_len > 0) {
         task->current_text.append(piece, piece_len);
         if (task->task_sampler) {
-            printf("DEBUG: Grammar generated token: %d -> '%.*s', total text: '%s'\n", 
+            JNI_LOG_DEBUG("Grammar generated token: %d -> '%.*s', total text: '%s'", 
                    new_token, piece_len, piece, task->current_text.c_str());
         }
     }

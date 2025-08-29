@@ -66,6 +66,8 @@ add_library(jllama SHARED
     src/main/cpp/llama_server.cpp
     src/main/cpp/pattern_preprocessor.cpp
     src/main/cpp/memory_manager.cpp
+    src/main/cpp/jni_logger.cpp
+    src/main/cpp/jni_error_handler.cpp
 )
 
 set_target_properties(jllama PROPERTIES POSITION_INDEPENDENT_CODE ON)
