@@ -14,6 +14,7 @@
 #include "completion_task.h"
 #include "llama_server.h"
 #include "pattern_preprocessor.h"
+#include "memory_manager.h"
 
 // Global server management
 
@@ -271,20 +272,21 @@ JNIEXPORT jfloatArray JNICALL Java_de_kherud_llama_LlamaModel_embed
     // Clear previous memory (embeddings don't need persistent context)
     llama_memory_clear(llama_get_memory(server->ctx), true);
     
-    // Create batch for embedding computation
-    llama_batch batch = llama_batch_init(n_tokens, 0, 1);
+    // Use RAII for batch management to ensure cleanup
+    BatchRAII batch_raii(n_tokens, 0, 1);
+    llama_batch* batch = batch_raii.get();
+    
     for (int i = 0; i < n_tokens; i++) {
-        batch.token[i] = tokens[i];
-        batch.pos[i] = i;
-        batch.n_seq_id[i] = 1;
-        batch.seq_id[i][0] = 0;
-        batch.logits[i] = true; // We need embeddings for all tokens or just the last one
+        batch->token[i] = tokens[i];
+        batch->pos[i] = i;
+        batch->n_seq_id[i] = 1;
+        batch->seq_id[i][0] = 0;
+        batch->logits[i] = true; // We need embeddings for all tokens or just the last one
     }
-    batch.n_tokens = n_tokens;
+    batch->n_tokens = n_tokens;
     
     // Process the batch to compute embeddings
-    if (llama_decode(server->ctx, batch) != 0) {
-        llama_batch_free(batch);
+    if (llama_decode(server->ctx, *batch) != 0) {
         env->ThrowNew(env->FindClass("java/lang/RuntimeException"), 
                      "Failed to compute embeddings");
         return nullptr;
@@ -305,7 +307,7 @@ JNIEXPORT jfloatArray JNICALL Java_de_kherud_llama_LlamaModel_embed
         embd = llama_get_embeddings_seq(server->ctx, 0);
     }
     
-    llama_batch_free(batch);
+    // Batch will be automatically freed by RAII
     
     if (!embd) {
         env->ThrowNew(env->FindClass("java/lang/RuntimeException"), 
