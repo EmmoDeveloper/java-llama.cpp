@@ -34,6 +34,7 @@ struct LlamaServer {
 	llama_context* ctx = nullptr;
 	llama_sampler* sampler = nullptr;
 	bool embedding_mode = false;
+	bool reranking_mode = false;
 	
 	// Task management
 	std::queue<TaskRequest> task_queue;

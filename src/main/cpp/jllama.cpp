@@ -92,6 +92,7 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel
     
     // Parse additional parameters
     bool embedding_mode = false;
+    bool reranking_mode = false;
     for (jsize i = 0; i < args_length; i++) {
         jstring arg = (jstring)env->GetObjectArrayElement(args, i);
         std::string arg_str = JniUtils::jstring_to_string(env, arg);
@@ -106,6 +107,9 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel
         } else if (arg_str == "--embedding") {
             embedding_mode = true;
             ctx_params.embeddings = true;
+        } else if (arg_str == "--reranking") {
+            reranking_mode = true;
+            ctx_params.embeddings = true; // Reranking requires embeddings to be enabled
         }
     }
     
@@ -129,6 +133,7 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel
     server->ctx = ctx;
     server->sampler = sampler;
     server->embedding_mode = embedding_mode;
+    server->reranking_mode = reranking_mode;
     
     // Start the background server
     server->start_server();
@@ -710,7 +715,185 @@ JNIEXPORT jbyteArray JNICALL Java_de_kherud_llama_LlamaModel_jsonSchemaToGrammar
 
 JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaModel_rerank
   (JNIEnv* env, jobject obj, jstring query, jobjectArray documents) {
-    return nullptr;
+    
+    jlong handle = env->GetLongField(obj, 
+        env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+    LlamaServer* server = get_server(handle);
+    if (!server) return nullptr;
+    
+    // Check if reranking mode is enabled
+    if (!server->reranking_mode) {
+        env->ThrowNew(env->FindClass("java/lang/IllegalStateException"), 
+                     "Model was not loaded with reranking support (see ModelParameters#enableReranking())");
+        return nullptr;
+    }
+    
+    std::string query_str = JniUtils::jstring_to_string(env, query);
+    
+    // Get documents from Java array
+    jsize num_documents = env->GetArrayLength(documents);
+    if (num_documents == 0) {
+        env->ThrowNew(env->FindClass("java/lang/IllegalArgumentException"), 
+                     "No documents provided for reranking");
+        return nullptr;
+    }
+    
+    const llama_vocab* vocab = llama_model_get_vocab(server->model);
+    
+    // Tokenize query
+    std::vector<llama_token> query_tokens;
+    query_tokens.resize(query_str.length() + 1);
+    
+    int query_n_tokens = llama_tokenize(vocab, query_str.c_str(), query_str.length(),
+                                       query_tokens.data(), query_tokens.size(), true, false);
+    
+    if (query_n_tokens < 0) {
+        query_tokens.resize(-query_n_tokens);
+        query_n_tokens = llama_tokenize(vocab, query_str.c_str(), query_str.length(),
+                                       query_tokens.data(), query_tokens.size(), true, false);
+    }
+    
+    if (query_n_tokens < 0) {
+        env->ThrowNew(env->FindClass("java/lang/RuntimeException"), 
+                     "Failed to tokenize query for reranking");
+        return nullptr;
+    }
+    
+    query_tokens.resize(query_n_tokens);
+    
+    // Create LlamaOutput result object
+    jclass output_class = env->FindClass("de/kherud/llama/LlamaOutput");
+    if (!output_class) return nullptr;
+    
+    jmethodID constructor = env->GetMethodID(output_class, "<init>", "([BLjava/util/Map;Z)V");
+    if (!constructor) return nullptr;
+    
+    // Create empty byte array (reranking doesn't return text content)
+    jbyteArray byte_array = env->NewByteArray(0);
+    
+    // Create HashMap for probabilities (document -> score mapping)
+    jclass hashmap_class = env->FindClass("java/util/HashMap");
+    jmethodID hashmap_init = env->GetMethodID(hashmap_class, "<init>", "()V");
+    jmethodID hashmap_put = env->GetMethodID(hashmap_class, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+    jobject probabilities = env->NewObject(hashmap_class, hashmap_init);
+    
+    // Process each document
+    for (jsize i = 0; i < num_documents; i++) {
+        jstring doc_jstr = (jstring)env->GetObjectArrayElement(documents, i);
+        std::string doc_str = JniUtils::jstring_to_string(env, doc_jstr);
+        
+        // Tokenize document
+        std::vector<llama_token> doc_tokens;
+        doc_tokens.resize(doc_str.length() + 1);
+        
+        int doc_n_tokens = llama_tokenize(vocab, doc_str.c_str(), doc_str.length(),
+                                         doc_tokens.data(), doc_tokens.size(), true, false);
+        
+        if (doc_n_tokens < 0) {
+            doc_tokens.resize(-doc_n_tokens);
+            doc_n_tokens = llama_tokenize(vocab, doc_str.c_str(), doc_str.length(),
+                                         doc_tokens.data(), doc_tokens.size(), true, false);
+        }
+        
+        if (doc_n_tokens < 0) {
+            continue; // Skip this document
+        }
+        
+        doc_tokens.resize(doc_n_tokens);
+        
+        // Format rerank task: [BOS]query[EOS][SEP]doc[EOS]
+        std::vector<llama_token> rerank_tokens;
+        rerank_tokens.reserve(query_n_tokens + doc_n_tokens + 4);
+        
+        // Add BOS if vocab has it
+        llama_token bos_token = llama_vocab_bos(vocab);
+        if (bos_token != LLAMA_TOKEN_NULL) {
+            rerank_tokens.push_back(bos_token);
+        }
+        
+        // Add query tokens
+        rerank_tokens.insert(rerank_tokens.end(), query_tokens.begin(), query_tokens.end());
+        
+        // Add EOS token
+        llama_token eos_token = llama_vocab_eos(vocab);
+        if (eos_token != LLAMA_TOKEN_NULL) {
+            rerank_tokens.push_back(eos_token);
+        }
+        
+        // Add SEP token
+        llama_token sep_token = llama_vocab_sep(vocab);
+        if (sep_token != LLAMA_TOKEN_NULL) {
+            rerank_tokens.push_back(sep_token);
+        }
+        
+        // Add document tokens
+        rerank_tokens.insert(rerank_tokens.end(), doc_tokens.begin(), doc_tokens.end());
+        
+        // Add final EOS token
+        if (eos_token != LLAMA_TOKEN_NULL) {
+            rerank_tokens.push_back(eos_token);
+        }
+        
+        int total_tokens = rerank_tokens.size();
+        
+        // Clear previous memory for clean state
+        llama_memory_clear(llama_get_memory(server->ctx), true);
+        
+        // Create batch for reranking computation
+        llama_batch batch = llama_batch_init(total_tokens, 0, 1);
+        for (int j = 0; j < total_tokens; j++) {
+            batch.token[j] = rerank_tokens[j];
+            batch.pos[j] = j;
+            batch.n_seq_id[j] = 1;
+            batch.seq_id[j][0] = 0;
+            batch.logits[j] = true; // We need embeddings for reranking
+        }
+        batch.n_tokens = total_tokens;
+        
+        // Process the batch to compute reranking score
+        if (llama_decode(server->ctx, batch) != 0) {
+            llama_batch_free(batch);
+            continue; // Skip this document
+        }
+        
+        // Get embeddings for reranking score
+        // For reranking models with RANK pooling, the score is typically in the first element
+        enum llama_pooling_type pooling_type = llama_pooling_type(server->ctx);
+        
+        const float* embd = nullptr;
+        if (pooling_type == LLAMA_POOLING_TYPE_RANK) {
+            // For reranking models, get the sequence embedding which contains the score
+            embd = llama_get_embeddings_seq(server->ctx, 0);
+        } else if (pooling_type == LLAMA_POOLING_TYPE_NONE) {
+            // Fallback: get embedding from last token
+            embd = llama_get_embeddings_ith(server->ctx, total_tokens - 1);
+        } else {
+            // Other pooling types
+            embd = llama_get_embeddings_seq(server->ctx, 0);
+        }
+        
+        llama_batch_free(batch);
+        
+        float score = 0.0f;
+        if (embd) {
+            // For reranking, the score is typically the first element of the embedding
+            score = embd[0];
+        }
+        
+        // Add document and score to the result map
+        jstring doc_key = env->NewStringUTF(doc_str.c_str());
+        jclass float_class = env->FindClass("java/lang/Float");
+        jmethodID float_constructor = env->GetMethodID(float_class, "<init>", "(F)V");
+        jobject score_obj = env->NewObject(float_class, float_constructor, score);
+        
+        env->CallObjectMethod(probabilities, hashmap_put, doc_key, score_obj);
+        
+        env->DeleteLocalRef(doc_key);
+        env->DeleteLocalRef(score_obj);
+        env->DeleteLocalRef(doc_jstr);
+    }
+    
+    return env->NewObject(output_class, constructor, byte_array, probabilities, (jboolean)true);
 }
 
 JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_applyTemplate
