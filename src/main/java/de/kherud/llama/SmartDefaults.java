@@ -32,6 +32,12 @@ public class SmartDefaults {
 		// Validate any user-provided batch configurations
 		BatchOptimizer.validateBatchConfiguration(params);
 		
+		// Apply memory optimizations
+		params = MemoryOptimizer.optimizeMemoryUsage(params);
+		
+		// Check memory health
+		MemoryOptimizer.checkMemoryHealth();
+		
 		// Enable Flash Attention by default if not specified
 		if (!params.parameters.containsKey("--flash-attn") && !params.parameters.containsKey("--no-flash-attn")) {
 			params.enableFlashAttn();
