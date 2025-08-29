@@ -2,40 +2,26 @@ cmake_minimum_required(VERSION 3.14)
 
 project(jllama CXX)
 
-include(FetchContent)
+#################### Use local llama.cpp source ####################
 
-set(BUILD_SHARED_LIBS ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(BUILD_SHARED_LIBS OFF)
+# Use the real llama.cpp source at /opt/llama.cpp
+set(LLAMA_CPP_DIR "/opt/llama.cpp")
 
-option(LLAMA_VERBOSE	"llama: verbose output"		OFF)
+# Verify the source directory exists
+if(NOT EXISTS "${LLAMA_CPP_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR "llama.cpp source not found at ${LLAMA_CPP_DIR}")
+endif()
 
-#################### json ####################
-
-FetchContent_Declare(
-	json
-	GIT_REPOSITORY https://github.com/nlohmann/json
-	GIT_TAG        v3.11.3
-)
-FetchContent_MakeAvailable(json)
-
-#################### llama.cpp ####################
-
-set(LLAMA_BUILD_COMMON ON)
-FetchContent_Declare(
-	llama.cpp
-	GIT_REPOSITORY https://github.com/ggerganov/llama.cpp.git
-	GIT_TAG        b6301
-)
-FetchContent_MakeAvailable(llama.cpp)
+# Add llama.cpp as a subdirectory
+add_subdirectory(${LLAMA_CPP_DIR} ${CMAKE_BINARY_DIR}/llama.cpp)
 
 #################### jllama ####################
 
-# find which OS we build for if not set (make sure to run mvn compile first)
+# Find OS and architecture info
 if(NOT DEFINED OS_NAME)
     find_package(Java REQUIRED)
     find_program(JAVA_EXECUTABLE NAMES java)
-	execute_process(
+    execute_process(
       COMMAND ${JAVA_EXECUTABLE} -cp ${CMAKE_SOURCE_DIR}/target/classes de.kherud.llama.OSInfo --os
       OUTPUT_VARIABLE OS_NAME
       OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -45,7 +31,6 @@ if(NOT OS_NAME)
     message(FATAL_ERROR "Could not determine OS name")
 endif()
 
-# find which architecture we build for if not set  (make sure to run mvn compile first)
 if(NOT DEFINED OS_ARCH)
     find_package(Java REQUIRED)
     find_program(JAVA_EXECUTABLE NAMES java)
@@ -62,55 +47,58 @@ endif()
 set(JLLAMA_DIR ${CMAKE_SOURCE_DIR}/src/main/resources/de/kherud/llama/${OS_NAME}/${OS_ARCH})
 message(STATUS "Installing files to ${JLLAMA_DIR}")
 
-# include jni.h and jni_md.h
+# Find JNI headers - configurable location
 if(NOT DEFINED JNI_INCLUDE_DIRS)
-    if(OS_NAME MATCHES "^Linux" OR OS_NAME STREQUAL "Mac" OR OS_NAME STREQUAL "Darwin")
-        set(JNI_INCLUDE_DIRS .github/include/unix)
-    elseif(OS_NAME STREQUAL "Windows")
-        set(JNI_INCLUDE_DIRS .github/include/windows)
-    # if we don't have provided headers, try to find them via Java
-    else()
-        find_package(Java REQUIRED)
-        find_program(JAVA_EXECUTABLE NAMES java)
-
-        find_path(JNI_INCLUDE_DIRS NAMES jni.h HINTS ENV JAVA_HOME PATH_SUFFIXES include)
-
-        # find "jni_md.h" include directory if not set
-        file(GLOB_RECURSE JNI_MD_PATHS RELATIVE "${JNI_INCLUDE_DIRS}" "${JNI_INCLUDE_DIRS}/**/jni_md.h")
-        foreach(PATH IN LISTS JNI_MD_PATHS)
-            get_filename_component(DIR ${PATH} DIRECTORY)
-            list(APPEND JNI_INCLUDE_DIRS "${JNI_INCLUDE_DIRS}/${DIR}")
-        endforeach()
-    endif()
+    # Default to Java 17 OpenJDK location, but allow override
+    set(JNI_INCLUDE_DIRS "/usr/lib/jvm/java-17-openjdk-amd64/include;/usr/lib/jvm/java-17-openjdk-amd64/include/linux" CACHE STRING "JNI include directories")
 endif()
+
+message(STATUS "Using JNI include directories: ${JNI_INCLUDE_DIRS}")
 if(NOT JNI_INCLUDE_DIRS)
     message(FATAL_ERROR "Could not determine JNI include directories")
 endif()
 
-add_library(jllama SHARED src/main/cpp/jllama.cpp src/main/cpp/server.hpp src/main/cpp/utils.hpp)
-
-set_target_properties(jllama PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_include_directories(jllama PRIVATE src/main/cpp ${JNI_INCLUDE_DIRS})
-target_link_libraries(jllama PRIVATE common llama nlohmann_json)
-target_compile_features(jllama PRIVATE cxx_std_11)
-
-target_compile_definitions(jllama PRIVATE
-    SERVER_VERBOSE=$<BOOL:${LLAMA_VERBOSE}>
+# Create the jllama shared library
+add_library(jllama SHARED 
+    src/main/cpp/jllama.cpp
+    src/main/cpp/jni_utils.cpp
+    src/main/cpp/completion_task.cpp
+    src/main/cpp/llama_server.cpp
+    src/main/cpp/grammar_processor.cpp
 )
 
+set_target_properties(jllama PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+target_include_directories(jllama PRIVATE 
+    src/main/cpp 
+    ${JNI_INCLUDE_DIRS}
+    ${LLAMA_CPP_DIR}/include
+    ${LLAMA_CPP_DIR}/common
+    ${LLAMA_CPP_DIR}/vendor
+)
+
+# Link against the real llama.cpp libraries
+target_link_libraries(jllama PRIVATE 
+    llama
+    ggml
+)
+
+target_compile_features(jllama PRIVATE cxx_std_17)
+
+# Set output directories
 if(OS_NAME STREQUAL "Windows")
-    set_target_properties(jllama llama ggml PROPERTIES
-	  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${JLLAMA_DIR}
-	  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${JLLAMA_DIR}
-	  RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${JLLAMA_DIR}
-	)
+    set_target_properties(jllama PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${JLLAMA_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${JLLAMA_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${JLLAMA_DIR}
+    )
 else()
-	set_target_properties(jllama llama ggml PROPERTIES
-	  LIBRARY_OUTPUT_DIRECTORY ${JLLAMA_DIR}
-	)
+    set_target_properties(jllama PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY ${JLLAMA_DIR}
+    )
 endif()
 
+# Copy metal file if needed
 if (LLAMA_METAL AND NOT LLAMA_METAL_EMBED_LIBRARY)
-    # copy ggml-common.h and ggml-metal.metal to bin directory
-    configure_file(${llama.cpp_SOURCE_DIR}/ggml-metal.metal ${JLLAMA_DIR}/ggml-metal.metal COPYONLY)
+    configure_file(${LLAMA_CPP_DIR}/ggml-metal.metal ${JLLAMA_DIR}/ggml-metal.metal COPYONLY)
 endif()
