@@ -13,7 +13,7 @@
 #include "jni_utils.h"
 #include "completion_task.h"
 #include "llama_server.h"
-#include "grammar_processor.h"
+#include "pattern_preprocessor.h"
 
 // Global server management
 
@@ -395,13 +395,13 @@ JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_requestCompletion
     if (!grammar.empty()) {
         printf("DEBUG: Creating grammar sampler with original grammar: '%s'\n", grammar.c_str());
         
-        // Preprocess grammar to handle Unicode escapes
-        std::string processed_grammar = GrammarProcessor::preprocess_grammar(grammar);
-        printf("DEBUG: Preprocessed grammar: '%s'\n", processed_grammar.c_str());
+        // Preprocess the regex pattern for llama.cpp's constraint system
+        std::string processed_pattern = PatternPreprocessor::preprocess(grammar);
+        printf("DEBUG: Adapted pattern: '%s'\n", processed_pattern.c_str());
         
         // Create a grammar sampler
         const llama_vocab* vocab = llama_model_get_vocab(server->model);
-        llama_sampler* grammar_sampler = llama_sampler_init_grammar(vocab, processed_grammar.c_str(), "root");
+        llama_sampler* grammar_sampler = llama_sampler_init_grammar(vocab, processed_pattern.c_str(), "root");
         
         if (grammar_sampler) {
             // Create a sampler chain that includes the grammar
