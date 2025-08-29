@@ -44,7 +44,23 @@ public class LlamaModel implements AutoCloseable {
 	 * @throws LlamaException if no model could be loaded from the given file path
 	 */
 	public LlamaModel(ModelParameters parameters) {
-		loadModel(parameters.toArray());
+		// Apply smart defaults for better out-of-the-box experience
+		ModelParameters optimizedParams = SmartDefaults.apply(parameters);
+		loadModel(optimizedParams.toArray());
+	}
+	
+	/**
+	 * Internal constructor for bypassing intelligent defaults (used by GPU detection)
+	 */
+	LlamaModel() {
+		// Empty constructor for internal use
+	}
+	
+	/**
+	 * Internal method to load model directly without intelligent defaults (used by GPU detection)
+	 */
+	void loadModelDirect(String... parameters) {
+		loadModel(parameters);
 	}
 
 	/**

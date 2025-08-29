@@ -10,108 +10,84 @@ public class GpuOffloadingTest {
 
 	@Test
 	public void testGpuLayerOffloading() {
-		System.out.println("\n=== GPU Layer Offloading Test ===\n");
+		System.out.println("\n=== GPU Layer Offloading Test (Performance-Based Verification) ===\n");
 		
-		// Track GPU offloading through log messages
-		AtomicInteger gpuLayersOffloaded = new AtomicInteger(0);
-		AtomicBoolean modelLoaded = new AtomicBoolean(false);
+		// Instead of complex log parsing, test actual GPU performance 
+		// by comparing CPU vs GPU speeds directly
 		
-		// Set up logger to capture GPU offloading information
-		LlamaModel.setLogger(LogFormat.TEXT, (level, msg) -> {
-			// Print all messages for visibility
-			System.out.println("[" + level + "] " + msg);
-			
-			// Check for GPU layer offloading messages
-			if (msg.contains("offloaded") && msg.contains("layers to GPU")) {
-				// Parse message like "offloaded 33/33 layers to GPU"
-				String[] parts = msg.split(" ");
-				for (int i = 0; i < parts.length - 1; i++) {
-					if (parts[i].equals("offloaded")) {
-						String layerInfo = parts[i + 1];
-						if (layerInfo.contains("/")) {
-							String offloaded = layerInfo.split("/")[0];
-							gpuLayersOffloaded.set(Integer.parseInt(offloaded));
-							System.out.println("\n✓ GPU OFFLOADING DETECTED: " + offloaded + " layers\n");
-						}
-						break;
-					}
-				}
-			}
-			
-			// Check for CUDA device assignment
-			if (msg.contains("assigned to device CUDA")) {
-				System.out.println("✓ Layer assigned to CUDA device");
-			}
-			
-			// Check for successful model loading
-			if (msg.contains("model loaded successfully") || msg.contains("llama_model_load:") || msg.contains("model size")) {
-				modelLoaded.set(true);
-			}
-		});
+		String testPrompt = "def quicksort(arr):";
+		int nPredict = 8;
 		
-		LlamaModel model = null;
+		System.out.println("1. Testing CPU-only model (0 GPU layers):");
+		long cpuTime = testModelPerformance(0, testPrompt, nPredict);
+		
+		System.out.println("\n2. Testing GPU-accelerated model (43 GPU layers):");  
+		long gpuTime = testModelPerformance(43, testPrompt, nPredict);
+		
+		System.out.println("\n3. Testing smart defaults model (auto GPU detection):");
+		LlamaModel smartModel = null;
+		long smartTime = 0;
+		int smartTokens = 0;
+		
 		try {
-			System.out.println("Loading model with GPU layers...");
-			
-			// Create model with explicit GPU layer configuration
-			model = new LlamaModel(
+			smartModel = new LlamaModel(
 				new ModelParameters()
 					.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
-					.setGpuLayers(43)  // Request 43 layers to be offloaded to GPU
-					.setCtxSize(512)
-					.setVerbose()  // Enable verbose logging to see GPU offloading details
+					// No explicit GPU config - should auto-configure GPU
 			);
 			
-			// Give the logger a moment to process messages
-			Thread.sleep(100);
+			InferenceParameters params = new InferenceParameters(testPrompt)
+				.setNPredict(nPredict)
+				.setTemperature(0.1f);
 			
-			System.out.println("\n=== Test Results ===");
-			System.out.println("GPU Layers Requested: 43");
-			System.out.println("GPU Layers Offloaded: " + gpuLayersOffloaded.get());
-			
-			// Test that GPU offloading actually happened
-			Assert.assertTrue("Model should be loaded", modelLoaded.get() || model != null);
-			Assert.assertTrue("At least some layers should be offloaded to GPU (found: " + gpuLayersOffloaded.get() + ")", 
-				gpuLayersOffloaded.get() > 0);
-			
-			// Run a simple generation to verify the model works with GPU
-			System.out.println("\nTesting generation with GPU-accelerated model...");
-			InferenceParameters params = new InferenceParameters("Hello")
-				.setNPredict(5);
-			
-			int tokenCount = 0;
 			long startTime = System.currentTimeMillis();
-			
-			for (LlamaOutput output : model.generate(params)) {
-				tokenCount++;
-				System.out.print(output.text);
+			for (LlamaOutput output : smartModel.generate(params)) {
+				smartTokens++;
 			}
+			smartTime = System.currentTimeMillis() - startTime;
 			
-			long endTime = System.currentTimeMillis();
-			double tokensPerSecond = tokenCount * 1000.0 / (endTime - startTime);
+			System.out.printf("  Smart defaults: %d tokens in %d ms (%.1f tok/s)\n", 
+				smartTokens, smartTime, smartTokens * 1000.0 / smartTime);
 			
-			System.out.println("\n\nGeneration completed:");
-			System.out.println("- Tokens generated: " + tokenCount);
-			System.out.println("- Time taken: " + (endTime - startTime) + " ms");
-			System.out.printf("- Speed: %.2f tokens/second\n", tokensPerSecond);
-			
-			Assert.assertTrue("Should generate at least one token", tokenCount > 0);
-			
-			System.out.println("\n✅ GPU Offloading Test PASSED");
-			System.out.println("   - " + gpuLayersOffloaded.get() + " layers successfully offloaded to GPU");
-			System.out.println("   - Model is generating tokens using GPU acceleration");
-			
-		} catch (Exception e) {
-			System.err.println("Test failed with exception: " + e.getMessage());
-			e.printStackTrace();
-			Assert.fail("GPU offloading test failed: " + e.getMessage());
 		} finally {
-			if (model != null) {
-				model.close();
+			if (smartModel != null) {
+				smartModel.close();
 			}
-			// Reset logger
-			LlamaModel.setLogger(null, null);
 		}
+		
+		// Analysis and verification
+		System.out.println("\n=== Performance Analysis ===");
+		System.out.println("CPU-only time: " + cpuTime + " ms");
+		System.out.println("GPU-explicit time: " + gpuTime + " ms");
+		System.out.println("Smart defaults time: " + smartTime + " ms");
+		
+		double gpuSpeedup = (double) cpuTime / gpuTime;
+		double smartSpeedup = (double) cpuTime / smartTime;
+		
+		System.out.printf("GPU speedup vs CPU: %.2fx\n", gpuSpeedup);
+		System.out.printf("Smart defaults speedup vs CPU: %.2fx\n", smartSpeedup);
+		
+		// Verify GPU is actually providing acceleration
+		Assert.assertTrue("CPU time should be > 0", cpuTime > 0);
+		Assert.assertTrue("GPU time should be > 0", gpuTime > 0);
+		Assert.assertTrue("Smart defaults time should be > 0", smartTime > 0);
+		
+		// GPU should be significantly faster than CPU (allow some tolerance)
+		Assert.assertTrue("GPU should be faster than CPU (GPU: " + gpuTime + "ms, CPU: " + cpuTime + "ms)", 
+			gpuTime < cpuTime * 0.8); // GPU should be at least 20% faster
+		
+		// Smart defaults should perform similarly to explicit GPU config
+		Assert.assertTrue("Smart defaults should perform well (Smart: " + smartTime + "ms, GPU: " + gpuTime + "ms)",
+			smartTime < gpuTime * 1.5); // Allow 50% tolerance
+		
+		// Verify good performance overall
+		Assert.assertTrue("Should generate tokens with all configurations", 
+			smartTokens > 0);
+			
+		System.out.println("\n✅ GPU Offloading Test PASSED");
+		System.out.printf("   - GPU provides %.2fx speedup over CPU\n", gpuSpeedup);
+		System.out.printf("   - Smart defaults provide %.2fx speedup over CPU\n", smartSpeedup);
+		System.out.println("   - All models generate tokens successfully");
 	}
 	
 	@Test 
@@ -142,6 +118,10 @@ public class GpuOffloadingTest {
 			gpuTime < cpuTime);
 		
 		System.out.println("\n✅ Performance comparison test PASSED");
+	}
+	
+	private long testModelPerformance(int gpuLayers, String prompt, int nPredict) {
+		return benchmarkModel(gpuLayers, prompt, nPredict);
 	}
 	
 	private long benchmarkModel(int gpuLayers, String prompt, int nPredict) {
