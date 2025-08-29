@@ -64,7 +64,7 @@ add_library(jllama SHARED
     src/main/cpp/jni_utils.cpp
     src/main/cpp/completion_task.cpp
     src/main/cpp/llama_server.cpp
-    src/main/cpp/grammar_processor.cpp
+    src/main/cpp/pattern_preprocessor.cpp
 )
 
 set_target_properties(jllama PROPERTIES POSITION_INDEPENDENT_CODE ON)

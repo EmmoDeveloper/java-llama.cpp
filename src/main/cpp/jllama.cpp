@@ -66,6 +66,18 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel
     // Create model parameters with defaults
     llama_model_params model_params = llama_model_default_params();
     
+    // Parse GPU layers parameter
+    for (jsize i = 0; i < args_length - 1; i++) {
+        jstring arg = (jstring)env->GetObjectArrayElement(args, i);
+        std::string arg_str = JniUtils::jstring_to_string(env, arg);
+        if (arg_str == "--gpu-layers") {
+            jstring value_jstr = (jstring)env->GetObjectArrayElement(args, i + 1);
+            std::string value_str = JniUtils::jstring_to_string(env, value_jstr);
+            model_params.n_gpu_layers = std::stoi(value_str);
+            break;
+        }
+    }
+    
     // Load model using real llama.cpp API
     llama_model* model = llama_model_load_from_file(model_path.c_str(), model_params);
     if (!model) {
