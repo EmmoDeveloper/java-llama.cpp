@@ -1,97 +1,27 @@
-# TODO List - java-llama.cpp
+# Full enhanced implementation of GBNF
 
-## ✅ Completed Tasks
+GBNF (GGML [Backus-Naur Form]) is an extension of the traditional Backus-Naur Form, specifically designed for use with Large Language Models (LLMs).
 
-### Streaming API Implementation
-- [x] **Fixed streaming API architecture** - Implemented background thread approach with synchronous token generation
-- [x] **Resolved "decode: failed to find memory slot" error** - Fixed core streaming issue that was blocking generation
-- [x] **Fixed context state contamination between tests** - Added KV cache clearing using `llama_memory_seq_rm()` to ensure clean state between requests
-- [x] **Implemented proper JSON parameter parsing** - Extract prompt and n_predict values from InferenceParameters JSON
-- [x] **Built native library with CUDA support** - Using real llama.cpp source from `/opt/llama.cpp` with NVIDIA RTX 3080 acceleration
-- [x] **All streaming tests now pass** - `testGenerateAnswer`, `testGenerateInfill`, `testCancelGenerating` work perfectly
-- [x] **Tests work both individually and together** - Fixed the critical issue where running all tests together caused failures
+The current architecture is too limited.
 
-### Core Architecture
-- [x] **LlamaServer background thread architecture** - Manages context lifecycle while keeping token generation synchronous
-- [x] **Thread-safe task management** - Proper mutex-protected task tracking and cleanup
-- [x] **Real llama.cpp integration** - Using actual llama.cpp API instead of stubs
+## Proposed Architecture
+[Grammar String or File (.gbnf)]
+↓
+[Custom Parser + PCRE2]
+↓
+[Unicode Lexer (ICU)]
+↓
+[Token Masking Engine]
+↓
+[LLM Sampling (with SentencePiece tokens)]
 
-## 🚧 In Progress / Needs Attention
+## 🧱 Enhanced Library Stack
+|    | Library type          | Name                                       | Description                                                                               | Source                                        | URL                                      | Documentation                                              |
+|----|-----------------------|--------------------------------------------|-------------------------------------------------------------------------------------------|-----------------------------------------------|------------------------------------------|------------------------------------------------------------|
+| 1. | Unicode Handling      | ICU (International Components for Unicode) | Full-featured Unicode toolkit: normalization, collation, regex, locale data               | GitHub: unicode-org/icu ・ Official Site       | https://github.com/unicode-org/icu       | https://icu.unicode.org/                                   |
+| 2. | Regex Engine          | PCRE2                                      | Perl-compatible regex engine with full Unicode support, negation, lookahead, named groups | GitHub: PCRE2Project/pcre2 ・ Docs & Guide     | https://github.com/PCRE2Project/pcre2    | https://pcre2project.github.io/pcre2/                      |                         |
+|    |                       | jpcre2 (C++ wrapper)                       | C++ wrapper for PCRE2 with object-oriented API                                            | GitHub: jpcre2/jpcre2                         | https://github.com/jpcre2/jpcre2         |                                                            |
+| 3. | Grammar Parsing       | Ragel                                      | State machine compiler for regex/BNF → C/C++ code; ideal for lexers and protocol parsers  | GitHub: adrian-thurston/ragel ・ Official Site | https://github.com/adrian-thurston/ragel | https://www.colm.net/open-source/ragel/                    |
+|    |                       | ANTLR (C++ target)                         | Powerful parser generator; supports listener/visitor patterns                             | GitHub: antlr/antlr4 ・ C++ Target Guide       | https://github.com/antlr/antlr4          | https://github.com/antlr/antlr4/blob/dev/doc/cpp-target.md |
+| 4. | Tokenizer Integration | SentencePiece                              | Language-independent subword tokenizer (BPE, unigram); C++ native                         | GitHub: google/sentencepiece ・ Paper & Docs   | https://github.com/google/sentencepiece  | https://github.com/google/sentencepiece#documentation      |
 
-### Grammar Support Issues
-  - Issue: Grammar functionality not properly implemented in c++ architecture. (missing negation regex implementation)
-
-### Code Quality
-- [ ] **Remove debug printf statements** - Clean up debug output from `requestCompletion` and `receiveCompletion` once confident everything is stable
-- [ ] **Add proper error handling** - Improve error messages and exception handling in JNI layer
-- [ ] **Add comprehensive logging** - Implement proper logging infrastructure instead of printf
-
-## 📋 Future Enhancements
-
-### Performance Optimizations
-- [x] **GPU layer offloading** - ✅ **COMPLETED** - Auto-enabled GPU acceleration by default
-  - Previous: `offloaded 0/33 layers to GPU`
-  - **Current: `offloaded 33/33 layers to GPU` automatically** 🚀
-  - **3.2x performance improvement** demonstrated in tests
-  - **Smart defaults system** applies optimal settings automatically
-- [x] **Batch processing optimization** - ✅ **COMPLETED** - Intelligent batch size optimization implemented
-  - **Previous**: Fixed 512 batch size for all configurations
-  - **Current**: Context-aware batch optimization with `BatchOptimizer` class
-  - **Improvements**: 
-    - Context 512 → Batch 256, UBatch 256 (small contexts)
-    - Context 1024 → Batch 512, UBatch 256 (medium contexts) 
-    - Context 2048+ → Batch 1024, UBatch 512 (large contexts)
-    - CPU-optimized: Smaller batches (≤256) for memory efficiency
-    - GPU-optimized: Larger batches for maximum throughput
-  - **Performance**: 35.9 tokens/second with auto-optimized settings
-  - **Smart defaults**: Automatically configures optimal batch/ubatch sizes
-  - **User-friendly**: Preserves explicit user settings, provides validation warnings
-- [ ] **Memory management** - Review and optimize memory allocation patterns
-
-### API Completeness
-- [ ] **Implement embedding functionality** - Currently returns dummy embeddings
-- [ ] **Implement reranking support** - Currently returns null
-- [ ] **Complete template support** - Currently has hardcoded template response
-- [ ] **Implement proper logging system** - Currently placeholder
-
-### Testing & Validation
-- [ ] **Add integration tests** - Test streaming API with various model configurations
-- [ ] **Performance benchmarks** - Measure token generation speed and memory usage
-- [ ] **Stress testing** - Test with multiple concurrent streaming requests
-- [ ] **Memory leak testing** - Ensure proper cleanup of native resources
-
-### Documentation
-- [ ] **API documentation** - Document the streaming API usage patterns
-- [ ] **Architecture documentation** - Document the background thread approach and design decisions
-- [ ] **Performance tuning guide** - Document optimal configurations for different use cases
-
-## 🐛 Known Issues
-
-### Deprecated Warnings
-- [ ] **Unsafe method warnings** - Address deprecated sun.misc.Unsafe usage from dependencies
-- [ ] **JNI access warnings** - Consider migrating to newer Java native access APIs
-
-## 🎯 Priority Order
-
-### High Priority
-1. **C++ functionality** - [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1.
-
-### Medium Priority  
-2. **Error handling improvements** - Better exception handling and error messages
-3. **Performance optimization** - GPU offloading and memory optimization
-4. **API completeness** - Implement missing features (embedding, reranking, templates)
-
-### Low Priority
-5. **Documentation** - Comprehensive API and architecture docs
-6. **Advanced testing** - Stress tests and benchmarks
-7. **Code modernization** - Address deprecation warnings
-8. **Remove debug code** - Clean up printf statements once stable
-
-## 📊 Current Status
-
-**Streaming API**: ✅ **Working** - All core streaming functionality implemented and tested
-**Test Suite**: ✅ **Mostly Passing** - 10/12 tests pass, 2 grammar tests fail (not blocking)
-**Native Integration**: ✅ **Complete** - Real llama.cpp with CUDA support
-**Architecture**: ✅ **Stable** - Background thread approach with synchronous generation
-
-**Next Milestone**: Fix grammar support to achieve 100% test pass rate.
