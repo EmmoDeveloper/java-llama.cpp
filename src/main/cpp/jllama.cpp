@@ -175,6 +175,12 @@ JNIEXPORT jintArray JNICALL Java_de_kherud_llama_LlamaModel_encode
     
     // Validate input parameters first 
     if (!JNIErrorHandler::validate_string(env, text, "text")) {
+        // Double-check that exception is actually pending
+        if (!env->ExceptionCheck()) {
+            // If no exception pending, explicitly throw one
+            env->ThrowNew(env->FindClass("java/lang/NullPointerException"), 
+                         "text string parameter is null");
+        }
         return nullptr; // Exception is already set, just return immediately
     }
     
@@ -236,16 +242,20 @@ JNIEXPORT jbyteArray JNICALL Java_de_kherud_llama_LlamaModel_decodeBytes
     jsize len = env->GetArrayLength(token_array);
     jint* tokens = env->GetIntArrayElements(token_array, nullptr);
     
-    // Detokenize using real llama.cpp API
+    // Detokenize using real llama.cpp API - process all tokens at once
     const llama_vocab* vocab = llama_model_get_vocab(server->model);
+    
+    // Allocate buffer for the decoded text
+    size_t max_len = len * 32; // Assume max 32 bytes per token
+    std::vector<char> buffer(max_len);
+    
+    // Decode all tokens at once to preserve spaces properly
+    int result_len = llama_detokenize(vocab, (llama_token*)tokens, len, 
+                                      buffer.data(), buffer.size(), false, false);
+    
     std::string result;
-    for (int i = 0; i < len; i++) {
-        char piece[256];
-        int piece_len = llama_detokenize(vocab, (llama_token*)&tokens[i], 1, 
-                                        piece, sizeof(piece), false, false);
-        if (piece_len > 0) {
-            result.append(piece, piece_len);
-        }
+    if (result_len > 0) {
+        result.assign(buffer.data(), result_len);
     }
     
     env->ReleaseIntArrayElements(token_array, tokens, JNI_ABORT);

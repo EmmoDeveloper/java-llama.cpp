@@ -7,6 +7,9 @@ git pull available
 /work/java/java-llama.cpp
 Goal: Java access (JNI) to the original.
 
-Failing: Grammer 
-Why is it so difficult to implement "GBNF" and REG-EX(std::regex) and JSON and UTF-8 and UNICODE and escape characters, in a Java/C++ project?
+## c++ part
+located src/main/cpp
+to build use ./build-native-cuda.sh
 
+## java part
+default maven structure.
