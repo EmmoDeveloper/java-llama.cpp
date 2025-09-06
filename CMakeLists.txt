@@ -69,6 +69,7 @@ add_library(jllama SHARED
     src/main/cpp/jni_logger.cpp
     src/main/cpp/model_manager.cpp
     src/main/cpp/tokenization_handler.cpp
+    src/main/cpp/state_manager.cpp
     src/main/cpp/jni_error_handler.cpp
 )
 

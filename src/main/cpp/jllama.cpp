@@ -19,10 +19,11 @@
 #include "jni_error_handler.h"
 #include "model_manager.h"
 #include "tokenization_handler.h"
+#include "state_manager.h"
 
 // Global server management
 std::mutex g_servers_mutex;
-static std::unordered_map<jlong, std::unique_ptr<LlamaServer>> g_servers;
+std::unordered_map<jlong, std::unique_ptr<LlamaServer>> g_servers;
 
 // Utility functions
 
@@ -834,6 +835,57 @@ JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_applyTemplate
     
     result_buffer.resize(result_len);
     return JniUtils::string_to_jstring(env, result_buffer);
+}
+
+// State persistence functions
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getStateSize
+  (JNIEnv* env, jobject obj) {
+    return StateManager::getStateSize(env, obj);
+}
+
+JNIEXPORT jbyteArray JNICALL Java_de_kherud_llama_LlamaModel_getStateData
+  (JNIEnv* env, jobject obj) {
+    return StateManager::getStateData(env, obj);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_setStateData
+  (JNIEnv* env, jobject obj, jbyteArray state_data) {
+    return StateManager::setStateData(env, obj, state_data);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_saveStateToFile
+  (JNIEnv* env, jobject obj, jstring path, jintArray tokens) {
+    return StateManager::saveStateToFile(env, obj, path, tokens);
+}
+
+JNIEXPORT jintArray JNICALL Java_de_kherud_llama_LlamaModel_loadStateFromFile
+  (JNIEnv* env, jobject obj, jstring path, jint max_tokens) {
+    return StateManager::loadStateFromFile(env, obj, path, max_tokens);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getSequenceStateSizeNative
+  (JNIEnv* env, jobject obj, jint seq_id) {
+    return StateManager::getSequenceStateSize(env, obj, seq_id);
+}
+
+JNIEXPORT jbyteArray JNICALL Java_de_kherud_llama_LlamaModel_getSequenceStateData
+  (JNIEnv* env, jobject obj, jint seq_id) {
+    return StateManager::getSequenceStateData(env, obj, seq_id);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_setSequenceStateData
+  (JNIEnv* env, jobject obj, jbyteArray state_data, jint seq_id) {
+    return StateManager::setSequenceStateData(env, obj, state_data, seq_id);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_saveSequenceToFile
+  (JNIEnv* env, jobject obj, jstring path, jint seq_id, jintArray tokens) {
+    return StateManager::saveSequenceToFile(env, obj, path, seq_id, tokens);
+}
+
+JNIEXPORT jintArray JNICALL Java_de_kherud_llama_LlamaModel_loadSequenceFromFile
+  (JNIEnv* env, jobject obj, jstring path, jint seq_id, jint max_tokens) {
+    return StateManager::loadSequenceFromFile(env, obj, path, seq_id, max_tokens);
 }
 
 } // extern "C"
