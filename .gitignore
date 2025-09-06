@@ -3,3 +3,5 @@
 target/
 build/
 models/
+/src/main/cpp.backup/
+/dist/
