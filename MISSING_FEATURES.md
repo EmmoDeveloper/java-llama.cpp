@@ -19,19 +19,25 @@ The Java wrapper implements only the core inference functionality, leaving 188 f
 
 ## Critical Gaps by Impact
 
-### 1. State Persistence (0% coverage) - **HIGH IMPACT**
+### 1. State Persistence (100% coverage) - **✅ IMPLEMENTED**
 
-Cannot save/load conversation state, making it impossible to:
-- Resume conversations after restart
-- Share model states between processes
-- Implement checkpointing for long-running tasks
+Full state persistence and conversation resumption support:
+- ✅ Save/load complete model states to/from disk
+- ✅ Save/load conversation context and KV cache
+- ✅ Sequence-specific state management
+- ✅ In-memory state serialization/deserialization
 
-**Missing functions:**
-- `llama_state_save_file()` - Save model state to disk
-- `llama_state_load_file()` - Load model state from disk
-- `llama_state_get_data()` - Get state as bytes
-- `llama_state_set_data()` - Set state from bytes
-- `llama_state_get_size()` - Get state size
+**All 10 State Persistence functions implemented:**
+- `llama_state_save_file()` - Save complete state to disk
+- `llama_state_load_file()` - Load complete state from disk
+- `llama_state_get_data()` - Get state as byte array
+- `llama_state_set_data()` - Set state from byte array
+- `llama_state_get_size()` - Get state buffer size
+- `llama_state_seq_get_size()` - Get sequence state size
+- `llama_state_seq_get_data()` - Get sequence state data
+- `llama_state_seq_set_data()` - Set sequence state data
+- `llama_state_seq_save_file()` - Save sequence to file
+- `llama_state_seq_load_file()` - Load sequence from file
 
 ### 2. LoRA/Adapter Support (100% coverage) - **✅ IMPLEMENTED**
 
@@ -51,7 +57,7 @@ Full LoRA adapter and control vector support:
 - `llama_adapter_meta_*()` - Access adapter metadata
 - `llama_adapter_get_alora_*()` - ALORA invocation tokens
 
-### 3. Advanced Sampling (8.1% coverage) - **MEDIUM IMPACT**
+### 2. Advanced Sampling (8.1% coverage) - **HIGH IMPACT**
 
 Limited to basic sampling, missing 34 of 37 sampling functions:
 - No Mirostat v1/v2 sampling
@@ -141,7 +147,7 @@ The Java wrapper exposes only 13 JNI methods that use 23 llama.cpp functions:
 | **Vocabulary**         | **7.7%**  | 2/26       | ❌ Minimal  |
 | **Memory/KV Cache**    | **5.3%**  | 1/19       | ❌ Minimal  |
 | **Utility**            | **4.6%**  | 3/65       | ❌ Minimal  |
-| **State Persistence**  | **0%**    | 0/5        | ❌ None     |
+| **State Persistence**  | **100%**  | 10/10      | ✅ Full     |
 | **LoRA/Adapters**      | **100%**  | 12/12      | ✅ Full     |
 | **Quantization**       | **0%**    | 0/2        | ❌ None     |
 | **Metadata**           | **0%**    | 0/4        | ❌ None     |
