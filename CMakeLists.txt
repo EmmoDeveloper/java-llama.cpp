@@ -67,6 +67,8 @@ add_library(jllama SHARED
     src/main/cpp/pattern_preprocessor.cpp
     src/main/cpp/memory_manager.cpp
     src/main/cpp/jni_logger.cpp
+    src/main/cpp/model_manager.cpp
+    src/main/cpp/tokenization_handler.cpp
     src/main/cpp/jni_error_handler.cpp
 )
 

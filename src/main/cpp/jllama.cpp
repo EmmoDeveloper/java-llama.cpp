@@ -17,12 +17,11 @@
 #include "memory_manager.h"
 #include "jni_logger.h"
 #include "jni_error_handler.h"
+#include "model_manager.h"
+#include "tokenization_handler.h"
 
 // Global server management
-
-
-// Global server management
-static std::mutex g_servers_mutex;
+std::mutex g_servers_mutex;
 static std::unordered_map<jlong, std::unique_ptr<LlamaServer>> g_servers;
 
 // Utility functions
@@ -40,234 +39,17 @@ extern "C" {
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel
   (JNIEnv* env, jobject obj, jobjectArray args) {
-    
-    JNIExceptionGuard exception_guard(env);
-    
-    // Initialize JNI logger to prevent channel corruption
-    JNILogger::initialize(env);
-    
-    JNI_TRY(env)
-    
-    // Validate input parameters
-    if (!JNIErrorHandler::validate_array(env, args, "args", 2)) {
-        return;
-    }
-    
-    // Initialize llama backend
-    llama_backend_init();
-    
-    // Parse model path from args array
-    // The args come in format: ["", "--model", "/path/to/model", "--ctx-size", "512", ...]
-    std::string model_path;
-    jsize args_length = env->GetArrayLength(args);
-    
-    // Find the --model argument and get its value
-    for (jsize i = 0; i < args_length - 1; i++) {
-        jstring arg = (jstring)env->GetObjectArrayElement(args, i);
-        std::string arg_str = JniUtils::jstring_to_string(env, arg);
-        if (arg_str == "--model") {
-            jstring model_path_jstr = (jstring)env->GetObjectArrayElement(args, i + 1);
-            model_path = JniUtils::jstring_to_string(env, model_path_jstr);
-            break;
-        }
-    }
-    
-    if (model_path.empty()) {
-        env->ThrowNew(env->FindClass("java/lang/RuntimeException"), 
-                     "No model path specified in arguments");
-        return;
-    }
-    
-    // Create model parameters with defaults
-    llama_model_params model_params = llama_model_default_params();
-    
-    // Parse GPU layers parameter
-    for (jsize i = 0; i < args_length - 1; i++) {
-        jstring arg = (jstring)env->GetObjectArrayElement(args, i);
-        std::string arg_str = JniUtils::jstring_to_string(env, arg);
-        if (arg_str == "--gpu-layers") {
-            jstring value_jstr = (jstring)env->GetObjectArrayElement(args, i + 1);
-            std::string value_str = JniUtils::jstring_to_string(env, value_jstr);
-            model_params.n_gpu_layers = std::stoi(value_str);
-            break;
-        }
-    }
-    
-    // Load model using real llama.cpp API
-    llama_model* model = llama_model_load_from_file(model_path.c_str(), model_params);
-    if (!model) {
-        env->ThrowNew(env->FindClass("java/lang/RuntimeException"), 
-                     "Failed to load model");
-        return;
-    }
-    
-    // Create context parameters
-    llama_context_params ctx_params = llama_context_default_params();
-    ctx_params.n_ctx = 512; // Default context size for streaming
-    
-    // Parse additional parameters
-    bool embedding_mode = false;
-    bool reranking_mode = false;
-    for (jsize i = 0; i < args_length; i++) {
-        jstring arg = (jstring)env->GetObjectArrayElement(args, i);
-        std::string arg_str = JniUtils::jstring_to_string(env, arg);
-        if (arg_str == "--ctx-size" && i + 1 < args_length) {
-            jstring value_jstr = (jstring)env->GetObjectArrayElement(args, i + 1);
-            std::string value_str = JniUtils::jstring_to_string(env, value_jstr);
-            ctx_params.n_ctx = std::stoi(value_str);
-        } else if (arg_str == "--threads" && i + 1 < args_length) {
-            jstring value_jstr = (jstring)env->GetObjectArrayElement(args, i + 1);
-            std::string value_str = JniUtils::jstring_to_string(env, value_jstr);
-            ctx_params.n_threads = std::stoi(value_str);
-        } else if (arg_str == "--embedding") {
-            embedding_mode = true;
-            ctx_params.embeddings = true;
-        } else if (arg_str == "--reranking") {
-            reranking_mode = true;
-            ctx_params.embeddings = true; // Reranking requires embeddings to be enabled
-        }
-    }
-    
-    // Create context
-    llama_context* ctx = llama_init_from_model(model, ctx_params);
-    if (!ctx) {
-        llama_model_free(model);
-        env->ThrowNew(env->FindClass("java/lang/RuntimeException"), 
-                     "Failed to create context");
-        return;
-    }
-    
-    // Create sampler
-    llama_sampler_chain_params sampler_params = llama_sampler_chain_default_params();
-    llama_sampler* sampler = llama_sampler_chain_init(sampler_params);
-    llama_sampler_chain_add(sampler, llama_sampler_init_greedy());
-    
-    // Create our server
-    auto server = std::make_unique<LlamaServer>();
-    server->model = model;
-    server->ctx = ctx;
-    server->sampler = sampler;
-    server->embedding_mode = embedding_mode;
-    server->reranking_mode = reranking_mode;
-    
-    // Start the background server
-    server->start_server();
-    
-    // Store server and return handle
-    jlong handle = reinterpret_cast<jlong>(server.get());
-    {
-        std::lock_guard<std::mutex> lock(g_servers_mutex);
-        g_servers[handle] = std::move(server);
-    }
-    
-    // Set the handle in Java object
-    jclass cls = env->GetObjectClass(obj);
-    jfieldID field = env->GetFieldID(cls, "ctx", "J");
-    if (field) {
-        env->SetLongField(obj, field, handle);
-    }
-    
-    JNI_CATCH(env)
+    ModelManager::loadModel(env, obj, args);
 }
 
 JNIEXPORT jintArray JNICALL Java_de_kherud_llama_LlamaModel_encode
   (JNIEnv* env, jobject obj, jstring text) {
-    
-    // Validate input parameters first 
-    if (!JNIErrorHandler::validate_string(env, text, "text")) {
-        // Double-check that exception is actually pending
-        if (!env->ExceptionCheck()) {
-            // If no exception pending, explicitly throw one
-            env->ThrowNew(env->FindClass("java/lang/NullPointerException"), 
-                         "text string parameter is null");
-        }
-        return nullptr; // Exception is already set, just return immediately
-    }
-    
-    JNI_TRY(env)
-    
-    // Get server handle
-    jclass cls = env->GetObjectClass(obj);
-    if (!cls) {
-        JNIErrorHandler::throw_runtime_exception(env, "Failed to get object class");
-        return nullptr;
-    }
-    
-    jfieldID field = env->GetFieldID(cls, "ctx", "J");
-    JNI_CHECK_NULL(env, field, "ctx field");
-    
-    jlong handle = env->GetLongField(obj, field);
-    LlamaServer* server = get_server(handle);
-    JNI_CHECK_NULL(env, server, "server");
-    
-    std::string input = JniUtils::jstring_to_string(env, text);
-    
-    // Tokenize using real llama.cpp API
-    const llama_vocab* vocab = llama_model_get_vocab(server->model);
-    std::vector<llama_token> tokens;
-    tokens.resize(input.length() + 1);
-    
-    int n_tokens = llama_tokenize(vocab, input.c_str(), input.length(), 
-                                  tokens.data(), tokens.size(), true, false);
-    
-    if (n_tokens < 0) {
-        tokens.resize(-n_tokens);
-        n_tokens = llama_tokenize(vocab, input.c_str(), input.length(),
-                                  tokens.data(), tokens.size(), true, false);
-    }
-    
-    if (n_tokens < 0) return nullptr;
-    tokens.resize(n_tokens);
-    
-    // Convert to Java int array
-    jintArray result = env->NewIntArray(n_tokens);
-    if (result) {
-        env->SetIntArrayRegion(result, 0, n_tokens, (jint*)tokens.data());
-    }
-    
-    return result;
-    
-    JNI_CATCH_RET(env, nullptr)
+    return TokenizationHandler::encode(env, obj, text);
 }
 
 JNIEXPORT jbyteArray JNICALL Java_de_kherud_llama_LlamaModel_decodeBytes
   (JNIEnv* env, jobject obj, jintArray token_array) {
-    
-    jlong handle = env->GetLongField(obj, 
-        env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
-    LlamaServer* server = get_server(handle);
-    if (!server) return nullptr;
-    
-    // Get tokens from Java array
-    jsize len = env->GetArrayLength(token_array);
-    jint* tokens = env->GetIntArrayElements(token_array, nullptr);
-    
-    // Detokenize using real llama.cpp API - process all tokens at once
-    const llama_vocab* vocab = llama_model_get_vocab(server->model);
-    
-    // Allocate buffer for the decoded text
-    size_t max_len = len * 32; // Assume max 32 bytes per token
-    std::vector<char> buffer(max_len);
-    
-    // Decode all tokens at once to preserve spaces properly
-    int result_len = llama_detokenize(vocab, (llama_token*)tokens, len, 
-                                      buffer.data(), buffer.size(), false, false);
-    
-    std::string result;
-    if (result_len > 0) {
-        result.assign(buffer.data(), result_len);
-    }
-    
-    env->ReleaseIntArrayElements(token_array, tokens, JNI_ABORT);
-    
-    // Convert to Java byte array
-    jbyteArray byte_array = env->NewByteArray(result.length());
-    if (byte_array) {
-        env->SetByteArrayRegion(byte_array, 0, result.length(), 
-                               (jbyte*)result.data());
-    }
-    
-    return byte_array;
+    return TokenizationHandler::decodeBytes(env, obj, token_array);
 }
 
 JNIEXPORT jfloatArray JNICALL Java_de_kherud_llama_LlamaModel_embed
@@ -370,14 +152,7 @@ JNIEXPORT jfloatArray JNICALL Java_de_kherud_llama_LlamaModel_embed
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_delete
   (JNIEnv* env, jobject obj) {
-    
-    jlong handle = env->GetLongField(obj, 
-        env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
-    
-    if (handle != 0) {
-        std::lock_guard<std::mutex> lock(g_servers_mutex);
-        g_servers.erase(handle);
-    }
+    ModelManager::deleteModel(env, obj);
 }
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_setLogger
