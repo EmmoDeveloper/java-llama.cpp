@@ -347,6 +347,189 @@ public class LlamaModel implements AutoCloseable {
 	}
 
 	/**
+	 * Load a LoRA adapter from file.
+	 * LoRA (Low-Rank Adaptation) allows fine-tuning models with minimal parameters.
+	 * 
+	 * @param loraPath path to the LoRA adapter file
+	 * @return handle to the loaded adapter
+	 * @throws LlamaException if the adapter cannot be loaded
+	 */
+	public long loadLoRAAdapter(String loraPath) throws LlamaException {
+		if (loraPath == null || loraPath.trim().isEmpty()) {
+			throw new IllegalArgumentException("LoRA path cannot be null or empty");
+		}
+		long handle = loadLoRAAdapterNative(loraPath);
+		if (handle == -1) {
+			throw new LlamaException("Failed to load LoRA adapter from: " + loraPath);
+		}
+		return handle;
+	}
+
+	/**
+	 * Free a LoRA adapter and release its resources.
+	 * 
+	 * @param adapterHandle handle to the adapter
+	 */
+	public void freeLoRAAdapter(long adapterHandle) {
+		if (adapterHandle != -1) {
+			freeLoRAAdapterNative(adapterHandle);
+		}
+	}
+
+	/**
+	 * Apply a LoRA adapter to the current context with the specified scale.
+	 * 
+	 * @param adapterHandle handle to the adapter
+	 * @param scale scale factor for the adapter (typically 1.0)
+	 * @return 0 on success, negative on error
+	 * @throws LlamaException if the adapter cannot be applied
+	 */
+	public int setLoRAAdapter(long adapterHandle, float scale) throws LlamaException {
+		int result = setLoRAAdapterNative(adapterHandle, scale);
+		if (result < 0) {
+			throw new LlamaException("Failed to apply LoRA adapter");
+		}
+		return result;
+	}
+
+	/**
+	 * Apply a LoRA adapter with default scale of 1.0.
+	 * 
+	 * @param adapterHandle handle to the adapter
+	 * @return 0 on success, negative on error
+	 * @throws LlamaException if the adapter cannot be applied
+	 */
+	public int setLoRAAdapter(long adapterHandle) throws LlamaException {
+		return setLoRAAdapter(adapterHandle, 1.0f);
+	}
+
+	/**
+	 * Remove a specific LoRA adapter from the context.
+	 * 
+	 * @param adapterHandle handle to the adapter
+	 * @return 0 on success, negative on error
+	 * @throws LlamaException if the adapter cannot be removed
+	 */
+	public int removeLoRAAdapter(long adapterHandle) throws LlamaException {
+		int result = removeLoRAAdapterNative(adapterHandle);
+		if (result < 0) {
+			throw new LlamaException("Failed to remove LoRA adapter");
+		}
+		return result;
+	}
+
+	/**
+	 * Clear all LoRA adapters from the current context.
+	 */
+	public void clearLoRAAdapters() {
+		clearLoRAAdaptersNative();
+	}
+
+	/**
+	 * Apply a control vector to guide model behavior.
+	 * Control vectors can steer generation towards specific styles or topics.
+	 * 
+	 * @param controlVector float array containing the control vector, or null to clear
+	 * @return 0 on success, negative on error
+	 * @throws LlamaException if the control vector cannot be applied
+	 */
+	public int applyControlVector(float[] controlVector) throws LlamaException {
+		int result = applyControlVectorNative(controlVector);
+		if (result < 0) {
+			throw new LlamaException("Failed to apply control vector");
+		}
+		return result;
+	}
+
+	/**
+	 * Clear the current control vector.
+	 * 
+	 * @return 0 on success, negative on error
+	 * @throws LlamaException if the control vector cannot be cleared
+	 */
+	public int clearControlVector() throws LlamaException {
+		return applyControlVector(null);
+	}
+
+	/**
+	 * Get metadata value from a LoRA adapter.
+	 * 
+	 * @param adapterHandle handle to the adapter
+	 * @param key metadata key to retrieve
+	 * @return metadata value, or null if not found
+	 * @throws LlamaException if the adapter handle is invalid
+	 */
+	public String getLoRAAdapterMetadata(long adapterHandle, String key) throws LlamaException {
+		if (key == null || key.trim().isEmpty()) {
+			throw new IllegalArgumentException("Key cannot be null or empty");
+		}
+		String value = getLoRAAdapterMetadataNative(adapterHandle, key);
+		return value;
+	}
+
+	/**
+	 * Get the number of metadata entries in a LoRA adapter.
+	 * 
+	 * @param adapterHandle handle to the adapter
+	 * @return number of metadata entries
+	 * @throws LlamaException if the adapter handle is invalid
+	 */
+	public int getLoRAAdapterMetadataCount(long adapterHandle) throws LlamaException {
+		int count = getLoRAAdapterMetadataCountNative(adapterHandle);
+		if (count < 0) {
+			throw new LlamaException("Failed to get metadata count for adapter");
+		}
+		return count;
+	}
+
+	/**
+	 * Get metadata key by index from a LoRA adapter.
+	 * 
+	 * @param adapterHandle handle to the adapter
+	 * @param index index of the metadata entry
+	 * @return metadata key, or null if index is out of bounds
+	 * @throws LlamaException if the adapter handle is invalid
+	 */
+	public String getLoRAAdapterMetadataKey(long adapterHandle, int index) throws LlamaException {
+		return getLoRAAdapterMetadataKeyNative(adapterHandle, index);
+	}
+
+	/**
+	 * Get metadata value by index from a LoRA adapter.
+	 * 
+	 * @param adapterHandle handle to the adapter
+	 * @param index index of the metadata entry
+	 * @return metadata value, or null if index is out of bounds
+	 * @throws LlamaException if the adapter handle is invalid
+	 */
+	public String getLoRAAdapterMetadataValue(long adapterHandle, int index) throws LlamaException {
+		return getLoRAAdapterMetadataValueNative(adapterHandle, index);
+	}
+
+	/**
+	 * Check if the LoRA adapter is an ALORA (Adaptive LoRA) and get invocation token count.
+	 * 
+	 * @param adapterHandle handle to the adapter
+	 * @return number of invocation tokens, or 0 if not ALORA
+	 * @throws LlamaException if the adapter handle is invalid
+	 */
+	public long getAloraInvocationTokenCount(long adapterHandle) throws LlamaException {
+		return getAloraInvocationTokenCountNative(adapterHandle);
+	}
+
+	/**
+	 * Get ALORA invocation tokens if the adapter supports them.
+	 * 
+	 * @param adapterHandle handle to the adapter
+	 * @return array of invocation tokens, or empty array if not ALORA
+	 * @throws LlamaException if the adapter handle is invalid
+	 */
+	public int[] getAloraInvocationTokens(long adapterHandle) throws LlamaException {
+		int[] tokens = getAloraInvocationTokensNative(adapterHandle);
+		return tokens != null ? tokens : new int[0];
+	}
+
+	/**
 	 * Sets a callback for native llama.cpp log messages.
 	 * Per default, log messages are written in JSON to stdout. Note, that in text mode the callback will be also
 	 * invoked with log messages of the GGML backend, while JSON mode can only access request log messages.
@@ -394,6 +577,20 @@ public class LlamaModel implements AutoCloseable {
 	private native long setSequenceStateData(byte[] stateData, int sequenceId);
 	private native long saveSequenceToFile(String path, int sequenceId, int[] tokens);
 	private native int[] loadSequenceFromFile(String path, int sequenceId, int maxTokens);
+
+	// LoRA adapter native methods
+	private native long loadLoRAAdapterNative(String loraPath);
+	private native void freeLoRAAdapterNative(long adapterHandle);
+	private native int setLoRAAdapterNative(long adapterHandle, float scale);
+	private native int removeLoRAAdapterNative(long adapterHandle);
+	private native void clearLoRAAdaptersNative();
+	private native int applyControlVectorNative(float[] data);
+	private native String getLoRAAdapterMetadataNative(long adapterHandle, String key);
+	private native int getLoRAAdapterMetadataCountNative(long adapterHandle);
+	private native String getLoRAAdapterMetadataKeyNative(long adapterHandle, int index);
+	private native String getLoRAAdapterMetadataValueNative(long adapterHandle, int index);
+	private native long getAloraInvocationTokenCountNative(long adapterHandle);
+	private native int[] getAloraInvocationTokensNative(long adapterHandle);
 
 	public static String jsonSchemaToGrammar(String schema) {
 		return new String(jsonSchemaToGrammarBytes(schema), StandardCharsets.UTF_8);

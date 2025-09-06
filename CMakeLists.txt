@@ -71,6 +71,7 @@ add_library(jllama SHARED
     src/main/cpp/tokenization_handler.cpp
     src/main/cpp/state_manager.cpp
     src/main/cpp/jni_error_handler.cpp
+    src/main/cpp/lora_adapter_manager.cpp
 )
 
 set_target_properties(jllama PROPERTIES POSITION_INDEPENDENT_CODE ON)

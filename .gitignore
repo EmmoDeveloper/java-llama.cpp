@@ -5,3 +5,7 @@ build/
 models/
 /src/main/cpp.backup/
 /dist/
+hs_err_*.log
+/src/main/resources/de/kherud/llama/Linux/x86_64/libjllama.so
+/src/main/cpp/de_kherud_llama_LlamaIterator.h
+/src/main/cpp/de_kherud_llama_LlamaModel.h

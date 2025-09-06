@@ -33,19 +33,23 @@ Cannot save/load conversation state, making it impossible to:
 - `llama_state_set_data()` - Set state from bytes
 - `llama_state_get_size()` - Get state size
 
-### 2. LoRA/Adapter Support (0% coverage) - **HIGH IMPACT**
+### 2. LoRA/Adapter Support (100% coverage) - **✅ IMPLEMENTED**
 
-Cannot use fine-tuned models with LoRA adapters:
-- No loading of LoRA weights
-- No adapter switching at runtime
-- No control vectors for steering generation
+Full LoRA adapter and control vector support:
+- ✅ Loading of LoRA weights from files
+- ✅ Adapter management (set/remove/clear)
+- ✅ Control vectors for steering generation
+- ✅ Metadata access and ALORA support
 
-**Missing all 12 LoRA functions including:**
+**All 12 LoRA functions implemented:**
 - `llama_adapter_lora_init()` - Load LoRA adapters
 - `llama_adapter_lora_free()` - Free LoRA resources
 - `llama_set_adapter_lora()` - Apply LoRA to context
-- `llama_clear_adapter_lora()` - Remove LoRA from context
+- `llama_rm_adapter_lora()` - Remove specific adapter
+- `llama_clear_adapter_lora()` - Remove all adapters
 - `llama_apply_adapter_cvec()` - Apply control vectors
+- `llama_adapter_meta_*()` - Access adapter metadata
+- `llama_adapter_get_alora_*()` - ALORA invocation tokens
 
 ### 3. Advanced Sampling (8.1% coverage) - **MEDIUM IMPACT**
 
@@ -138,7 +142,7 @@ The Java wrapper exposes only 13 JNI methods that use 23 llama.cpp functions:
 | **Memory/KV Cache**    | **5.3%**  | 1/19       | ❌ Minimal  |
 | **Utility**            | **4.6%**  | 3/65       | ❌ Minimal  |
 | **State Persistence**  | **0%**    | 0/5        | ❌ None     |
-| **LoRA/Adapters**      | **0%**    | 0/12       | ❌ None     |
+| **LoRA/Adapters**      | **100%**  | 12/12      | ✅ Full     |
 | **Quantization**       | **0%**    | 0/2        | ❌ None     |
 | **Metadata**           | **0%**    | 0/4        | ❌ None     |
 
@@ -181,11 +185,20 @@ All state management functions are missing, preventing:
 - State serialization
 - Checkpoint/restore functionality
 
-#### LoRA/Adapters (0% coverage - 0/12 functions)
-Complete absence of LoRA support means:
-- Cannot use fine-tuned LoRA weights
-- No runtime adapter switching
-- No control vector support
+#### LoRA/Adapters (100% coverage - 12/12 functions) ✅
+**Fully Implemented:**
+- `llama_adapter_lora_init()` - Load LoRA adapters from files
+- `llama_adapter_lora_free()` - Free LoRA adapter resources
+- `llama_set_adapter_lora()` - Apply LoRA adapter to context
+- `llama_rm_adapter_lora()` - Remove specific LoRA adapter
+- `llama_clear_adapter_lora()` - Clear all LoRA adapters
+- `llama_apply_adapter_cvec()` - Apply control vectors
+- `llama_adapter_meta_val_str()` - Get adapter metadata values
+- `llama_adapter_meta_count()` - Get adapter metadata count
+- `llama_adapter_meta_key_by_index()` - Get metadata keys by index
+- `llama_adapter_meta_val_str_by_index()` - Get metadata values by index
+- `llama_adapter_get_alora_n_invocation_tokens()` - Get ALORA token count
+- `llama_adapter_get_alora_invocation_tokens()` - Get ALORA tokens
 
 #### Quantization (0% coverage - 0/2 functions)
 - `llama_model_quantize()` - Cannot quantize models programmatically
@@ -220,9 +233,9 @@ Cannot access:
    - Add `llama_state_save_file()` and `llama_state_load_file()`
    - Enable conversation resumption and checkpointing
 
-2. **Add LoRA Support**
-   - Implement `llama_adapter_lora_init()` and related functions
-   - Critical for using fine-tuned models
+2. **✅ LoRA Support - COMPLETED**
+   - ✅ All `llama_adapter_lora_*()` functions implemented
+   - ✅ Full support for fine-tuned models and control vectors
 
 ### Priority 2: Medium-Impact Features
 3. **Expand Sampling Options**
@@ -249,7 +262,7 @@ Cannot access:
 The current Java wrapper provides basic inference capabilities but lacks critical features for production use cases. With only 10.9% API coverage, significant functionality gaps exist in:
 
 - State management (no persistence)
-- Fine-tuning support (no LoRA)
+- ✅ Fine-tuning support (LoRA implemented)
 - Advanced generation control (limited sampling)
 - Memory optimization (minimal cache control)
 

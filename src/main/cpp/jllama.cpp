@@ -20,6 +20,7 @@
 #include "model_manager.h"
 #include "tokenization_handler.h"
 #include "state_manager.h"
+#include "lora_adapter_manager.h"
 
 // Global server management
 std::mutex g_servers_mutex;
@@ -886,6 +887,67 @@ JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_saveSequenceToFile
 JNIEXPORT jintArray JNICALL Java_de_kherud_llama_LlamaModel_loadSequenceFromFile
   (JNIEnv* env, jobject obj, jstring path, jint seq_id, jint max_tokens) {
     return StateManager::loadSequenceFromFile(env, obj, path, seq_id, max_tokens);
+}
+
+// LoRA adapter functions
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_loadLoRAAdapterNative
+  (JNIEnv* env, jobject obj, jstring lora_path) {
+    return LoRAAdapterManager::loadAdapter(env, obj, lora_path);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_freeLoRAAdapterNative
+  (JNIEnv* env, jclass cls, jlong adapter_handle) {
+    LoRAAdapterManager::freeAdapter(env, adapter_handle);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_setLoRAAdapterNative
+  (JNIEnv* env, jobject obj, jlong adapter_handle, jfloat scale) {
+    return LoRAAdapterManager::setAdapter(env, obj, adapter_handle, scale);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_removeLoRAAdapterNative
+  (JNIEnv* env, jobject obj, jlong adapter_handle) {
+    return LoRAAdapterManager::removeAdapter(env, obj, adapter_handle);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_clearLoRAAdaptersNative
+  (JNIEnv* env, jobject obj) {
+    LoRAAdapterManager::clearAdapters(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_applyControlVectorNative
+  (JNIEnv* env, jobject obj, jfloatArray data) {
+    return LoRAAdapterManager::applyControlVector(env, obj, data);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getLoRAAdapterMetadataNative
+  (JNIEnv* env, jclass cls, jlong adapter_handle, jstring key) {
+    return LoRAAdapterManager::getAdapterMetaValue(env, adapter_handle, key);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getLoRAAdapterMetadataCountNative
+  (JNIEnv* env, jclass cls, jlong adapter_handle) {
+    return LoRAAdapterManager::getAdapterMetaCount(env, adapter_handle);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getLoRAAdapterMetadataKeyNative
+  (JNIEnv* env, jclass cls, jlong adapter_handle, jint index) {
+    return LoRAAdapterManager::getAdapterMetaKeyByIndex(env, adapter_handle, index);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getLoRAAdapterMetadataValueNative
+  (JNIEnv* env, jclass cls, jlong adapter_handle, jint index) {
+    return LoRAAdapterManager::getAdapterMetaValueByIndex(env, adapter_handle, index);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getAloraInvocationTokenCountNative
+  (JNIEnv* env, jclass cls, jlong adapter_handle) {
+    return LoRAAdapterManager::getAloraInvocationTokenCount(env, adapter_handle);
+}
+
+JNIEXPORT jintArray JNICALL Java_de_kherud_llama_LlamaModel_getAloraInvocationTokensNative
+  (JNIEnv* env, jclass cls, jlong adapter_handle) {
+    return LoRAAdapterManager::getAloraInvocationTokens(env, adapter_handle);
 }
 
 } // extern "C"
