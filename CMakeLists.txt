@@ -75,6 +75,7 @@ add_library(jllama SHARED
     src/main/cpp/advanced_sampler_manager.cpp
     src/main/cpp/kv_cache_manager.cpp
     src/main/cpp/model_info_manager.cpp
+    src/main/cpp/quantization_manager.cpp
 )
 
 set_target_properties(jllama PROPERTIES POSITION_INDEPENDENT_CODE ON)

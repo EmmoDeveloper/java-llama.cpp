@@ -11,6 +11,10 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+/**
+ * To run this test download the model from here <a href="https://huggingface.co/mradermacher/jina-reranker-v1-tiny-en-GGUF/tree/main">...</a>
+ * remove .enableEmbedding() from model setup and add .enableReRanking() and then enable the test.
+ */
 public class LlamaModelTest {
 
 	private static final String prefix = "public static String removeNonAscii(String s) {\n    // ";
@@ -159,14 +163,8 @@ public class LlamaModelTest {
 		Assert.assertEquals(4096, embedding.length);
 	}
 
-
 	@Ignore
-	/**
-	 * To run this test download the model from here https://huggingface.co/mradermacher/jina-reranker-v1-tiny-en-GGUF/tree/main
-	 * remove .enableEmbedding() from model setup and add .enableReRanking() and then enable the test.
-	 */
 	public void testReRanking() {
-
 		String query = "Machine learning is";
 		String [] TEST_DOCUMENTS = new String[] {
 			"A machine is a physical system that uses power to apply forces and control movement to perform an action. The term is commonly applied to artificial devices, such as those employing engines or motors, but also to natural biological macromolecules, such as molecular machines.",
@@ -253,9 +251,9 @@ public class LlamaModelTest {
 		PrintStream stdOut = System.out;
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		@SuppressWarnings("ImplicitDefaultCharsetUsage") PrintStream printStream = new PrintStream(outputStream);
-		System.setOut(printStream);
 
-		try {
+		try (printStream) {
+			System.setOut(printStream);
 			InferenceParameters params = new InferenceParameters(prefix)
 				.setNPredict(nPredict)
 				.setSeed(42);
@@ -263,7 +261,6 @@ public class LlamaModelTest {
 		} finally {
 			System.out.flush();
 			System.setOut(stdOut);
-			printStream.close();
 		}
 
 		return outputStream.toString();
@@ -282,14 +279,7 @@ public class LlamaModelTest {
 		return lines;
 	}
 
-	private static final class LogMessage {
-		private final LogLevel level;
-		private final String text;
-
-		private LogMessage(LogLevel level, String text) {
-			this.level = level;
-			this.text = text;
-		}
+	private record LogMessage(LogLevel level, String text) {
 	}
 
 	@Test

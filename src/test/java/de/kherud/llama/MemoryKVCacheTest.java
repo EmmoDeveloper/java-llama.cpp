@@ -16,7 +16,7 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testCopySequence() throws Exception {
+	public void testCopySequence() {
 		try (LlamaModel model = createModel()) {
 			// Generate context in sequence 0
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT).setNPredict(5);
@@ -49,7 +49,7 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testCopySequenceWithRange() throws Exception {
+	public void testCopySequenceWithRange() {
 		try (LlamaModel model = createModel()) {
 			// Generate context in sequence 0
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT).setNPredict(10);
@@ -64,11 +64,11 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testKeepSequence() throws Exception {
+	public void testKeepSequence() {
 		try (LlamaModel model = createModel()) {
 			// Generate context in multiple sequences
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT).setNPredict(3);
-			
+
 			// Generate in sequence 0
 			String result1 = model.complete(params);
 			Assert.assertNotNull("First completion should not be null", result1);
@@ -84,7 +84,7 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testAddPositionDelta() throws Exception {
+	public void testAddPositionDelta() {
 		try (LlamaModel model = createModel()) {
 			// Generate context in sequence 0
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT).setNPredict(5);
@@ -99,7 +99,7 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testDividePositions() throws Exception {
+	public void testDividePositions() {
 		try (LlamaModel model = createModel()) {
 			// Generate context in sequence 0
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT).setNPredict(8);
@@ -114,7 +114,7 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testSequencePositionQueries() throws Exception {
+	public void testSequencePositionQueries() {
 		try (LlamaModel model = createModel()) {
 			// Generate context in sequence 0
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT).setNPredict(3);
@@ -147,17 +147,17 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testCanShiftContext() throws Exception {
+	public void testCanShiftContext() {
 		try (LlamaModel model = createModel()) {
 			boolean canShift = model.canShiftContext();
-			
+
 			// Just verify we get a boolean response
 			System.out.println("Context shifting support: " + canShift);
 		}
 	}
 
 	@Test
-	public void testClearMemory() throws Exception {
+	public void testClearMemory() {
 		try (LlamaModel model = createModel()) {
 			// Generate some context first
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT).setNPredict(3);
@@ -183,7 +183,7 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testRemoveSequenceTokens() throws Exception {
+	public void testRemoveSequenceTokens() {
 		try (LlamaModel model = createModel()) {
 			// Generate context in sequence 0
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT).setNPredict(8);
@@ -192,7 +192,7 @@ public class MemoryKVCacheTest {
 
 			// Remove tokens from positions 2-5 in sequence 0
 			boolean removed = model.removeSequenceTokens(0, 2, 6);
-			
+
 			// Result depends on whether there were tokens to remove
 			System.out.println("Token removal result: " + removed);
 
@@ -203,7 +203,7 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testInvalidSequenceOperations() throws Exception {
+	public void testInvalidSequenceOperations() {
 		try (LlamaModel model = createModel()) {
 			// Test invalid sequence IDs
 			try {
@@ -233,7 +233,7 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testInvalidPositionOperations() throws Exception {
+	public void testInvalidPositionOperations() {
 		try (LlamaModel model = createModel()) {
 			// Test invalid positions
 			try {
@@ -271,7 +271,7 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testSequenceBranching() throws Exception {
+	public void testSequenceBranching() {
 		try (LlamaModel model = createModel()) {
 			// Generate initial context in sequence 0
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT).setNPredict(5);
@@ -293,7 +293,7 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testMemoryOptimization() throws Exception {
+	public void testMemoryOptimization() {
 		try (LlamaModel model = createModel()) {
 			// Create multiple sequences with different content
 			InferenceParameters params1 = new InferenceParameters("Hello").setNPredict(3);
@@ -305,7 +305,7 @@ public class MemoryKVCacheTest {
 
 			// Copy to sequence 1 and modify
 			model.copySequence(0, 1, 0, -1);
-			
+
 			// Add some position shifts to sequence 1
 			model.addPositionDelta(1, 0, -1, 5);
 
@@ -325,7 +325,7 @@ public class MemoryKVCacheTest {
 	}
 
 	@Test
-	public void testLargeSequenceOperations() throws Exception {
+	public void testLargeSequenceOperations() {
 		try (LlamaModel model = createModel()) {
 			// Generate longer context to test with more substantial data
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT + " jumps over the lazy dog").setNPredict(15);

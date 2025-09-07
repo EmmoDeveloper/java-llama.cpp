@@ -24,6 +24,7 @@
 #include "advanced_sampler_manager.h"
 #include "kv_cache_manager.h"
 #include "model_info_manager.h"
+#include "quantization_manager.h"
 
 // Global server management
 std::mutex g_servers_mutex;
@@ -1310,6 +1311,17 @@ JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_isEogTokenNative
 JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_isControlTokenNative
   (JNIEnv* env, jobject obj, jint token) {
     return ModelInfoManager::isControlToken(env, obj, token);
+}
+
+// Quantization JNI bindings
+JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaQuantizer_getDefaultQuantizationParamsNative
+  (JNIEnv* env, jclass cls) {
+    return QuantizationManager::getDefaultQuantizationParams(env);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaQuantizer_quantizeModelNative
+  (JNIEnv* env, jclass cls, jstring inputPath, jstring outputPath, jobject params) {
+    return QuantizationManager::quantizeModel(env, inputPath, outputPath, params);
 }
 
 } // extern "C"

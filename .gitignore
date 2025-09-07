@@ -10,3 +10,4 @@ hs_err_*.log
 /src/main/cpp/de_kherud_llama_LlamaIterator.h
 /src/main/cpp/de_kherud_llama_LlamaModel.h
 /src/main/cpp/de_kherud_llama_LlamaSampler.h
+/src/main/cpp/de_kherud_llama_LlamaQuantizer.h

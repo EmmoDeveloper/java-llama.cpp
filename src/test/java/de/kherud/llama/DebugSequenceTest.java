@@ -5,7 +5,7 @@ import org.junit.Test;
 public class DebugSequenceTest {
 
 	@Test
-	public void testSequenceDebug() throws Exception {
+	public void testSequenceDebug() {
 		System.out.println("=== Debug Sequence State Test ===");
 		try {
 			ModelParameters params = new ModelParameters()

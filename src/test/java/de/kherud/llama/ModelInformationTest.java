@@ -15,7 +15,7 @@ public class ModelInformationTest {
 	}
 
 	@Test
-	public void testModelParameterCount() throws Exception {
+	public void testModelParameterCount() {
 		try (LlamaModel model = createModel()) {
 			long paramCount = model.getModelParameterCount();
 
@@ -31,7 +31,7 @@ public class ModelInformationTest {
 	}
 
 	@Test
-	public void testModelSize() throws Exception {
+	public void testModelSize() {
 		try (LlamaModel model = createModel()) {
 			long modelSize = model.getModelSize();
 
@@ -47,7 +47,7 @@ public class ModelInformationTest {
 	}
 
 	@Test
-	public void testModelMetadata() throws Exception {
+	public void testModelMetadata() {
 		try (LlamaModel model = createModel()) {
 			// Test metadata count
 			int metadataCount = model.getModelMetadataCount();
@@ -85,7 +85,7 @@ public class ModelInformationTest {
 	}
 
 	@Test
-	public void testVocabularyInfo() throws Exception {
+	public void testVocabularyInfo() {
 		try (LlamaModel model = createModel()) {
 			// Test vocabulary type
 			int vocabType = model.getVocabularyType();
@@ -105,7 +105,7 @@ public class ModelInformationTest {
 	}
 
 	@Test
-	public void testSpecialTokens() throws Exception {
+	public void testSpecialTokens() {
 		try (LlamaModel model = createModel()) {
 			// Test special token retrieval
 			int bosToken = model.getBosToken();
@@ -140,7 +140,7 @@ public class ModelInformationTest {
 	}
 
 	@Test
-	public void testTokenInformation() throws Exception {
+	public void testTokenInformation() {
 		try (LlamaModel model = createModel()) {
 			int vocabSize = model.getVocabularySize();
 
@@ -160,7 +160,7 @@ public class ModelInformationTest {
 	}
 
 	@Test
-	public void testTokenChecking() throws Exception {
+	public void testTokenChecking() {
 		try (LlamaModel model = createModel()) {
 			int bosToken = model.getBosToken();
 			int eosToken = model.getEosToken();
@@ -192,7 +192,7 @@ public class ModelInformationTest {
 	}
 
 	@Test
-	public void testInvalidInputs() throws Exception {
+	public void testInvalidInputs() {
 		try (LlamaModel model = createModel()) {
 			// Test negative metadata index
 			try {
@@ -230,7 +230,7 @@ public class ModelInformationTest {
 	}
 
 	@Test
-	public void testModelIntrospection() throws Exception {
+	public void testModelIntrospection() {
 		try (LlamaModel model = createModel()) {
 			// Comprehensive model information display
 			System.out.println("\n=== MODEL INTROSPECTION ===");
@@ -271,7 +271,7 @@ public class ModelInformationTest {
 	}
 
 	@Test
-	public void testTokenSampling() throws Exception {
+	public void testTokenSampling() {
 		try (LlamaModel model = createModel()) {
 			// Test that we can get information about tokens used in a simple string
 			String testString = "Hello world";
@@ -298,7 +298,7 @@ public class ModelInformationTest {
 	}
 
 	@Test
-	public void testLargeTokenIds() throws Exception {
+	public void testLargeTokenIds() {
 		try (LlamaModel model = createModel()) {
 			int vocabSize = model.getVocabularySize();
 

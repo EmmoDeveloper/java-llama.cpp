@@ -20,7 +20,7 @@ public class StatePersistenceTest {
 	}
 
 	@Test
-	public void testGetStateSize() throws Exception {
+	public void testGetStateSize() {
 		try (LlamaModel model = createModel()) {
 			// Generate some context first by encoding text
 			model.encode(TEST_PROMPT);
@@ -34,7 +34,7 @@ public class StatePersistenceTest {
 	}
 
 	@Test
-	public void testGetAndSetStateData() throws Exception {
+	public void testGetAndSetStateData() {
 		try (LlamaModel model = createModel()) {
 			// Generate some context
 			int[] tokens = model.encode(TEST_PROMPT);
@@ -144,7 +144,7 @@ public class StatePersistenceTest {
 	}
 
 	@Test
-	public void testSequenceStateSize() throws Exception {
+	public void testSequenceStateSize() {
 		try (LlamaModel model = createModel()) {
 			// Get sequence state size for unused sequence - may be small but non-zero
 			long seqStateSize = model.getSequenceStateSize(0);
@@ -166,7 +166,7 @@ public class StatePersistenceTest {
 	}
 
 	@Test
-	public void testSequenceStateData() throws Exception {
+	public void testSequenceStateData() {
 		try (LlamaModel model = createModel()) {
 			// Test unused sequence returns minimal state
 			byte[] seqStateData = model.getSequenceState(0);
@@ -245,7 +245,7 @@ public class StatePersistenceTest {
 	}
 
 	@Test
-	public void testInvalidArguments() throws Exception {
+	public void testInvalidArguments() {
 		try (LlamaModel model = createModel()) {
 			try {
 				model.saveState(null);

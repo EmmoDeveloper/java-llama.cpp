@@ -5,7 +5,7 @@ import org.junit.Test;
 public class DebugBasicTest {
 
 	@Test
-	public void testBasicOperations() throws Exception {
+	public void testBasicOperations() {
 		System.out.println("=== Debug Basic Operations ===");
 		ModelParameters params = new ModelParameters()
 			.setModel("models/codellama-7b.Q2_K.gguf")

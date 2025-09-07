@@ -14,12 +14,12 @@ import static org.junit.Assert.*;
 public class AdvancedSamplingTest {
 
 	@BeforeClass
-	public static void setup() throws Exception {
+	public static void setup() {
 		System.setProperty("de.kherud.llama.lib.path", "src/main/resources/de/kherud/llama/Linux/x86_64");
 	}
 
 	@Test
-	public void testLlamaSamplerUtilityClass() throws Exception {
+	public void testLlamaSamplerUtilityClass() {
 		// Test LlamaSampler static methods (no model required)
 		long greedy = LlamaSampler.createGreedy();
 		assertTrue("Greedy sampler handle should be valid", greedy > 0);
@@ -43,7 +43,7 @@ public class AdvancedSamplingTest {
 	}
 
 	@Test
-	public void testSamplerChains() throws Exception {
+	public void testSamplerChains() {
 		// Test LlamaSampler chain functionality
 		long chain = LlamaSampler.createChain();
 		assertTrue("Sampler chain handle should be valid", chain > 0);
@@ -61,7 +61,7 @@ public class AdvancedSamplingTest {
 	}
 
 	@Test
-	public void testAdvancedSamplers() throws Exception {
+	public void testAdvancedSamplers() {
 		// Test advanced samplers from LlamaSampler class
 		long xtc = LlamaSampler.createXtc(0.5f, 0.1f, 1, 42);
 		assertTrue("XTC sampler handle should be valid", xtc > 0);
@@ -85,7 +85,7 @@ public class AdvancedSamplingTest {
 	}
 
 	@Test
-	public void testInvalidHandles() throws Exception {
+	public void testInvalidHandles() {
 		// Test that invalid handles don't crash the JVM
 		try {
 			LlamaSampler.free(-1);
@@ -97,7 +97,7 @@ public class AdvancedSamplingTest {
 	}
 
 	@Test
-	public void testSamplerNames() throws Exception {
+	public void testSamplerNames() {
 		// Test sampler name functionality
 		long greedy = LlamaSampler.createGreedy();
 		long temp = LlamaSampler.createTemperature(0.8f);
