@@ -22,6 +22,7 @@
 #include "state_manager.h"
 #include "lora_adapter_manager.h"
 #include "advanced_sampler_manager.h"
+#include "kv_cache_manager.h"
 
 // Global server management
 std::mutex g_servers_mutex;
@@ -1166,6 +1167,52 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaSampler_resetSamplerNative
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaSampler_acceptTokenNative
   (JNIEnv* env, jclass cls, jlong samplerHandle, jint token) {
     AdvancedSamplerManager::acceptToken(env, samplerHandle, token);
+}
+
+// KV Cache Management JNI bindings
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_copySequenceNative
+  (JNIEnv* env, jobject obj, jint srcSeqId, jint dstSeqId, jint p0, jint p1) {
+    KVCacheManager::copySequence(env, obj, srcSeqId, dstSeqId, p0, p1);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_keepSequenceNative
+  (JNIEnv* env, jobject obj, jint seqId) {
+    KVCacheManager::keepSequence(env, obj, seqId);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_addPositionDeltaNative
+  (JNIEnv* env, jobject obj, jint seqId, jint p0, jint p1, jint delta) {
+    KVCacheManager::addPositionDelta(env, obj, seqId, p0, p1, delta);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_dividePositionsNative
+  (JNIEnv* env, jobject obj, jint seqId, jint p0, jint p1, jint divisor) {
+    KVCacheManager::dividePositions(env, obj, seqId, p0, p1, divisor);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getSequenceMinPositionNative
+  (JNIEnv* env, jobject obj, jint seqId) {
+    return KVCacheManager::getSequenceMinPosition(env, obj, seqId);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getSequenceMaxPositionNative
+  (JNIEnv* env, jobject obj, jint seqId) {
+    return KVCacheManager::getSequenceMaxPosition(env, obj, seqId);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_canShiftContextNative
+  (JNIEnv* env, jobject obj) {
+    return KVCacheManager::canShiftContext(env, obj);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_clearMemoryNative
+  (JNIEnv* env, jobject obj, jboolean clearData) {
+    KVCacheManager::clearMemory(env, obj, clearData);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_removeSequenceTokensNative
+  (JNIEnv* env, jobject obj, jint seqId, jint p0, jint p1) {
+    return KVCacheManager::removeSequenceTokens(env, obj, seqId, p0, p1);
 }
 
 } // extern "C"

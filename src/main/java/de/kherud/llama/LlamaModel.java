@@ -866,6 +866,174 @@ public class LlamaModel implements AutoCloseable {
 		return tokens != null ? tokens : new int[0];
 	}
 
+	// ===== MEMORY/KV CACHE MANAGEMENT =====
+	
+	/**
+	 * Copy KV cache data from one sequence to another within a position range.
+	 * Useful for branching conversations or saving checkpoints.
+	 * 
+	 * @param srcSeqId source sequence ID to copy from
+	 * @param dstSeqId destination sequence ID to copy to
+	 * @param p0 start position (inclusive)
+	 * @param p1 end position (exclusive, -1 for end of sequence)
+	 * @throws LlamaException if the copy operation fails
+	 */
+	public void copySequence(int srcSeqId, int dstSeqId, int p0, int p1) throws LlamaException {
+		if (srcSeqId < 0 || dstSeqId < 0) {
+			throw new IllegalArgumentException("Sequence IDs must be non-negative");
+		}
+		if (p0 < 0) {
+			throw new IllegalArgumentException("Start position must be non-negative");
+		}
+		if (p1 >= 0 && p1 <= p0) {
+			throw new IllegalArgumentException("End position must be greater than start position");
+		}
+		copySequenceNative(srcSeqId, dstSeqId, p0, p1);
+	}
+	
+	/**
+	 * Mark a sequence to be kept in memory while clearing others.
+	 * Useful for memory management when working with multiple sequences.
+	 * 
+	 * @param seqId sequence ID to keep
+	 * @throws LlamaException if the operation fails
+	 */
+	public void keepSequence(int seqId) throws LlamaException {
+		if (seqId < 0) {
+			throw new IllegalArgumentException("Sequence ID must be non-negative");
+		}
+		keepSequenceNative(seqId);
+	}
+	
+	/**
+	 * Add a position delta to all positions in a sequence within a range.
+	 * Useful for shifting sequence positions after insertions.
+	 * 
+	 * @param seqId sequence ID to modify
+	 * @param p0 start position (inclusive)
+	 * @param p1 end position (exclusive, -1 for end of sequence)
+	 * @param delta position delta to add (can be negative)
+	 * @throws LlamaException if the operation fails
+	 */
+	public void addPositionDelta(int seqId, int p0, int p1, int delta) throws LlamaException {
+		if (seqId < 0) {
+			throw new IllegalArgumentException("Sequence ID must be non-negative");
+		}
+		if (p0 < 0) {
+			throw new IllegalArgumentException("Start position must be non-negative");
+		}
+		if (p1 >= 0 && p1 <= p0) {
+			throw new IllegalArgumentException("End position must be greater than start position");
+		}
+		addPositionDeltaNative(seqId, p0, p1, delta);
+	}
+	
+	/**
+	 * Divide all positions in a sequence within a range by a divisor.
+	 * Useful for position compression or scaling operations.
+	 * 
+	 * @param seqId sequence ID to modify
+	 * @param p0 start position (inclusive)
+	 * @param p1 end position (exclusive, -1 for end of sequence)
+	 * @param divisor divisor to divide positions by (must be positive)
+	 * @throws LlamaException if the operation fails
+	 */
+	public void dividePositions(int seqId, int p0, int p1, int divisor) throws LlamaException {
+		if (seqId < 0) {
+			throw new IllegalArgumentException("Sequence ID must be non-negative");
+		}
+		if (p0 < 0) {
+			throw new IllegalArgumentException("Start position must be non-negative");
+		}
+		if (p1 >= 0 && p1 <= p0) {
+			throw new IllegalArgumentException("End position must be greater than start position");
+		}
+		if (divisor <= 0) {
+			throw new IllegalArgumentException("Divisor must be positive");
+		}
+		dividePositionsNative(seqId, p0, p1, divisor);
+	}
+	
+	/**
+	 * Get the minimum position for a sequence in the KV cache.
+	 * 
+	 * @param seqId sequence ID to query
+	 * @return minimum position in the sequence
+	 * @throws LlamaException if the operation fails
+	 */
+	public int getSequenceMinPosition(int seqId) throws LlamaException {
+		if (seqId < 0) {
+			throw new IllegalArgumentException("Sequence ID must be non-negative");
+		}
+		return getSequenceMinPositionNative(seqId);
+	}
+	
+	/**
+	 * Get the maximum position for a sequence in the KV cache.
+	 * 
+	 * @param seqId sequence ID to query
+	 * @return maximum position in the sequence
+	 * @throws LlamaException if the operation fails
+	 */
+	public int getSequenceMaxPosition(int seqId) throws LlamaException {
+		if (seqId < 0) {
+			throw new IllegalArgumentException("Sequence ID must be non-negative");
+		}
+		return getSequenceMaxPositionNative(seqId);
+	}
+	
+	/**
+	 * Check if the memory system supports context shifting.
+	 * Context shifting allows extending conversations beyond the context window.
+	 * 
+	 * @return true if context shifting is supported
+	 * @throws LlamaException if the capability cannot be determined
+	 */
+	public boolean canShiftContext() throws LlamaException {
+		return canShiftContextNative();
+	}
+	
+	/**
+	 * Clear the KV cache memory with options for data clearing.
+	 * 
+	 * @param clearData if true, clear the actual data; if false, only clear metadata
+	 * @throws LlamaException if the operation fails
+	 */
+	public void clearMemory(boolean clearData) throws LlamaException {
+		clearMemoryNative(clearData);
+	}
+	
+	/**
+	 * Clear the KV cache memory (both data and metadata).
+	 * 
+	 * @throws LlamaException if the operation fails
+	 */
+	public void clearMemory() throws LlamaException {
+		clearMemory(true);
+	}
+	
+	/**
+	 * Remove tokens from a sequence within a specific position range.
+	 * 
+	 * @param seqId sequence ID to modify
+	 * @param p0 start position (inclusive)
+	 * @param p1 end position (exclusive, -1 for end of sequence)
+	 * @return true if tokens were removed, false otherwise
+	 * @throws LlamaException if the operation fails
+	 */
+	public boolean removeSequenceTokens(int seqId, int p0, int p1) throws LlamaException {
+		if (seqId < 0) {
+			throw new IllegalArgumentException("Sequence ID must be non-negative");
+		}
+		if (p0 < 0) {
+			throw new IllegalArgumentException("Start position must be non-negative");
+		}
+		if (p1 >= 0 && p1 <= p0) {
+			throw new IllegalArgumentException("End position must be greater than start position");
+		}
+		return removeSequenceTokensNative(seqId, p0, p1);
+	}
+
 	/**
 	 * Sets a callback for native llama.cpp log messages.
 	 * Per default, log messages are written in JSON to stdout. Note, that in text mode the callback will be also
@@ -1016,6 +1184,17 @@ public class LlamaModel implements AutoCloseable {
 	private static native void acceptTokenNative(long samplerHandle, int token);
 	private static native void resetSamplerNative(long samplerHandle);
 	private static native String getSamplerNameNative(long samplerHandle);
+	
+	// Memory/KV cache management native methods
+	private native void copySequenceNative(int srcSeqId, int dstSeqId, int p0, int p1);
+	private native void keepSequenceNative(int seqId);
+	private native void addPositionDeltaNative(int seqId, int p0, int p1, int delta);
+	private native void dividePositionsNative(int seqId, int p0, int p1, int divisor);
+	private native int getSequenceMinPositionNative(int seqId);
+	private native int getSequenceMaxPositionNative(int seqId);
+	private native boolean canShiftContextNative();
+	private native void clearMemoryNative(boolean clearData);
+	private native boolean removeSequenceTokensNative(int seqId, int p0, int p1);
 
 	public static String jsonSchemaToGrammar(String schema) {
 		return new String(jsonSchemaToGrammarBytes(schema), StandardCharsets.UTF_8);
