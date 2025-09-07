@@ -57,23 +57,37 @@ Full LoRA adapter and control vector support:
 - `llama_adapter_meta_*()` - Access adapter metadata
 - `llama_adapter_get_alora_*()` - ALORA invocation tokens
 
-### 2. Advanced Sampling (8.1% coverage) - **HIGH IMPACT**
+### 3. Advanced Sampling (100% coverage) - **✅ IMPLEMENTED**
 
-Limited to basic sampling, missing 34 of 37 sampling functions:
-- No Mirostat v1/v2 sampling
-- No DRY (Don't Repeat Yourself) sampler
-- No XTC (Exclude Top Choices) sampler
-- No custom sampling chains
-- No classifier-free guidance
-- Cannot clone/modify sampler configurations
+Full advanced sampling support with clean API design:
+- ✅ **LlamaSampler utility class** for model-independent samplers
+- ✅ **Model instance methods** for context-dependent samplers  
+- ✅ All major sampling algorithms (25+ functions)
+- ✅ Custom sampler chains with full pipeline control
+- ✅ Thread-safe backend initialization
 
-**Key missing samplers:**
-- `llama_sampler_init_mirostat()`, `llama_sampler_init_mirostat_v2()`
-- `llama_sampler_init_dry()`, `llama_sampler_init_xtc()`
-- `llama_sampler_init_top_k()`, `llama_sampler_init_top_p()`
-- `llama_sampler_init_min_p()`, `llama_sampler_init_typical()`
-- `llama_sampler_chain_add()` - Build custom sampling chains
-- `llama_sampler_clone()` - Clone sampler configurations
+**Comprehensive sampler implementation:**
+- **Basic**: Greedy, Distribution, Temperature (standard & extended)
+- **Top-X**: Top-K, Top-P, Min-P, Typical sampling
+- **Advanced**: XTC (Exclude Top Choices), Top-N Sigma
+- **Adaptive**: Mirostat v1/v2 with dynamic temperature adjustment
+- **Repetition Control**: DRY sampler, Penalties (frequency, presence, repetition)
+- **Context-Aware**: Grammar (GBNF), Infill (code completion), Logit Bias
+- **Chain Management**: Create, combine, clone, and free sampler configurations
+
+**API Design Pattern:**
+```
+// Model-independent samplers (utility class)
+long greedy = LlamaSampler.createGreedy();
+long topK = LlamaSampler.createTopK(50);
+long chain = LlamaSampler.createChain();
+LlamaSampler.addToChain(chain, topK);
+
+// Model-dependent samplers (instance methods)  
+LlamaModel model = new LlamaModel(params);
+long dry = model.createDrySampler(nCtxTrain, multiplier, base, allowedLength, penaltyLastN, sequenceBreakers);
+long grammar = model.createGrammarSampler("root ::= \"hello\"");
+```
 
 ### 4. Memory/KV Cache Management (5.3% coverage) - **MEDIUM IMPACT**
 

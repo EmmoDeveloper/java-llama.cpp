@@ -72,6 +72,7 @@ add_library(jllama SHARED
     src/main/cpp/state_manager.cpp
     src/main/cpp/jni_error_handler.cpp
     src/main/cpp/lora_adapter_manager.cpp
+    src/main/cpp/advanced_sampler_manager.cpp
 )
 
 set_target_properties(jllama PROPERTIES POSITION_INDEPENDENT_CODE ON)

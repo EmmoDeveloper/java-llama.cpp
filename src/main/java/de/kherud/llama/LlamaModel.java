@@ -346,6 +346,343 @@ public class LlamaModel implements AutoCloseable {
 		return loadSequenceState(filePath, sequenceId, -1);
 	}
 
+	// ===== ADVANCED SAMPLING METHODS =====
+	
+	/**
+	 * Create a greedy sampler that always selects the highest probability token.
+	 * Deterministic sampling strategy with no randomness.
+	 * 
+	 * @return sampler handle
+	 * @throws LlamaException if the sampler cannot be created
+	 */
+	public static long createGreedySampler() throws LlamaException {
+		long handle = createGreedySamplerNative();
+		if (handle == -1) {
+			throw new LlamaException("Failed to create greedy sampler");
+		}
+		return handle;
+	}
+	
+	/**
+	 * Create a distribution sampler for probabilistic token selection.
+	 * 
+	 * @param seed random seed for reproducibility
+	 * @return sampler handle
+	 * @throws LlamaException if the sampler cannot be created
+	 */
+	public static long createDistributionSampler(int seed) throws LlamaException {
+		long handle = createDistributionSamplerNative(seed);
+		if (handle == -1) {
+			throw new LlamaException("Failed to create distribution sampler");
+		}
+		return handle;
+	}
+	
+	/**
+	 * Create a Top-K sampler that considers only the K most likely tokens.
+	 * 
+	 * @param k number of top tokens to consider (must be positive)
+	 * @return sampler handle
+	 * @throws LlamaException if the sampler cannot be created
+	 */
+	public static long createTopKSampler(int k) throws LlamaException {
+		if (k <= 0) {
+			throw new IllegalArgumentException("Top-K value must be positive");
+		}
+		long handle = createTopKSamplerNative(k);
+		if (handle == -1) {
+			throw new LlamaException("Failed to create top-k sampler");
+		}
+		return handle;
+	}
+	
+	/**
+	 * Create a Top-P (nucleus) sampler that considers tokens within probability mass p.
+	 * 
+	 * @param p probability mass threshold (0.0-1.0)
+	 * @param minKeep minimum number of tokens to keep
+	 * @return sampler handle
+	 * @throws LlamaException if the sampler cannot be created
+	 */
+	public static long createTopPSampler(float p, int minKeep) throws LlamaException {
+		if (p < 0.0f || p > 1.0f) {
+			throw new IllegalArgumentException("Top-P value must be between 0.0 and 1.0");
+		}
+		if (minKeep < 0) {
+			throw new IllegalArgumentException("Min keep must be non-negative");
+		}
+		long handle = createTopPSamplerNative(p, minKeep);
+		if (handle == -1) {
+			throw new LlamaException("Failed to create top-p sampler");
+		}
+		return handle;
+	}
+	
+	/**
+	 * Create a Min-P sampler that filters tokens below probability threshold.
+	 * 
+	 * @param p minimum probability threshold (0.0-1.0)
+	 * @param minKeep minimum number of tokens to keep
+	 * @return sampler handle
+	 * @throws LlamaException if the sampler cannot be created
+	 */
+	public static long createMinPSampler(float p, int minKeep) throws LlamaException {
+		if (p < 0.0f || p > 1.0f) {
+			throw new IllegalArgumentException("Min-P value must be between 0.0 and 1.0");
+		}
+		if (minKeep < 0) {
+			throw new IllegalArgumentException("Min keep must be non-negative");
+		}
+		long handle = createMinPSamplerNative(p, minKeep);
+		if (handle == -1) {
+			throw new LlamaException("Failed to create min-p sampler");
+		}
+		return handle;
+	}
+	
+	/**
+	 * Create a temperature sampler that controls randomness in token selection.
+	 * Higher temperature = more random, lower temperature = more deterministic.
+	 * 
+	 * @param temperature sampling temperature (0.0+ recommended 0.1-2.0)
+	 * @return sampler handle
+	 * @throws LlamaException if the sampler cannot be created
+	 */
+	public static long createTemperatureSampler(float temperature) throws LlamaException {
+		if (temperature < 0.0f) {
+			throw new IllegalArgumentException("Temperature must be non-negative");
+		}
+		long handle = createTemperatureSamplerNative(temperature);
+		if (handle == -1) {
+			throw new LlamaException("Failed to create temperature sampler");
+		}
+		return handle;
+	}
+	
+	/**
+	 * Create an extended temperature sampler with additional parameters.
+	 * 
+	 * @param temp base temperature
+	 * @param delta temperature adjustment
+	 * @param exponent temperature exponent
+	 * @return sampler handle
+	 * @throws LlamaException if the sampler cannot be created
+	 */
+	public static long createExtendedTemperatureSampler(float temp, float delta, float exponent) throws LlamaException {
+		if (temp < 0.0f) {
+			throw new IllegalArgumentException("Temperature must be non-negative");
+		}
+		long handle = createExtendedTemperatureSamplerNative(temp, delta, exponent);
+		if (handle == -1) {
+			throw new LlamaException("Failed to create extended temperature sampler");
+		}
+		return handle;
+	}
+	
+	/**
+	 * Create a typical sampler that selects tokens with typical entropy.
+	 * 
+	 * @param p typical sampling threshold (0.0-1.0)
+	 * @param minKeep minimum number of tokens to keep
+	 * @return sampler handle
+	 * @throws LlamaException if the sampler cannot be created
+	 */
+	public static long createTypicalSampler(float p, int minKeep) throws LlamaException {
+		if (p < 0.0f || p > 1.0f) {
+			throw new IllegalArgumentException("Typical sampling p value must be between 0.0 and 1.0");
+		}
+		if (minKeep < 0) {
+			throw new IllegalArgumentException("Min keep must be non-negative");
+		}
+		long handle = createTypicalSamplerNative(p, minKeep);
+		if (handle == -1) {
+			throw new LlamaException("Failed to create typical sampler");
+		}
+		return handle;
+	}
+	
+	/**
+	 * Create an XTC (Exclude Top Choices) sampler.
+	 * 
+	 * @param p XTC probability threshold (0.0-1.0)
+	 * @param t XTC threshold value
+	 * @param minKeep minimum number of tokens to keep
+	 * @param seed random seed
+	 * @return sampler handle
+	 * @throws LlamaException if the sampler cannot be created
+	 */
+	public static long createXtcSampler(float p, float t, int minKeep, int seed) throws LlamaException {
+		if (p < 0.0f || p > 1.0f) {
+			throw new IllegalArgumentException("XTC p value must be between 0.0 and 1.0");
+		}
+		if (t < 0.0f) {
+			throw new IllegalArgumentException("XTC threshold must be non-negative");
+		}
+		if (minKeep < 0) {
+			throw new IllegalArgumentException("Min keep must be non-negative");
+		}
+		long handle = createXtcSamplerNative(p, t, minKeep, seed);
+		if (handle == -1) {
+			throw new LlamaException("Failed to create XTC sampler");
+		}
+		return handle;
+	}
+	
+	/**
+	 * Create a Mirostat sampler for dynamic temperature adjustment.
+	 * 
+	 * @param nVocab vocabulary size
+	 * @param seed random seed
+	 * @param tau target surprise level
+	 * @param eta learning rate
+	 * @param m window size
+	 * @return sampler handle
+	 * @throws LlamaException if the sampler cannot be created
+	 */
+	public static long createMirostatSampler(int nVocab, int seed, float tau, float eta, int m) throws LlamaException {
+		if (nVocab <= 0) {
+			throw new IllegalArgumentException("Vocabulary size must be positive");
+		}
+		if (tau <= 0.0f) {
+			throw new IllegalArgumentException("Mirostat tau must be positive");
+		}
+		if (eta <= 0.0f) {
+			throw new IllegalArgumentException("Mirostat eta must be positive");
+		}
+		if (m <= 0) {
+			throw new IllegalArgumentException("Mirostat m must be positive");
+		}
+		long handle = createMirostatSamplerNative(nVocab, seed, tau, eta, m);
+		if (handle == -1) {
+			throw new LlamaException("Failed to create Mirostat sampler");
+		}
+		return handle;
+	}
+	
+	/**
+	 * Create a Mirostat V2 sampler (simplified version).
+	 * 
+	 * @param seed random seed
+	 * @param tau target surprise level
+	 * @param eta learning rate
+	 * @return sampler handle
+	 * @throws LlamaException if the sampler cannot be created
+	 */
+	public static long createMirostatV2Sampler(int seed, float tau, float eta) throws LlamaException {
+		if (tau <= 0.0f) {
+			throw new IllegalArgumentException("Mirostat V2 tau must be positive");
+		}
+		if (eta <= 0.0f) {
+			throw new IllegalArgumentException("Mirostat V2 eta must be positive");
+		}
+		long handle = createMirostatV2SamplerNative(seed, tau, eta);
+		if (handle == -1) {
+			throw new LlamaException("Failed to create Mirostat V2 sampler");
+		}
+		return handle;
+	}
+	
+	
+	/**
+	 * Create a sampler chain for combining multiple samplers.
+	 * 
+	 * @return sampler chain handle
+	 * @throws LlamaException if the chain cannot be created
+	 */
+	public static long createSamplerChain() throws LlamaException {
+		long handle = createSamplerChainNative();
+		if (handle == -1) {
+			throw new LlamaException("Failed to create sampler chain");
+		}
+		return handle;
+	}
+	
+	/**
+	 * Add a sampler to a sampler chain.
+	 * 
+	 * @param chainHandle handle to the sampler chain
+	 * @param samplerHandle handle to the sampler to add
+	 * @throws LlamaException if the sampler cannot be added
+	 */
+	public static void addToSamplerChain(long chainHandle, long samplerHandle) throws LlamaException {
+		if (chainHandle <= 0 || samplerHandle <= 0) {
+			throw new IllegalArgumentException("Invalid sampler handle");
+		}
+		addToSamplerChainNative(chainHandle, samplerHandle);
+	}
+	
+	/**
+	 * Free a sampler and release its resources.
+	 * 
+	 * @param samplerHandle handle to the sampler
+	 */
+	public static void freeSampler(long samplerHandle) {
+		if (samplerHandle > 0) {
+			freeSamplerNative(samplerHandle);
+		}
+	}
+	
+	/**
+	 * Sample a token using the specified sampler.
+	 * 
+	 * @param samplerHandle handle to the sampler
+	 * @return sampled token ID
+	 * @throws LlamaException if sampling fails
+	 */
+	public int sampleToken(long samplerHandle) throws LlamaException {
+		if (samplerHandle <= 0) {
+			throw new IllegalArgumentException("Invalid sampler handle");
+		}
+		int token = sampleTokenNative(samplerHandle);
+		if (token == -1) {
+			throw new LlamaException("Failed to sample token");
+		}
+		return token;
+	}
+	
+	/**
+	 * Accept a token in the sampler (for grammar/sequence tracking).
+	 * 
+	 * @param samplerHandle handle to the sampler
+	 * @param token token to accept
+	 */
+	public static void acceptToken(long samplerHandle, int token) {
+		if (samplerHandle > 0) {
+			acceptTokenNative(samplerHandle, token);
+		}
+	}
+	
+	/**
+	 * Reset a sampler to its initial state.
+	 * 
+	 * @param samplerHandle handle to the sampler
+	 */
+	public static void resetSampler(long samplerHandle) {
+		if (samplerHandle > 0) {
+			resetSamplerNative(samplerHandle);
+		}
+	}
+	
+	/**
+	 * Get the name of a sampler.
+	 * 
+	 * @param samplerHandle handle to the sampler
+	 * @return sampler name
+	 * @throws LlamaException if the name cannot be retrieved
+	 */
+	public static String getSamplerName(long samplerHandle) throws LlamaException {
+		if (samplerHandle <= 0) {
+			throw new IllegalArgumentException("Invalid sampler handle");
+		}
+		String name = getSamplerNameNative(samplerHandle);
+		if (name == null) {
+			throw new LlamaException("Failed to get sampler name");
+		}
+		return name;
+	}
+	
+	// ===== LORA ADAPTER METHODS =====
+	
 	/**
 	 * Load a LoRA adapter from file.
 	 * LoRA (Low-Rank Adaptation) allows fine-tuning models with minimal parameters.
@@ -591,6 +928,94 @@ public class LlamaModel implements AutoCloseable {
 	private native String getLoRAAdapterMetadataValueNative(long adapterHandle, int index);
 	private native long getAloraInvocationTokenCountNative(long adapterHandle);
 	private native int[] getAloraInvocationTokensNative(long adapterHandle);
+	
+	// ========================================
+	// Model-dependent samplers (instance methods)
+	// ========================================
+	
+	/**
+	 * Create a DRY (Don't Repeat Yourself) sampler that requires model context.
+	 * @param nCtxTrain Number of context tokens for training
+	 * @param multiplier DRY multiplier
+	 * @param base DRY base value
+	 * @param allowedLength Allowed repetition length
+	 * @param penaltyLastN Number of last tokens to penalize
+	 * @param sequenceBreakers Token IDs that break sequences
+	 * @return Handle to the created sampler
+	 */
+	public long createDrySampler(int nCtxTrain, float multiplier, float base, 
+			int allowedLength, int penaltyLastN, int[] sequenceBreakers) {
+		return createDrySamplerNative(nCtxTrain, multiplier, base, allowedLength, penaltyLastN, sequenceBreakers);
+	}
+	
+	/**
+	 * Create a grammar sampler that constrains output to match a grammar.
+	 * @param grammarStr GBNF grammar string
+	 * @param rootRule Root rule name (can be null for "root")
+	 * @return Handle to the created sampler
+	 */
+	public long createGrammarSampler(String grammarStr, String rootRule) {
+		return createGrammarSamplerNative(grammarStr, rootRule);
+	}
+	
+	/**
+	 * Create a grammar sampler with default root rule.
+	 * @param grammarStr GBNF grammar string
+	 * @return Handle to the created sampler
+	 */
+	public long createGrammarSampler(String grammarStr) {
+		return createGrammarSampler(grammarStr, null);
+	}
+	
+	/**
+	 * Create an infill sampler for code completion tasks.
+	 * @return Handle to the created sampler
+	 */
+	public long createInfillSampler() {
+		return createInfillSamplerNative();
+	}
+	
+	
+	/**
+	 * Create a logit bias sampler for token probability manipulation.
+	 * @param nVocab Vocabulary size
+	 * @param biasTokens Array of token IDs to bias
+	 * @param biasValues Array of bias values (same length as biasTokens)
+	 * @return Handle to the created sampler
+	 */
+	public long createLogitBiasSampler(int nVocab, int[] biasTokens, float[] biasValues) {
+		if (biasTokens.length != biasValues.length) {
+			throw new IllegalArgumentException("biasTokens and biasValues must have the same length");
+		}
+		return createLogitBiasSamplerNative(nVocab, biasTokens.length, biasTokens, biasValues);
+	}
+
+	// Advanced sampling native methods (DEPRECATED - Use LlamaSampler class instead)
+	private static native long createGreedySamplerNative();
+	private static native long createDistributionSamplerNative(int seed);
+	private static native long createTopKSamplerNative(int k);
+	private static native long createTopPSamplerNative(float p, int minKeep);
+	private static native long createMinPSamplerNative(float p, int minKeep);
+	private static native long createTemperatureSamplerNative(float temperature);
+	private static native long createExtendedTemperatureSamplerNative(float temp, float delta, float exponent);
+	private static native long createTypicalSamplerNative(float p, int minKeep);
+	private static native long createXtcSamplerNative(float p, float t, int minKeep, int seed);
+	private static native long createTopNSigmaSamplerNative(float n);
+	private static native long createMirostatSamplerNative(int nVocab, int seed, float tau, float eta, int m);
+	private static native long createMirostatV2SamplerNative(int seed, float tau, float eta);
+	private static native long createPenaltiesSamplerNative(int penaltyLastN, float penaltyRepeat, float penaltyFreq, float penaltyPresent);
+	private native long createDrySamplerNative(int nCtxTrain, float multiplier, float base, int allowedLength, int penaltyLastN, int[] sequenceBreakers);
+	private static native long createLogitBiasSamplerNative(int nVocab, int nLogitBias, int[] biasTokens, float[] biasValues);
+	private native long createGrammarSamplerNative(String grammarStr, String rootRule);
+	private native long createInfillSamplerNative();
+	private static native long createSamplerChainNative();
+	private static native void addToSamplerChainNative(long chainHandle, long samplerHandle);
+	private static native long cloneSamplerNative(long samplerHandle);
+	private static native void freeSamplerNative(long samplerHandle);
+	private native int sampleTokenNative(long samplerHandle);
+	private static native void acceptTokenNative(long samplerHandle, int token);
+	private static native void resetSamplerNative(long samplerHandle);
+	private static native String getSamplerNameNative(long samplerHandle);
 
 	public static String jsonSchemaToGrammar(String schema) {
 		return new String(jsonSchemaToGrammarBytes(schema), StandardCharsets.UTF_8);
