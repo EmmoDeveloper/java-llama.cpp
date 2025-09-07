@@ -23,6 +23,7 @@
 #include "lora_adapter_manager.h"
 #include "advanced_sampler_manager.h"
 #include "kv_cache_manager.h"
+#include "model_info_manager.h"
 
 // Global server management
 std::mutex g_servers_mutex;
@@ -1213,6 +1214,102 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_clearMemoryNative
 JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_removeSequenceTokensNative
   (JNIEnv* env, jobject obj, jint seqId, jint p0, jint p1) {
     return KVCacheManager::removeSequenceTokens(env, obj, seqId, p0, p1);
+}
+
+// Model Information JNI bindings
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getModelParameterCountNative
+  (JNIEnv* env, jobject obj) {
+    return ModelInfoManager::getModelParameterCount(env, obj);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getModelSizeNative
+  (JNIEnv* env, jobject obj) {
+    return ModelInfoManager::getModelSize(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getModelMetadataCountNative
+  (JNIEnv* env, jobject obj) {
+    return ModelInfoManager::getModelMetadataCount(env, obj);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getModelMetadataKeyByIndexNative
+  (JNIEnv* env, jobject obj, jint index) {
+    return ModelInfoManager::getModelMetadataKeyByIndex(env, obj, index);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getModelMetadataValueByIndexNative
+  (JNIEnv* env, jobject obj, jint index) {
+    return ModelInfoManager::getModelMetadataValueByIndex(env, obj, index);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getModelMetadataValueNative
+  (JNIEnv* env, jobject obj, jstring key) {
+    return ModelInfoManager::getModelMetadataValue(env, obj, key);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getVocabularyTypeNative
+  (JNIEnv* env, jobject obj) {
+    return ModelInfoManager::getVocabularyType(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getVocabularySizeNative
+  (JNIEnv* env, jobject obj) {
+    return ModelInfoManager::getVocabularySize(env, obj);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getTokenTextNative
+  (JNIEnv* env, jobject obj, jint token) {
+    return ModelInfoManager::getTokenText(env, obj, token);
+}
+
+JNIEXPORT jfloat JNICALL Java_de_kherud_llama_LlamaModel_getTokenScoreNative
+  (JNIEnv* env, jobject obj, jint token) {
+    return ModelInfoManager::getTokenScore(env, obj, token);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getTokenAttributesNative
+  (JNIEnv* env, jobject obj, jint token) {
+    return ModelInfoManager::getTokenAttributes(env, obj, token);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getBosTokenNative
+  (JNIEnv* env, jobject obj) {
+    return ModelInfoManager::getBosToken(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getEosTokenNative
+  (JNIEnv* env, jobject obj) {
+    return ModelInfoManager::getEosToken(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getEotTokenNative
+  (JNIEnv* env, jobject obj) {
+    return ModelInfoManager::getEotToken(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getSepTokenNative
+  (JNIEnv* env, jobject obj) {
+    return ModelInfoManager::getSepToken(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getNlTokenNative
+  (JNIEnv* env, jobject obj) {
+    return ModelInfoManager::getNlToken(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getPadTokenNative
+  (JNIEnv* env, jobject obj) {
+    return ModelInfoManager::getPadToken(env, obj);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_isEogTokenNative
+  (JNIEnv* env, jobject obj, jint token) {
+    return ModelInfoManager::isEogToken(env, obj, token);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_isControlTokenNative
+  (JNIEnv* env, jobject obj, jint token) {
+    return ModelInfoManager::isControlToken(env, obj, token);
 }
 
 } // extern "C"

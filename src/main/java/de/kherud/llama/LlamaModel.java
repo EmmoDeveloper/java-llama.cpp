@@ -48,14 +48,14 @@ public class LlamaModel implements AutoCloseable {
 		ModelParameters optimizedParams = SmartDefaults.apply(parameters);
 		loadModel(optimizedParams.toArray());
 	}
-	
+
 	/**
 	 * Internal constructor for bypassing intelligent defaults (used by GPU detection)
 	 */
 	LlamaModel() {
 		// Empty constructor for internal use
 	}
-	
+
 	/**
 	 * Internal method to load model directly without intelligent defaults (used by GPU detection)
 	 */
@@ -121,7 +121,7 @@ public class LlamaModel implements AutoCloseable {
 	/**
 	 * Get the size in bytes needed to store the complete model state.
 	 * This includes the KV cache, logits, and embeddings.
-	 * 
+	 *
 	 * @return size in bytes needed for state storage
 	 * @throws LlamaException if state size cannot be determined
 	 */
@@ -136,7 +136,7 @@ public class LlamaModel implements AutoCloseable {
 	/**
 	 * Get the complete model state as a byte array.
 	 * This includes the KV cache, logits, and embeddings.
-	 * 
+	 *
 	 * @return byte array containing the model state
 	 * @throws LlamaException if state cannot be retrieved
 	 */
@@ -151,7 +151,7 @@ public class LlamaModel implements AutoCloseable {
 	/**
 	 * Restore the model state from a byte array.
 	 * This will restore the KV cache, logits, and embeddings.
-	 * 
+	 *
 	 * @param stateData byte array containing the model state
 	 * @return number of bytes loaded from the state data
 	 * @throws LlamaException if state cannot be restored
@@ -170,7 +170,7 @@ public class LlamaModel implements AutoCloseable {
 	/**
 	 * Save the complete model state and conversation tokens to a file.
 	 * This creates a checkpoint that can be loaded later to resume the conversation.
-	 * 
+	 *
 	 * @param filePath path where the state file should be saved
 	 * @param tokens conversation tokens to save with the state (can be null)
 	 * @throws LlamaException if state cannot be saved
@@ -187,7 +187,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Save the complete model state to a file (without tokens).
-	 * 
+	 *
 	 * @param filePath path where the state file should be saved
 	 * @throws LlamaException if state cannot be saved
 	 */
@@ -198,7 +198,7 @@ public class LlamaModel implements AutoCloseable {
 	/**
 	 * Load model state and conversation tokens from a file.
 	 * This restores a previously saved checkpoint.
-	 * 
+	 *
 	 * @param filePath path to the state file
 	 * @param maxTokens maximum number of tokens to load (use -1 for default)
 	 * @return array of conversation tokens that were saved with the state
@@ -217,7 +217,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Load model state from a file with default token limit.
-	 * 
+	 *
 	 * @param filePath path to the state file
 	 * @return array of conversation tokens that were saved with the state
 	 * @throws LlamaException if state cannot be loaded
@@ -228,7 +228,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Get the size needed to store state for a specific sequence.
-	 * 
+	 *
 	 * @param sequenceId the sequence identifier
 	 * @return size in bytes needed for sequence state storage
 	 * @throws LlamaException if sequence state size cannot be determined
@@ -243,7 +243,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Get the state for a specific sequence as a byte array.
-	 * 
+	 *
 	 * @param sequenceId the sequence identifier
 	 * @return byte array containing the sequence state, empty array if sequence has no state
 	 * @throws LlamaException if sequence state cannot be retrieved
@@ -255,7 +255,7 @@ public class LlamaModel implements AutoCloseable {
 			// Return empty array for sequences with no state - this is valid
 			return new byte[0];
 		}
-		
+
 		byte[] state = getSequenceStateData(sequenceId);
 		if (state == null) {
 			throw new LlamaException("Failed to get sequence state for sequence " + sequenceId);
@@ -265,7 +265,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Restore state for a specific sequence from a byte array.
-	 * 
+	 *
 	 * @param stateData byte array containing the sequence state
 	 * @param sequenceId target sequence identifier
 	 * @return number of bytes loaded from the state data
@@ -284,7 +284,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Save state for a specific sequence to a file.
-	 * 
+	 *
 	 * @param filePath path where the sequence state should be saved
 	 * @param sequenceId the sequence identifier
 	 * @param tokens tokens for this sequence (can be null)
@@ -304,7 +304,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Save state for a specific sequence to a file (without tokens).
-	 * 
+	 *
 	 * @param filePath path where the sequence state should be saved
 	 * @param sequenceId the sequence identifier
 	 * @return number of bytes saved
@@ -316,7 +316,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Load state for a specific sequence from a file.
-	 * 
+	 *
 	 * @param filePath path to the sequence state file
 	 * @param sequenceId target sequence identifier
 	 * @param maxTokens maximum number of tokens to load
@@ -336,7 +336,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Load state for a specific sequence from a file with default token limit.
-	 * 
+	 *
 	 * @param filePath path to the sequence state file
 	 * @param sequenceId target sequence identifier
 	 * @return array of tokens for this sequence
@@ -347,11 +347,11 @@ public class LlamaModel implements AutoCloseable {
 	}
 
 	// ===== ADVANCED SAMPLING METHODS =====
-	
+
 	/**
 	 * Create a greedy sampler that always selects the highest probability token.
 	 * Deterministic sampling strategy with no randomness.
-	 * 
+	 *
 	 * @return sampler handle
 	 * @throws LlamaException if the sampler cannot be created
 	 */
@@ -362,10 +362,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
+
 	/**
 	 * Create a distribution sampler for probabilistic token selection.
-	 * 
+	 *
 	 * @param seed random seed for reproducibility
 	 * @return sampler handle
 	 * @throws LlamaException if the sampler cannot be created
@@ -377,10 +377,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
+
 	/**
 	 * Create a Top-K sampler that considers only the K most likely tokens.
-	 * 
+	 *
 	 * @param k number of top tokens to consider (must be positive)
 	 * @return sampler handle
 	 * @throws LlamaException if the sampler cannot be created
@@ -395,10 +395,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
+
 	/**
 	 * Create a Top-P (nucleus) sampler that considers tokens within probability mass p.
-	 * 
+	 *
 	 * @param p probability mass threshold (0.0-1.0)
 	 * @param minKeep minimum number of tokens to keep
 	 * @return sampler handle
@@ -417,10 +417,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
+
 	/**
 	 * Create a Min-P sampler that filters tokens below probability threshold.
-	 * 
+	 *
 	 * @param p minimum probability threshold (0.0-1.0)
 	 * @param minKeep minimum number of tokens to keep
 	 * @return sampler handle
@@ -439,11 +439,11 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
+
 	/**
 	 * Create a temperature sampler that controls randomness in token selection.
 	 * Higher temperature = more random, lower temperature = more deterministic.
-	 * 
+	 *
 	 * @param temperature sampling temperature (0.0+ recommended 0.1-2.0)
 	 * @return sampler handle
 	 * @throws LlamaException if the sampler cannot be created
@@ -458,10 +458,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
+
 	/**
 	 * Create an extended temperature sampler with additional parameters.
-	 * 
+	 *
 	 * @param temp base temperature
 	 * @param delta temperature adjustment
 	 * @param exponent temperature exponent
@@ -478,10 +478,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
+
 	/**
 	 * Create a typical sampler that selects tokens with typical entropy.
-	 * 
+	 *
 	 * @param p typical sampling threshold (0.0-1.0)
 	 * @param minKeep minimum number of tokens to keep
 	 * @return sampler handle
@@ -500,10 +500,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
+
 	/**
 	 * Create an XTC (Exclude Top Choices) sampler.
-	 * 
+	 *
 	 * @param p XTC probability threshold (0.0-1.0)
 	 * @param t XTC threshold value
 	 * @param minKeep minimum number of tokens to keep
@@ -527,10 +527,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
+
 	/**
 	 * Create a Mirostat sampler for dynamic temperature adjustment.
-	 * 
+	 *
 	 * @param nVocab vocabulary size
 	 * @param seed random seed
 	 * @param tau target surprise level
@@ -558,10 +558,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
+
 	/**
 	 * Create a Mirostat V2 sampler (simplified version).
-	 * 
+	 *
 	 * @param seed random seed
 	 * @param tau target surprise level
 	 * @param eta learning rate
@@ -581,11 +581,11 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
-	
+
+
 	/**
 	 * Create a sampler chain for combining multiple samplers.
-	 * 
+	 *
 	 * @return sampler chain handle
 	 * @throws LlamaException if the chain cannot be created
 	 */
@@ -596,10 +596,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return handle;
 	}
-	
+
 	/**
 	 * Add a sampler to a sampler chain.
-	 * 
+	 *
 	 * @param chainHandle handle to the sampler chain
 	 * @param samplerHandle handle to the sampler to add
 	 * @throws LlamaException if the sampler cannot be added
@@ -610,10 +610,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		addToSamplerChainNative(chainHandle, samplerHandle);
 	}
-	
+
 	/**
 	 * Free a sampler and release its resources.
-	 * 
+	 *
 	 * @param samplerHandle handle to the sampler
 	 */
 	public static void freeSampler(long samplerHandle) {
@@ -621,10 +621,10 @@ public class LlamaModel implements AutoCloseable {
 			freeSamplerNative(samplerHandle);
 		}
 	}
-	
+
 	/**
 	 * Sample a token using the specified sampler.
-	 * 
+	 *
 	 * @param samplerHandle handle to the sampler
 	 * @return sampled token ID
 	 * @throws LlamaException if sampling fails
@@ -639,10 +639,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return token;
 	}
-	
+
 	/**
 	 * Accept a token in the sampler (for grammar/sequence tracking).
-	 * 
+	 *
 	 * @param samplerHandle handle to the sampler
 	 * @param token token to accept
 	 */
@@ -651,10 +651,10 @@ public class LlamaModel implements AutoCloseable {
 			acceptTokenNative(samplerHandle, token);
 		}
 	}
-	
+
 	/**
 	 * Reset a sampler to its initial state.
-	 * 
+	 *
 	 * @param samplerHandle handle to the sampler
 	 */
 	public static void resetSampler(long samplerHandle) {
@@ -662,10 +662,10 @@ public class LlamaModel implements AutoCloseable {
 			resetSamplerNative(samplerHandle);
 		}
 	}
-	
+
 	/**
 	 * Get the name of a sampler.
-	 * 
+	 *
 	 * @param samplerHandle handle to the sampler
 	 * @return sampler name
 	 * @throws LlamaException if the name cannot be retrieved
@@ -680,13 +680,13 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return name;
 	}
-	
+
 	// ===== LORA ADAPTER METHODS =====
-	
+
 	/**
 	 * Load a LoRA adapter from file.
 	 * LoRA (Low-Rank Adaptation) allows fine-tuning models with minimal parameters.
-	 * 
+	 *
 	 * @param loraPath path to the LoRA adapter file
 	 * @return handle to the loaded adapter
 	 * @throws LlamaException if the adapter cannot be loaded
@@ -704,7 +704,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Free a LoRA adapter and release its resources.
-	 * 
+	 *
 	 * @param adapterHandle handle to the adapter
 	 */
 	public void freeLoRAAdapter(long adapterHandle) {
@@ -715,7 +715,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Apply a LoRA adapter to the current context with the specified scale.
-	 * 
+	 *
 	 * @param adapterHandle handle to the adapter
 	 * @param scale scale factor for the adapter (typically 1.0)
 	 * @return 0 on success, negative on error
@@ -731,7 +731,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Apply a LoRA adapter with default scale of 1.0.
-	 * 
+	 *
 	 * @param adapterHandle handle to the adapter
 	 * @return 0 on success, negative on error
 	 * @throws LlamaException if the adapter cannot be applied
@@ -742,7 +742,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Remove a specific LoRA adapter from the context.
-	 * 
+	 *
 	 * @param adapterHandle handle to the adapter
 	 * @return 0 on success, negative on error
 	 * @throws LlamaException if the adapter cannot be removed
@@ -765,7 +765,7 @@ public class LlamaModel implements AutoCloseable {
 	/**
 	 * Apply a control vector to guide model behavior.
 	 * Control vectors can steer generation towards specific styles or topics.
-	 * 
+	 *
 	 * @param controlVector float array containing the control vector, or null to clear
 	 * @return 0 on success, negative on error
 	 * @throws LlamaException if the control vector cannot be applied
@@ -780,7 +780,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Clear the current control vector.
-	 * 
+	 *
 	 * @return 0 on success, negative on error
 	 * @throws LlamaException if the control vector cannot be cleared
 	 */
@@ -790,7 +790,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Get metadata value from a LoRA adapter.
-	 * 
+	 *
 	 * @param adapterHandle handle to the adapter
 	 * @param key metadata key to retrieve
 	 * @return metadata value, or null if not found
@@ -806,7 +806,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Get the number of metadata entries in a LoRA adapter.
-	 * 
+	 *
 	 * @param adapterHandle handle to the adapter
 	 * @return number of metadata entries
 	 * @throws LlamaException if the adapter handle is invalid
@@ -821,7 +821,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Get metadata key by index from a LoRA adapter.
-	 * 
+	 *
 	 * @param adapterHandle handle to the adapter
 	 * @param index index of the metadata entry
 	 * @return metadata key, or null if index is out of bounds
@@ -833,7 +833,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Get metadata value by index from a LoRA adapter.
-	 * 
+	 *
 	 * @param adapterHandle handle to the adapter
 	 * @param index index of the metadata entry
 	 * @return metadata value, or null if index is out of bounds
@@ -845,7 +845,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Check if the LoRA adapter is an ALORA (Adaptive LoRA) and get invocation token count.
-	 * 
+	 *
 	 * @param adapterHandle handle to the adapter
 	 * @return number of invocation tokens, or 0 if not ALORA
 	 * @throws LlamaException if the adapter handle is invalid
@@ -856,7 +856,7 @@ public class LlamaModel implements AutoCloseable {
 
 	/**
 	 * Get ALORA invocation tokens if the adapter supports them.
-	 * 
+	 *
 	 * @param adapterHandle handle to the adapter
 	 * @return array of invocation tokens, or empty array if not ALORA
 	 * @throws LlamaException if the adapter handle is invalid
@@ -867,11 +867,11 @@ public class LlamaModel implements AutoCloseable {
 	}
 
 	// ===== MEMORY/KV CACHE MANAGEMENT =====
-	
+
 	/**
 	 * Copy KV cache data from one sequence to another within a position range.
 	 * Useful for branching conversations or saving checkpoints.
-	 * 
+	 *
 	 * @param srcSeqId source sequence ID to copy from
 	 * @param dstSeqId destination sequence ID to copy to
 	 * @param p0 start position (inclusive)
@@ -890,11 +890,11 @@ public class LlamaModel implements AutoCloseable {
 		}
 		copySequenceNative(srcSeqId, dstSeqId, p0, p1);
 	}
-	
+
 	/**
 	 * Mark a sequence to be kept in memory while clearing others.
 	 * Useful for memory management when working with multiple sequences.
-	 * 
+	 *
 	 * @param seqId sequence ID to keep
 	 * @throws LlamaException if the operation fails
 	 */
@@ -904,11 +904,11 @@ public class LlamaModel implements AutoCloseable {
 		}
 		keepSequenceNative(seqId);
 	}
-	
+
 	/**
 	 * Add a position delta to all positions in a sequence within a range.
 	 * Useful for shifting sequence positions after insertions.
-	 * 
+	 *
 	 * @param seqId sequence ID to modify
 	 * @param p0 start position (inclusive)
 	 * @param p1 end position (exclusive, -1 for end of sequence)
@@ -927,11 +927,11 @@ public class LlamaModel implements AutoCloseable {
 		}
 		addPositionDeltaNative(seqId, p0, p1, delta);
 	}
-	
+
 	/**
 	 * Divide all positions in a sequence within a range by a divisor.
 	 * Useful for position compression or scaling operations.
-	 * 
+	 *
 	 * @param seqId sequence ID to modify
 	 * @param p0 start position (inclusive)
 	 * @param p1 end position (exclusive, -1 for end of sequence)
@@ -953,10 +953,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		dividePositionsNative(seqId, p0, p1, divisor);
 	}
-	
+
 	/**
 	 * Get the minimum position for a sequence in the KV cache.
-	 * 
+	 *
 	 * @param seqId sequence ID to query
 	 * @return minimum position in the sequence
 	 * @throws LlamaException if the operation fails
@@ -967,10 +967,10 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return getSequenceMinPositionNative(seqId);
 	}
-	
+
 	/**
 	 * Get the maximum position for a sequence in the KV cache.
-	 * 
+	 *
 	 * @param seqId sequence ID to query
 	 * @return maximum position in the sequence
 	 * @throws LlamaException if the operation fails
@@ -981,40 +981,40 @@ public class LlamaModel implements AutoCloseable {
 		}
 		return getSequenceMaxPositionNative(seqId);
 	}
-	
+
 	/**
 	 * Check if the memory system supports context shifting.
 	 * Context shifting allows extending conversations beyond the context window.
-	 * 
+	 *
 	 * @return true if context shifting is supported
 	 * @throws LlamaException if the capability cannot be determined
 	 */
 	public boolean canShiftContext() throws LlamaException {
 		return canShiftContextNative();
 	}
-	
+
 	/**
 	 * Clear the KV cache memory with options for data clearing.
-	 * 
+	 *
 	 * @param clearData if true, clear the actual data; if false, only clear metadata
 	 * @throws LlamaException if the operation fails
 	 */
 	public void clearMemory(boolean clearData) throws LlamaException {
 		clearMemoryNative(clearData);
 	}
-	
+
 	/**
 	 * Clear the KV cache memory (both data and metadata).
-	 * 
+	 *
 	 * @throws LlamaException if the operation fails
 	 */
 	public void clearMemory() throws LlamaException {
 		clearMemory(true);
 	}
-	
+
 	/**
 	 * Remove tokens from a sequence within a specific position range.
-	 * 
+	 *
 	 * @param seqId sequence ID to modify
 	 * @param p0 start position (inclusive)
 	 * @param p1 end position (exclusive, -1 for end of sequence)
@@ -1032,6 +1032,276 @@ public class LlamaModel implements AutoCloseable {
 			throw new IllegalArgumentException("End position must be greater than start position");
 		}
 		return removeSequenceTokensNative(seqId, p0, p1);
+	}
+
+	// ===== MODEL INFORMATION ACCESS =====
+
+	/**
+	 * Get the total number of parameters in the model.
+	 * Useful for understanding model complexity and memory requirements.
+	 *
+	 * @return the total parameter count, or -1 if unavailable
+	 * @throws LlamaException if the operation fails
+	 */
+	public long getModelParameterCount() throws LlamaException {
+		return getModelParameterCountNative();
+	}
+
+	/**
+	 * Get the total size of the model in bytes.
+	 * Useful for understanding storage and memory requirements.
+	 *
+	 * @return the model size in bytes, or -1 if unavailable
+	 * @throws LlamaException if the operation fails
+	 */
+	public long getModelSize() throws LlamaException {
+		return getModelSizeNative();
+	}
+
+	/**
+	 * Get the number of metadata entries in the model.
+	 * Model metadata contains information about the model architecture, training, etc.
+	 *
+	 * @return the number of metadata entries
+	 * @throws LlamaException if the operation fails
+	 */
+	public int getModelMetadataCount() throws LlamaException {
+		return getModelMetadataCountNative();
+	}
+
+	/**
+	 * Get a metadata key by its index.
+	 *
+	 * @param index the metadata entry index (0-based)
+	 * @return the metadata key, or empty string if not found
+	 * @throws LlamaException if the operation fails
+	 * @throws IllegalArgumentException if index is negative
+	 */
+	public String getModelMetadataKey(int index) throws LlamaException {
+		if (index < 0) {
+			throw new IllegalArgumentException("Metadata index must be non-negative");
+		}
+		return getModelMetadataKeyByIndexNative(index);
+	}
+
+	/**
+	 * Get a metadata value by its index.
+	 *
+	 * @param index the metadata entry index (0-based)
+	 * @return the metadata value, or empty string if not found
+	 * @throws LlamaException if the operation fails
+	 * @throws IllegalArgumentException if index is negative
+	 */
+	public String getModelMetadataValueByIndex(int index) throws LlamaException {
+		if (index < 0) {
+			throw new IllegalArgumentException("Metadata index must be non-negative");
+		}
+		return getModelMetadataValueByIndexNative(index);
+	}
+
+	/**
+	 * Get a metadata value by its key.
+	 *
+	 * @param key the metadata key to look up
+	 * @return the metadata value, or empty string if not found
+	 * @throws LlamaException if the operation fails
+	 * @throws IllegalArgumentException if key is null
+	 */
+	public String getModelMetadataValue(String key) throws LlamaException {
+		if (key == null) {
+			throw new IllegalArgumentException("Metadata key cannot be null");
+		}
+		return getModelMetadataValueNative(key);
+	}
+
+	/**
+	 * Get all model metadata as a Map for easy access.
+	 * This is a convenience method that calls the individual metadata functions.
+	 *
+	 * @return a Map containing all metadata key-value pairs
+	 * @throws LlamaException if the operation fails
+	 */
+	public Map<String, String> getModelMetadata() throws LlamaException {
+		Map<String, String> metadata = new java.util.HashMap<>();
+		int count = getModelMetadataCount();
+
+		for (int i = 0; i < count; i++) {
+			String key = getModelMetadataKey(i);
+			String value = getModelMetadataValueByIndex(i);
+			if (!key.isEmpty()) {
+				metadata.put(key, value);
+			}
+		}
+
+		return metadata;
+	}
+
+	// ===== VOCABULARY INFORMATION =====
+
+	/**
+	 * Get the vocabulary type used by this model.
+	 * Different models use different tokenization approaches.
+	 *
+	 * @return the vocabulary type as an integer constant
+	 * @throws LlamaException if the operation fails
+	 */
+	public int getVocabularyType() throws LlamaException {
+		return getVocabularyTypeNative();
+	}
+
+	/**
+	 * Get the total size of the vocabulary (number of tokens).
+	 *
+	 * @return the vocabulary size, or -1 if unavailable
+	 * @throws LlamaException if the operation fails
+	 */
+	public int getVocabularySize() throws LlamaException {
+		return getVocabularySizeNative();
+	}
+
+	/**
+	 * Get the text representation of a token.
+	 *
+	 * @param tokenId the token ID to look up
+	 * @return the text for this token, or empty string if not found
+	 * @throws LlamaException if the operation fails
+	 * @throws IllegalArgumentException if token ID is invalid
+	 */
+	public String getTokenText(int tokenId) throws LlamaException {
+		if (tokenId < 0) {
+			throw new IllegalArgumentException("Token ID must be non-negative");
+		}
+		int vocabSize = getVocabularySize();
+		if (tokenId < vocabSize) {
+			return getTokenTextNative(tokenId);
+		}
+		throw new IllegalArgumentException("Token ID larger than vocabulary size");
+	}
+
+	/**
+	 * Get the score (probability) associated with a token.
+	 * Scores are used during tokenization to determine the best token segmentation.
+	 *
+	 * @param tokenId the token ID to look up
+	 * @return the token score, or 0.0 if unavailable
+	 * @throws LlamaException if the operation fails
+	 * @throws IllegalArgumentException if token ID is invalid
+	 */
+	public float getTokenScore(int tokenId) throws LlamaException {
+		if (tokenId < 0) {
+			throw new IllegalArgumentException("Token ID must be non-negative");
+		}
+		return getTokenScoreNative(tokenId);
+	}
+
+	/**
+	 * Get the attributes/flags associated with a token.
+	 * Token attributes provide information about token properties.
+	 *
+	 * @param tokenId the token ID to look up
+	 * @return the token attributes as bit flags, or 0 if unavailable
+	 * @throws LlamaException if the operation fails
+	 * @throws IllegalArgumentException if token ID is invalid
+	 */
+	public int getTokenAttributes(int tokenId) throws LlamaException {
+		if (tokenId < 0) {
+			throw new IllegalArgumentException("Token ID must be non-negative");
+		}
+		return getTokenAttributesNative(tokenId);
+	}
+
+	// ===== SPECIAL TOKENS =====
+
+	/**
+	 * Get the Beginning-of-Sentence (BOS) token ID.
+	 *
+	 * @return the BOS token ID, or -1 if not available
+	 * @throws LlamaException if the operation fails
+	 */
+	public int getBosToken() throws LlamaException {
+		return getBosTokenNative();
+	}
+
+	/**
+	 * Get the End-of-Sentence (EOS) token ID.
+	 *
+	 * @return the EOS token ID, or -1 if not available
+	 * @throws LlamaException if the operation fails
+	 */
+	public int getEosToken() throws LlamaException {
+		return getEosTokenNative();
+	}
+
+	/**
+	 * Get the End-of-Turn (EOT) token ID.
+	 *
+	 * @return the EOT token ID, or -1 if not available
+	 * @throws LlamaException if the operation fails
+	 */
+	public int getEotToken() throws LlamaException {
+		return getEotTokenNative();
+	}
+
+	/**
+	 * Get the Separator (SEP) token ID.
+	 *
+	 * @return the SEP token ID, or -1 if not available
+	 * @throws LlamaException if the operation fails
+	 */
+	public int getSepToken() throws LlamaException {
+		return getSepTokenNative();
+	}
+
+	/**
+	 * Get the Newline (NL) token ID.
+	 *
+	 * @return the NL token ID, or -1 if not available
+	 * @throws LlamaException if the operation fails
+	 */
+	public int getNlToken() throws LlamaException {
+		return getNlTokenNative();
+	}
+
+	/**
+	 * Get the Padding (PAD) token ID.
+	 *
+	 * @return the PAD token ID, or -1 if not available
+	 * @throws LlamaException if the operation fails
+	 */
+	public int getPadToken() throws LlamaException {
+		return getPadTokenNative();
+	}
+
+	/**
+	 * Check if a token is an End-of-Generation token.
+	 * EOG tokens signal the end of text generation.
+	 *
+	 * @param tokenId the token ID to check
+	 * @return true if the token is an EOG token, false otherwise
+	 * @throws LlamaException if the operation fails
+	 * @throws IllegalArgumentException if token ID is invalid
+	 */
+	public boolean isEogToken(int tokenId) throws LlamaException {
+		if (tokenId < 0) {
+			throw new IllegalArgumentException("Token ID must be non-negative");
+		}
+		return isEogTokenNative(tokenId);
+	}
+
+	/**
+	 * Check if a token is a control token.
+	 * Control tokens have special meaning and are typically not displayed.
+	 *
+	 * @param tokenId the token ID to check
+	 * @return true if the token is a control token, false otherwise
+	 * @throws LlamaException if the operation fails
+	 * @throws IllegalArgumentException if token ID is invalid
+	 */
+	public boolean isControlToken(int tokenId) throws LlamaException {
+		if (tokenId < 0) {
+			throw new IllegalArgumentException("Token ID must be non-negative");
+		}
+		return isControlTokenNative(tokenId);
 	}
 
 	/**
@@ -1075,7 +1345,7 @@ public class LlamaModel implements AutoCloseable {
 	private native long setStateData(byte[] stateData);
 	private native boolean saveStateToFile(String path, int[] tokens);
 	private native int[] loadStateFromFile(String path, int maxTokens);
-	
+
 	// Sequence-specific state persistence
 	private native long getSequenceStateSizeNative(int sequenceId);
 	private native byte[] getSequenceStateData(int sequenceId);
@@ -1096,11 +1366,11 @@ public class LlamaModel implements AutoCloseable {
 	private native String getLoRAAdapterMetadataValueNative(long adapterHandle, int index);
 	private native long getAloraInvocationTokenCountNative(long adapterHandle);
 	private native int[] getAloraInvocationTokensNative(long adapterHandle);
-	
+
 	// ========================================
 	// Model-dependent samplers (instance methods)
 	// ========================================
-	
+
 	/**
 	 * Create a DRY (Don't Repeat Yourself) sampler that requires model context.
 	 * @param nCtxTrain Number of context tokens for training
@@ -1111,11 +1381,11 @@ public class LlamaModel implements AutoCloseable {
 	 * @param sequenceBreakers Token IDs that break sequences
 	 * @return Handle to the created sampler
 	 */
-	public long createDrySampler(int nCtxTrain, float multiplier, float base, 
+	public long createDrySampler(int nCtxTrain, float multiplier, float base,
 			int allowedLength, int penaltyLastN, int[] sequenceBreakers) {
 		return createDrySamplerNative(nCtxTrain, multiplier, base, allowedLength, penaltyLastN, sequenceBreakers);
 	}
-	
+
 	/**
 	 * Create a grammar sampler that constrains output to match a grammar.
 	 * @param grammarStr GBNF grammar string
@@ -1125,7 +1395,7 @@ public class LlamaModel implements AutoCloseable {
 	public long createGrammarSampler(String grammarStr, String rootRule) {
 		return createGrammarSamplerNative(grammarStr, rootRule);
 	}
-	
+
 	/**
 	 * Create a grammar sampler with default root rule.
 	 * @param grammarStr GBNF grammar string
@@ -1134,7 +1404,7 @@ public class LlamaModel implements AutoCloseable {
 	public long createGrammarSampler(String grammarStr) {
 		return createGrammarSampler(grammarStr, null);
 	}
-	
+
 	/**
 	 * Create an infill sampler for code completion tasks.
 	 * @return Handle to the created sampler
@@ -1142,8 +1412,8 @@ public class LlamaModel implements AutoCloseable {
 	public long createInfillSampler() {
 		return createInfillSamplerNative();
 	}
-	
-	
+
+
 	/**
 	 * Create a logit bias sampler for token probability manipulation.
 	 * @param nVocab Vocabulary size
@@ -1184,7 +1454,7 @@ public class LlamaModel implements AutoCloseable {
 	private static native void acceptTokenNative(long samplerHandle, int token);
 	private static native void resetSamplerNative(long samplerHandle);
 	private static native String getSamplerNameNative(long samplerHandle);
-	
+
 	// Memory/KV cache management native methods
 	private native void copySequenceNative(int srcSeqId, int dstSeqId, int p0, int p1);
 	private native void keepSequenceNative(int seqId);
@@ -1195,6 +1465,27 @@ public class LlamaModel implements AutoCloseable {
 	private native boolean canShiftContextNative();
 	private native void clearMemoryNative(boolean clearData);
 	private native boolean removeSequenceTokensNative(int seqId, int p0, int p1);
+
+	// Model information native methods
+	private native long getModelParameterCountNative();
+	private native long getModelSizeNative();
+	private native int getModelMetadataCountNative();
+	private native String getModelMetadataKeyByIndexNative(int index);
+	private native String getModelMetadataValueByIndexNative(int index);
+	private native String getModelMetadataValueNative(String key);
+	private native int getVocabularyTypeNative();
+	private native int getVocabularySizeNative();
+	private native String getTokenTextNative(int tokenId);
+	private native float getTokenScoreNative(int tokenId);
+	private native int getTokenAttributesNative(int tokenId);
+	private native int getBosTokenNative();
+	private native int getEosTokenNative();
+	private native int getEotTokenNative();
+	private native int getSepTokenNative();
+	private native int getNlTokenNative();
+	private native int getPadTokenNative();
+	private native boolean isEogTokenNative(int tokenId);
+	private native boolean isControlTokenNative(int tokenId);
 
 	public static String jsonSchemaToGrammar(String schema) {
 		return new String(jsonSchemaToGrammarBytes(schema), StandardCharsets.UTF_8);
