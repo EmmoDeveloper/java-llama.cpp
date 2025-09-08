@@ -79,6 +79,14 @@ JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaUtils_timeUsNative
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_setLogCallbackNative
   (JNIEnv *, jclass, jobject);
 
+/*
+ * Class:     de_kherud_llama_LlamaUtils
+ * Method:    splitPathNative
+ * Signature: (Ljava/lang/String;I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_splitPathNative
+  (JNIEnv *, jclass, jstring, jint);
+
 #ifdef __cplusplus
 }
 #endif

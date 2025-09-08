@@ -24,6 +24,13 @@ public:
 	
 	// Abort callback for long operations
 	static void setAbortCallback(JNIEnv* env, jobject obj, jobject callback);
+	
+	// Tier 2: Operational improvements
+	static void setThreadCount(JNIEnv* env, jobject obj, jint threads);
+	static void synchronizeOperations(JNIEnv* env, jobject obj);
+	static void setEmbeddingMode(JNIEnv* env, jobject obj, jboolean embeddings);
+	static void setCausalAttention(JNIEnv* env, jobject obj, jboolean causal);
+	static jstring splitPath(JNIEnv* env, jclass cls, jstring path, jint split);
 };
 
 #endif // UTILITY_MANAGER_H

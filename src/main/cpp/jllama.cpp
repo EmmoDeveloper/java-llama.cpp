@@ -668,4 +668,30 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_setAbortCallbackNative
     UtilityManager::setAbortCallback(env, obj, callback);
 }
 
+// Tier 2 Utility function JNI bindings
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_setThreadCountNative
+  (JNIEnv* env, jobject obj, jint threads) {
+    UtilityManager::setThreadCount(env, obj, threads);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_synchronizeOperationsNative
+  (JNIEnv* env, jobject obj) {
+    UtilityManager::synchronizeOperations(env, obj);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_setEmbeddingModeNative
+  (JNIEnv* env, jobject obj, jboolean embeddings) {
+    UtilityManager::setEmbeddingMode(env, obj, embeddings);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_setCausalAttentionNative
+  (JNIEnv* env, jobject obj, jboolean causal) {
+    UtilityManager::setCausalAttention(env, obj, causal);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_splitPathNative
+  (JNIEnv* env, jclass cls, jstring path, jint split) {
+    return UtilityManager::splitPath(env, cls, path, split);
+}
+
 } // extern "C"

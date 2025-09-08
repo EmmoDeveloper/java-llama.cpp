@@ -68,6 +68,23 @@ public class UtilityFunctionsTest {
 			System.out.println("   Custom log callback set successfully");
 			System.out.println();
 
+			// Test split path functionality
+			System.out.println("6. Split Path Generation:");
+			String basePath = "/models/ggml-model-q4_0";
+			String splitPath = LlamaUtils.buildSplitPath(basePath, 2);
+			System.out.println("   Base path: " + basePath);
+			System.out.println("   Split path (index 2): " + splitPath);
+			System.out.println();
+
+			System.out.println("=== Tier 1 Utility Functions Complete ===");
+			System.out.println();
+
+			System.out.println("=== Testing Tier 2 Operational Functions ===");
+			System.out.println("Note: Model-dependent functions (setThreadCount, synchronizeOperations, etc.)");
+			System.out.println("require a loaded LlamaModel instance and are tested in integration tests.");
+			System.out.println("These functions provide runtime control over model behavior and performance.");
+			System.out.println();
+
 			System.out.println("=== All Utility Functions Tested Successfully! ===");
 
 		} catch (Exception e) {

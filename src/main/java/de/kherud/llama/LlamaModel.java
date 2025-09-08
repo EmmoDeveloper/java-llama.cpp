@@ -1568,7 +1568,52 @@ public class LlamaModel implements AutoCloseable {
 		setAbortCallbackNative(callback);
 	}
 
+	/**
+	 * Dynamically adjust the number of threads used for processing.
+	 * Allows runtime optimization of thread usage.
+	 * 
+	 * @param threads number of threads to use (must be positive)
+	 */
+	public void setThreadCount(int threads) {
+		if (threads <= 0) {
+			throw new IllegalArgumentException("Thread count must be positive");
+		}
+		setThreadCountNative(threads);
+	}
+
+	/**
+	 * Synchronize all GPU/backend operations.
+	 * Ensures all pending GPU operations complete before returning.
+	 */
+	public void synchronizeOperations() {
+		synchronizeOperationsNative();
+	}
+
+	/**
+	 * Enable or disable embedding output mode.
+	 * When enabled, the model will compute and output embeddings.
+	 * 
+	 * @param enabled true to enable embedding mode, false to disable
+	 */
+	public void setEmbeddingMode(boolean enabled) {
+		setEmbeddingModeNative(enabled);
+	}
+
+	/**
+	 * Set the attention mechanism type (causal vs non-causal).
+	 * Causal attention prevents the model from seeing future tokens.
+	 * 
+	 * @param causal true for causal attention, false for non-causal
+	 */
+	public void setCausalAttention(boolean causal) {
+		setCausalAttentionNative(causal);
+	}
+
 	private native void setAbortCallbackNative(AbortCallback callback);
+	private native void setThreadCountNative(int threads);
+	private native void synchronizeOperationsNative();
+	private native void setEmbeddingModeNative(boolean embeddings);
+	private native void setCausalAttentionNative(boolean causal);
 
 	/**
 	 * Interface for abort callbacks.

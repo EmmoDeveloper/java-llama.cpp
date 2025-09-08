@@ -251,3 +251,104 @@ void UtilityManager::setAbortCallback(JNIEnv* env, jobject obj, jobject callback
 	
 	JNI_CATCH_RET(env, /* void */)
 }
+
+// ===== TIER 2: OPERATIONAL IMPROVEMENTS =====
+
+void UtilityManager::setThreadCount(JNIEnv* env, jobject obj, jint threads) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return;
+	}
+	
+	if (threads <= 0) {
+		JNIErrorHandler::throw_illegal_argument(env, "Thread count must be positive");
+		return;
+	}
+	
+	// Set the thread count for the context
+	llama_set_n_threads(server->ctx, threads, threads);
+	
+	JNI_CATCH_RET(env, /* void */)
+}
+
+void UtilityManager::synchronizeOperations(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return;
+	}
+	
+	// Synchronize all GPU/backend operations
+	llama_synchronize(server->ctx);
+	
+	JNI_CATCH_RET(env, /* void */)
+}
+
+void UtilityManager::setEmbeddingMode(JNIEnv* env, jobject obj, jboolean embeddings) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return;
+	}
+	
+	// Set whether the context should output embeddings
+	llama_set_embeddings(server->ctx, embeddings == JNI_TRUE);
+	
+	JNI_CATCH_RET(env, /* void */)
+}
+
+void UtilityManager::setCausalAttention(JNIEnv* env, jobject obj, jboolean causal) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return;
+	}
+	
+	// Set causal attention mode
+	llama_set_causal_attn(server->ctx, causal == JNI_TRUE);
+	
+	JNI_CATCH_RET(env, /* void */)
+}
+
+jstring UtilityManager::splitPath(JNIEnv* env, jclass cls, jstring path, jint split) {
+	JNI_TRY(env)
+	
+	if (!path) {
+		JNIErrorHandler::throw_illegal_argument(env, "Path cannot be null");
+		return nullptr;
+	}
+	
+	if (split < 0) {
+		JNIErrorHandler::throw_illegal_argument(env, "Split index cannot be negative");
+		return nullptr;
+	}
+	
+	std::string pathStr = JniUtils::jstring_to_string(env, path);
+	
+	// Build split path using llama_split_path
+	char splitPath[1024];  // Should be large enough for most paths
+	// Use a reasonable default split count of 4 parts if not specified otherwise
+	int split_count = 4;  // Default to 4 parts for multipart models
+	llama_split_path(splitPath, sizeof(splitPath), pathStr.c_str(), split, split_count);
+	
+	return JniUtils::string_to_jstring(env, splitPath);
+	
+	JNI_CATCH_RET(env, nullptr)
+}

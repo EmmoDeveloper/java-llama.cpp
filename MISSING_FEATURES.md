@@ -3,8 +3,8 @@
 ## Executive Summary
 
 - **Total llama.cpp API functions**: 211
-- **Functions used by Java wrapper**: 36 
-- **Overall coverage**: 17.1%
+- **Functions used by Java wrapper**: 41 
+- **Overall coverage**: 19.4%
 - **Code Architecture**: ✅ **REFACTORED** - Fully modularized with manager classes
 
 The Java wrapper now implements core inference functionality plus advanced features (State Persistence, LoRA/Adapters, Advanced Sampling, Memory/KV Cache Management), leaving 179 functions (84.8%) unexposed.
@@ -265,7 +265,7 @@ The Java wrapper exposes only 13 JNI methods that use 23 llama.cpp functions:
 | **Vocabulary**         | **100%**  | 14/26      | ✅ Full     |
 | **Memory/KV Cache**    | **100%**  | 9/9        | ✅ Full     |
 | **Model Information**  | **100%**  | 14/14      | ✅ Full     |
-| **Utility**            | **15.4%** | 10/65      | ⚠️ Limited |
+| **Utility**            | **23.1%** | 15/65      | ⚠️ Limited |
 | **State Persistence**  | **100%**  | 10/10      | ✅ Full     |
 | **LoRA/Adapters**      | **100%**  | 12/12      | ✅ Full     |
 | **Quantization**       | **0%**    | 0/2        | ❌ None     |
@@ -402,6 +402,13 @@ The Java wrapper exposes only 13 JNI methods that use 23 llama.cpp functions:
 - `llama_time_us()` - Microsecond timing for benchmarks
 - `llama_log_set()` - Custom logging callback integration
 - `llama_set_abort_callback()` - Long operation interruption
+
+**Tier 2 Operational Improvement functions implemented:**
+- `llama_set_n_threads()` - Runtime thread count control
+- `llama_synchronize()` - GPU/backend operation synchronization
+- `llama_set_embeddings()` - Embedding mode control
+- `llama_set_causal_attn()` - Causal attention mode control
+- `llama_split_path()` - Multipart model path generation
 
 ### Priority 1: Next High-Impact Features
 

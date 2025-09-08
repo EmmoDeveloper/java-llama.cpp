@@ -100,6 +100,18 @@ public class LlamaUtils {
 		setLogCallbackNative(callback);
 	}
 
+	/**
+	 * Build a split file path for multipart model files.
+	 * Useful for handling models split across multiple files.
+	 *
+	 * @param basePath the base path for the model
+	 * @param splitIndex the split file index (0, 1, 2, etc.)
+	 * @return the complete path for the specified split file
+	 */
+	public static String buildSplitPath(String basePath, int splitIndex) {
+		return splitPathNative(basePath, splitIndex);
+	}
+
 	// Native method declarations
 	private static native boolean supportsGpuOffloadNative();
 	private static native boolean supportsMmapNative();
@@ -110,6 +122,7 @@ public class LlamaUtils {
 	private static native String printSystemInfoNative();
 	private static native long timeUsNative();
 	private static native void setLogCallbackNative(LogCallback callback);
+	private static native String splitPathNative(String path, int split);
 
 	/**
 	 * Interface for custom log callbacks.
