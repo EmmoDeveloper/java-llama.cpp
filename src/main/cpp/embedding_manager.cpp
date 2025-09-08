@@ -129,3 +129,51 @@ jfloatArray EmbeddingManager::createEmbedding(JNIEnv* env, jobject obj, jstring 
 
 	JNI_CATCH_RET(env, nullptr)
 }
+
+jfloatArray EmbeddingManager::getAllEmbeddings(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_embedding_server(handle);
+	if (!server) return nullptr;
+	
+	// Get all embeddings from the context using llama_get_embeddings
+	const float* embd = llama_get_embeddings(server->ctx);
+	if (!embd) {
+		JNIErrorHandler::throw_runtime_exception(env, 
+			"No embeddings available - ensure context has been processed and embeddings are enabled");
+		return nullptr;
+	}
+	
+	// Get embedding dimension
+	int n_embd = llama_model_n_embd(server->model);
+	
+	// Create Java float array and copy embeddings
+	jfloatArray result = env->NewFloatArray(n_embd);
+	if (!result) {
+		JNIErrorHandler::throw_out_of_memory(env, 
+			"Could not allocate embedding array");
+		return nullptr;
+	}
+	
+	env->SetFloatArrayRegion(result, 0, n_embd, embd);
+	
+	return result;
+
+	JNI_CATCH_RET(env, nullptr)
+}
+
+void EmbeddingManager::setEmbeddingMode(JNIEnv* env, jobject obj, jboolean embeddings) {
+	JNI_TRY(env)
+
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_embedding_server(handle);
+	if (!server) return;
+	
+	// Set embedding mode using llama_set_embeddings
+	llama_set_embeddings(server->ctx, embeddings == JNI_TRUE);
+
+	JNI_CATCH_RET(env, /* void */)
+}

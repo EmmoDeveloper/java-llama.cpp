@@ -81,6 +81,7 @@ add_library(jllama SHARED
     src/main/cpp/template_manager.cpp
     src/main/cpp/reranking_manager.cpp
     src/main/cpp/schema_grammar_manager.cpp
+    src/main/cpp/model_loader_manager.cpp
 )
 
 set_target_properties(jllama PROPERTIES POSITION_INDEPENDENT_CODE ON)

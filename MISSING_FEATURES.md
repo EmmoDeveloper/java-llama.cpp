@@ -3,8 +3,8 @@
 ## Executive Summary
 
 - **Total llama.cpp API functions**: 211
-- **Functions used by Java wrapper**: 32 
-- **Overall coverage**: 15.2%
+- **Functions used by Java wrapper**: 36 
+- **Overall coverage**: 17.1%
 - **Code Architecture**: ✅ **REFACTORED** - Fully modularized with manager classes
 
 The Java wrapper now implements core inference functionality plus advanced features (State Persistence, LoRA/Adapters, Advanced Sampling, Memory/KV Cache Management), leaving 179 functions (84.8%) unexposed.
@@ -254,8 +254,8 @@ The Java wrapper exposes only 13 JNI methods that use 23 llama.cpp functions:
 | Category               | Coverage  | Used/Total | Status     |
 |------------------------|-----------|------------|------------|
 | **Tokenization**       | **100%**  | 3/3        | ✅ Full     |
-| **Embeddings**         | **50%**   | 2/4        | ⚠️ Partial |
-| **Model Loading**      | **50%**   | 2/4        | ⚠️ Partial |
+| **Embeddings**         | **100%**  | 4/4        | ✅ Full     |
+| **Model Loading**      | **100%**  | 4/4        | ✅ Full     |
 | **Logging**            | **33%**   | 1/3        | ⚠️ Partial |
 | **Context Management** | **25%**   | 2/8        | ⚠️ Limited |
 | **Inference**          | **16.7%** | 1/6        | ⚠️ Limited |

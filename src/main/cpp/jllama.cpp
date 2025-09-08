@@ -30,6 +30,7 @@
 #include "template_manager.h"
 #include "reranking_manager.h"
 #include "schema_grammar_manager.h"
+#include "model_loader_manager.h"
 
 // Global server management
 std::mutex g_servers_mutex;
@@ -53,6 +54,16 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_loadModel
     ModelManager::loadModel(env, obj, args);
 }
 
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_loadModelFromSplits
+  (JNIEnv* env, jclass cls, jobjectArray paths, jobject params) {
+    return ModelLoaderManager::loadModelFromSplits(env, cls, paths, params);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_saveModelToFile
+  (JNIEnv* env, jobject obj, jstring path) {
+    ModelLoaderManager::saveModelToFile(env, obj, path);
+}
+
 JNIEXPORT jintArray JNICALL Java_de_kherud_llama_LlamaModel_encode
   (JNIEnv* env, jobject obj, jstring text) {
     return TokenizationHandler::encode(env, obj, text);
@@ -66,6 +77,16 @@ JNIEXPORT jbyteArray JNICALL Java_de_kherud_llama_LlamaModel_decodeBytes
 JNIEXPORT jfloatArray JNICALL Java_de_kherud_llama_LlamaModel_embed
   (JNIEnv* env, jobject obj, jstring text) {
     return EmbeddingManager::createEmbedding(env, obj, text);
+}
+
+JNIEXPORT jfloatArray JNICALL Java_de_kherud_llama_LlamaModel_getAllEmbeddings
+  (JNIEnv* env, jobject obj) {
+    return EmbeddingManager::getAllEmbeddings(env, obj);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_setEmbeddingMode
+  (JNIEnv* env, jobject obj, jboolean embeddings) {
+    EmbeddingManager::setEmbeddingMode(env, obj, embeddings);
 }
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_delete

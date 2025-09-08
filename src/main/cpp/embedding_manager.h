@@ -7,6 +7,12 @@
 class EmbeddingManager {
 public:
 	static jfloatArray createEmbedding(JNIEnv* env, jobject obj, jstring text);
+	
+	// Get all embeddings from context (llama_get_embeddings)
+	static jfloatArray getAllEmbeddings(JNIEnv* env, jobject obj);
+	
+	// Set whether context outputs embeddings (llama_set_embeddings)
+	static void setEmbeddingMode(JNIEnv* env, jobject obj, jboolean embeddings);
 
 private:
 	static struct llama_context* getContext(JNIEnv* env, jobject obj);
