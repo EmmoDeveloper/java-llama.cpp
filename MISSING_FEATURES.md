@@ -265,7 +265,7 @@ The Java wrapper exposes only 13 JNI methods that use 23 llama.cpp functions:
 | **Vocabulary**         | **100%**  | 14/26      | ✅ Full     |
 | **Memory/KV Cache**    | **100%**  | 9/9        | ✅ Full     |
 | **Model Information**  | **100%**  | 14/14      | ✅ Full     |
-| **Utility**            | **4.6%**  | 3/65       | ❌ Minimal  |
+| **Utility**            | **15.4%** | 10/65      | ⚠️ Limited |
 | **State Persistence**  | **100%**  | 10/10      | ✅ Full     |
 | **LoRA/Adapters**      | **100%**  | 12/12      | ✅ Full     |
 | **Quantization**       | **0%**    | 0/2        | ❌ None     |
@@ -383,6 +383,25 @@ The Java wrapper exposes only 13 JNI methods that use 23 llama.cpp functions:
    - ✅ Complete model metadata and parameter information implemented
    - ✅ Full vocabulary access with all special tokens
    - ✅ Token validation and attribute checking
+
+6. **✅ Essential Utility Functions - IMPLEMENTED**
+   - ✅ System capability detection for deployment optimization
+   - ✅ Performance timing for benchmarking and monitoring
+   - ✅ System information for debugging and support
+   - ✅ Custom logging integration for application monitoring
+   - ✅ Abort callbacks for long operation interruption
+
+**All Tier 1 Utility functions implemented:**
+- `llama_supports_gpu_offload()` - GPU acceleration detection
+- `llama_supports_mmap()` - Memory mapping capability detection  
+- `llama_supports_mlock()` - Memory locking capability detection
+- `llama_supports_rpc()` - Remote processing capability detection
+- `llama_max_devices()` - Maximum GPU/device count query
+- `llama_max_parallel_sequences()` - Threading limits query
+- `llama_print_system_info()` - System information for debugging
+- `llama_time_us()` - Microsecond timing for benchmarks
+- `llama_log_set()` - Custom logging callback integration
+- `llama_set_abort_callback()` - Long operation interruption
 
 ### Priority 1: Next High-Impact Features
 

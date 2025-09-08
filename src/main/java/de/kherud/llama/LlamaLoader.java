@@ -42,15 +42,17 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 class LlamaLoader {
+	private static boolean initialized = false;
 
-	private static boolean extracted = false;
+	private LlamaLoader() {
+	}
 
 	/**
 	 * Loads the llama and jllama shared libraries
 	 */
 	static synchronized void initialize() throws UnsatisfiedLinkError {
 		// only cleanup before the first extract
-		if (!extracted) {
+		if (!initialized) {
 			cleanup();
 		}
 		if ("Mac".equals(OSInfo.getOSName())) {
@@ -63,7 +65,7 @@ class LlamaLoader {
 			}
 		}
 		loadNativeLibrary("jllama");
-		extracted = true;
+		initialized = true;
 	}
 
 	/**

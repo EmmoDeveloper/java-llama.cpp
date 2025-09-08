@@ -1557,4 +1557,28 @@ public class LlamaModel implements AutoCloseable {
 		return applyTemplate(parameters.toString());
 	}
 	public native String applyTemplate(String parametersJson);
+
+	/**
+	 * Set a callback to allow interruption of long-running operations.
+	 * Pass null to clear the callback.
+	 * 
+	 * @param callback abort callback, or null to clear
+	 */
+	public void setAbortCallback(AbortCallback callback) {
+		setAbortCallbackNative(callback);
+	}
+
+	private native void setAbortCallbackNative(AbortCallback callback);
+
+	/**
+	 * Interface for abort callbacks.
+	 */
+	public interface AbortCallback {
+		/**
+		 * Called periodically during long operations to check if they should be aborted.
+		 * 
+		 * @return true to abort the operation, false to continue
+		 */
+		boolean shouldAbort();
+	}
 }

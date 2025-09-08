@@ -31,6 +31,7 @@
 #include "reranking_manager.h"
 #include "schema_grammar_manager.h"
 #include "model_loader_manager.h"
+#include "utility_manager.h"
 
 // Global server management
 std::mutex g_servers_mutex;
@@ -614,6 +615,57 @@ JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaQuantizer_getDefaultQuantiza
 JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaQuantizer_quantizeModelNative
   (JNIEnv* env, jclass cls, jstring inputPath, jstring outputPath, jobject params) {
     return QuantizationManager::quantizeModel(env, inputPath, outputPath, params);
+}
+
+// Utility function JNI bindings
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaUtils_supportsGpuOffloadNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::supportsGpuOffload(env, cls);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaUtils_supportsMmapNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::supportsMmap(env, cls);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaUtils_supportsMlockNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::supportsMlock(env, cls);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaUtils_supportsRpcNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::supportsRpc(env, cls);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaUtils_maxDevicesNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::maxDevices(env, cls);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaUtils_maxParallelSequencesNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::maxParallelSequences(env, cls);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_printSystemInfoNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::printSystemInfo(env, cls);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaUtils_timeUsNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::timeUs(env, cls);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_setLogCallbackNative
+  (JNIEnv* env, jclass cls, jobject callback) {
+    UtilityManager::setLogCallback(env, cls, callback);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_setAbortCallbackNative
+  (JNIEnv* env, jobject obj, jobject callback) {
+    UtilityManager::setAbortCallback(env, obj, callback);
 }
 
 } // extern "C"
