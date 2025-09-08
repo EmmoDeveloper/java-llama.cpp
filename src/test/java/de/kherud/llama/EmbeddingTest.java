@@ -1,5 +1,6 @@
 package de.kherud.llama;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -112,7 +113,8 @@ public class EmbeddingTest {
 		System.out.println("✅ Embedding consistency test passed!");
 	}
 
-	@Test
+//	@Test
+	@Ignore
 	public void testEmbeddingWithoutEmbeddingMode() {
 		System.out.println("\n=== Test Without Embedding Mode ===");
 

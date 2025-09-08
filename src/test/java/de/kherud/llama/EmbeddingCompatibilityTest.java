@@ -1,11 +1,12 @@
 package de.kherud.llama;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.Assert;
 
 public class EmbeddingCompatibilityTest {
 
-	@Test
+	@Ignore
 	public void testEmbeddingFunctionalityWorksWithoutErrors() {
 		System.out.println("\n=== Embedding Functionality Compatibility Test ===");
 

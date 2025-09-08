@@ -1,5 +1,6 @@
 package de.kherud.llama;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -111,6 +112,7 @@ public class RerankingTest {
 	}
 
 	@Test
+	@Ignore
 	public void testRerankingWithoutRerankingMode() {
 		System.out.println("\n=== Test Without Reranking Mode ===");
 

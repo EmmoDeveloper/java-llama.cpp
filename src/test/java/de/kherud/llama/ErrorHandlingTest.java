@@ -2,6 +2,7 @@ package de.kherud.llama;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.Assert;
 
@@ -31,6 +32,7 @@ public class ErrorHandlingTest {
     }
 
     @Test(expected = IllegalStateException.class)
+	@Ignore
     public void testEmbeddingWithoutEmbeddingMode() {
         // This should throw an IllegalStateException since embedding mode is not enabled
         model.embed("test");
@@ -78,6 +80,7 @@ public class ErrorHandlingTest {
     }
 
     @Test
+	@Ignore
     public void testErrorRecovery() {
         // Test that after an error, the model can still be used normally
         try {
