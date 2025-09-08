@@ -27,7 +27,8 @@ public class LlamaModelTest {
 	public static void setup() {
 		System.setProperty("de.kherud.llama.lib.path", "src/main/resources/de/kherud/llama/Linux/x86_64");
 //		LlamaModel.setLogger(LogFormat.TEXT, (level, msg) -> System.out.println(level + ": " + msg));
-		model = new LlamaModel(
+		// Use the new completion-optimized factory method  
+		model = LlamaModel.forCompletion(
 			new ModelParameters()
 				.setCtxSize(512)
 				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")

@@ -48,6 +48,45 @@ public class LlamaModel implements AutoCloseable {
 		ModelParameters optimizedParams = SmartDefaults.apply(parameters);
 		loadModel(optimizedParams.toArray());
 	}
+	
+	/**
+	 * Create a model optimized for text completion and generation workloads.
+	 * This applies completion-specific optimizations including threading, batch sizes, and continuous batching.
+	 *
+	 * @param parameters the base model parameters
+	 * @return LlamaModel optimized for completion tasks
+	 * @throws LlamaException if no model could be loaded from the given file path
+	 */
+	public static LlamaModel forCompletion(ModelParameters parameters) {
+		ModelParameters optimized = WorkloadOptimizer.optimizeForCompletion(parameters);
+		return new LlamaModel(optimized);
+	}
+	
+	/**
+	 * Create a model optimized for embedding generation workloads.
+	 * This applies embedding-specific optimizations including high-throughput threading and appropriate pooling.
+	 *
+	 * @param parameters the base model parameters  
+	 * @return LlamaModel optimized for embedding tasks
+	 * @throws LlamaException if no model could be loaded from the given file path
+	 */
+	public static LlamaModel forEmbedding(ModelParameters parameters) {
+		ModelParameters optimized = WorkloadOptimizer.optimizeForEmbedding(parameters);
+		return new LlamaModel(optimized);
+	}
+	
+	/**
+	 * Create a model optimized for document reranking workloads.
+	 * This applies reranking-specific optimizations including parallel processing and rank pooling.
+	 *
+	 * @param parameters the base model parameters
+	 * @return LlamaModel optimized for reranking tasks
+	 * @throws LlamaException if no model could be loaded from the given file path
+	 */
+	public static LlamaModel forReranking(ModelParameters parameters) {
+		ModelParameters optimized = WorkloadOptimizer.optimizeForReranking(parameters);
+		return new LlamaModel(optimized);
+	}
 
 	/**
 	 * Internal constructor for bypassing intelligent defaults (used by GPU detection)

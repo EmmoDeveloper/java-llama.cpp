@@ -38,6 +38,9 @@ public class SmartDefaults {
 		// Check memory health
 		MemoryOptimizer.checkMemoryHealth();
 		
+		// Apply intelligent threading optimization
+		params = ThreadingOptimizer.optimize(params, ThreadingOptimizer.WorkloadType.GENERAL);
+		
 		// Enable Flash Attention by default if not specified
 		if (!params.parameters.containsKey("--flash-attn") && !params.parameters.containsKey("--no-flash-attn")) {
 			params.enableFlashAttn();

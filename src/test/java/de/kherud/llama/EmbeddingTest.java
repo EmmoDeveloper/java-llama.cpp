@@ -13,12 +13,12 @@ public class EmbeddingTest {
 	@BeforeClass
 	public static void setup() {
 		System.setProperty("de.kherud.llama.lib.path", "src/main/resources/de/kherud/llama/Linux/x86_64");
-		model = new LlamaModel(
+		// Use the new embedding-optimized factory method
+		model = LlamaModel.forEmbedding(
 			new ModelParameters()
 				.setCtxSize(512)
 				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(43)
-				.enableEmbedding()
 		);
 	}
 
