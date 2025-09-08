@@ -143,29 +143,61 @@ Full model introspection and vocabulary access support:
 
 ---
 
-## 🎯 Code Architecture Refactoring (COMPLETED)
+## 🎯 Code Architecture & Threading Optimization (COMPLETED)
 
-### Major Milestone: Modular Architecture Implementation
+### Major Milestone: Modular Architecture + Performance Optimization
 
-**Status**: ✅ **COMPLETED** - Full code refactoring successfully implemented
+**Status**: ✅ **COMPLETED** - Full code refactoring and C++ threading optimization successfully implemented
 
-The Java wrapper has undergone a complete architectural transformation, extracting all business logic from the monolithic `jllama.cpp` file (~1300 lines) into dedicated manager classes. This refactoring improves maintainability, testability, and future development velocity.
+The Java wrapper has undergone a complete architectural transformation, extracting all business logic from the monolithic `jllama.cpp` file (~1300 lines) into dedicated manager classes, while also implementing comprehensive C++ threading optimization for maximum performance.
 
 ### Extracted Manager Classes
 
-| Manager Class | Responsibility | Lines Extracted | Files Created |
-|---------------|----------------|-----------------|---------------|
-| **EmbeddingManager** | Text embedding generation | ~96 lines | `embedding_manager.{h,cpp}` |
-| **CompletionManager** | Completion/generation requests with JSON parsing | ~304 lines | `completion_manager.{h,cpp}` |
-| **TemplateManager** | Chat template application and message parsing | ~121 lines | `template_manager.{h,cpp}` |
-| **RerankingManager** | Document reranking with tokenization and scoring | ~181 lines | `reranking_manager.{h,cpp}` |
-| **SchemaGrammarManager** | JSON schema to GBNF grammar conversion | ~26 lines | `schema_grammar_manager.{h,cpp}` |
+| Manager Class            | Responsibility                                   | Lines Extracted | Files Created                    |
+|--------------------------|--------------------------------------------------|-----------------|----------------------------------|
+| **EmbeddingManager**     | Text embedding generation                        | ~96 lines       | `embedding_manager.{h,cpp}`      |
+| **CompletionManager**    | Completion/generation requests with JSON parsing | ~304 lines      | `completion_manager.{h,cpp}`     |
+| **TemplateManager**      | Chat template application and message parsing    | ~121 lines      | `template_manager.{h,cpp}`       |
+| **RerankingManager**     | Document reranking with tokenization and scoring | ~181 lines      | `reranking_manager.{h,cpp}`      |
+| **SchemaGrammarManager** | JSON schema to GBNF grammar conversion           | ~26 lines       | `schema_grammar_manager.{h,cpp}` |
+
+### C++ Threading Optimization System
+
+**Status**: ✅ **COMPLETED** - Comprehensive threading optimization leveraging llama.cpp's native `--threads` parameters
+
+| Component                       | Responsibility                                                | Implementation                     |
+|---------------------------------|---------------------------------------------------------------|------------------------------------|
+| **ThreadingOptimizer**          | CPU-aware thread allocation and workload optimization         | `ThreadingOptimizer.java`          |
+| **WorkloadOptimizer**           | Workload-specific parameter optimization with factory methods | `WorkloadOptimizer.java`           |
+| **ThreadingPerformanceMonitor** | Real-time performance tracking and recommendations            | `ThreadingPerformanceMonitor.java` |
+| **ThreadingConfigUtils**        | Threading profile management and persistent configuration     | `ThreadingConfigUtils.java`        |
+
+### Threading Optimization Features
+
+**✅ CPU Intelligence**: Automatic detection of cores, threads, and NUMA topology  
+**✅ Workload-Aware**: Different thread allocation for completion, embedding, and reranking  
+**✅ Performance Monitoring**: Real-time metrics tracking with optimization recommendations  
+**✅ Profile System**: Persistent threading configurations (high-performance, balanced, low-resource)  
+**✅ Factory Methods**: Simple API for workload-optimized model creation  
+**✅ Integration**: Automatic optimization through `SmartDefaults` system  
+
+### Workload-Specific Factory Methods
+
+```java
+// Simple workload-optimized model creation
+ModelParameters params = new ModelParameters().setModel("model.gguf");
+
+LlamaModel completionModel = LlamaModel.forCompletion(params);   // Balanced threading + continuous batching
+LlamaModel embeddingModel = LlamaModel.forEmbedding(params);     // High-throughput threading + mean pooling  
+LlamaModel rerankingModel = LlamaModel.forReranking(params);     // Parallel processing + rank pooling
+```
 
 ### Architecture Benefits
 
 **✅ Modular Design**: Each manager handles a single responsibility  
 **✅ Consistent Patterns**: All managers follow the same JNI error handling patterns  
 **✅ Thread Safety**: Proper mutex locking and server access maintained  
+**✅ Performance Optimized**: Intelligent C++ threading leveraging native llama.cpp performance  
 **✅ Maintainability**: Business logic now organized by functionality  
 **✅ Testability**: Individual components can be tested independently  
 **✅ Extensibility**: New features can be added as separate managers  
@@ -176,6 +208,8 @@ The Java wrapper has undergone a complete architectural transformation, extracti
 - **Resource Management**: Proper extern declarations for global server access
 - **Build Integration**: All managers integrated into CMakeLists.txt build system
 - **Delegation Pattern**: `jllama.cpp` now uses simple delegation to manager classes
+- **Native Threading**: Leverages llama.cpp's `--threads` and `--threads-batch` parameters
+- **CPU Detection**: Automatic core/thread detection with NUMA awareness
 - **Backward Compatibility**: Full API compatibility maintained
 
 ### Code Quality Improvements
@@ -184,9 +218,10 @@ The Java wrapper has undergone a complete architectural transformation, extracti
 - **DRY Principle**: Eliminated code duplication through manager pattern
 - **Single Responsibility**: Each manager has a clear, focused purpose  
 - **Consistent Error Handling**: Unified approach to JNI exception management
+- **Performance Focus**: Intelligent threading optimization for different workloads
 - **Documentation**: Each manager class is self-documenting with clear interfaces
 
-**Result**: The codebase is now more maintainable, easier to extend, and follows modern C++ design principles while maintaining full functionality and performance.
+**Result**: The codebase is now more maintainable, easier to extend, and follows modern C++ design principles while delivering optimized performance through intelligent threading for different LLM workloads.
 
 ---
 
@@ -373,9 +408,12 @@ The Java wrapper has achieved two major milestones: **enterprise-ready functiona
 - **Memory/KV Cache Management** - Complete sequence branching and optimization  
 - **Model Information & Vocabulary** - Complete introspection and token access
 
-**✅ CODE ARCHITECTURE REFACTORING**: Complete modular transformation:
+**✅ CODE ARCHITECTURE & THREADING OPTIMIZATION**: Complete transformation:
 - **Extracted ~728 lines** of business logic into 5 dedicated manager classes
+- **Implemented intelligent C++ threading** with CPU-aware workload optimization
+- **Added workload-specific factory methods** for optimized model creation
 - **Improved maintainability** through separation of concerns and consistent patterns
+- **Enhanced performance** through native threading optimization and monitoring
 - **Enhanced extensibility** with clear interfaces for future feature additions
 - **Maintained full compatibility** while modernizing the codebase architecture
 
@@ -402,6 +440,6 @@ The wrapper has evolved from basic inference to a **production-ready, enterprise
 ---
 
 *Generated on: 2025-09-08*  
-*Last major update: Code Architecture Refactoring completed*  
+*Last major update: Code Architecture & C++ Threading Optimization completed*  
 *llama.cpp version: Based on header analysis*  
 *Java wrapper version: java-llama.cpp*
