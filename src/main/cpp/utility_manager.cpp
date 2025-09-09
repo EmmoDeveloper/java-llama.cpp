@@ -352,3 +352,137 @@ jstring UtilityManager::splitPath(JNIEnv* env, jclass cls, jstring path, jint sp
 	
 	JNI_CATCH_RET(env, nullptr)
 }
+
+// ===== TIER 3: ADVANCED SYSTEM MANAGEMENT & PERFORMANCE =====
+
+jlong UtilityManager::getContextSize(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_n_ctx(server->ctx));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jlong UtilityManager::getBatchSize(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_n_batch(server->ctx));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jlong UtilityManager::getUbatchSize(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_n_ubatch(server->ctx));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jlong UtilityManager::getMaxSequences(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_n_seq_max(server->ctx));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jlong UtilityManager::getCurrentThreads(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_n_threads(server->ctx));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jlong UtilityManager::getCurrentThreadsBatch(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_n_threads_batch(server->ctx));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+void UtilityManager::attachThreadPool(JNIEnv* env, jobject obj, jlong threadpool, jlong threadpool_batch) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return;
+	}
+	
+	// Attach threadpools to the context
+	llama_attach_threadpool(server->ctx, 
+		reinterpret_cast<ggml_threadpool_t>(threadpool), 
+		reinterpret_cast<ggml_threadpool_t>(threadpool_batch));
+	
+	JNI_CATCH_RET(env, /* void */)
+}
+
+void UtilityManager::detachThreadPool(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return;
+	}
+	
+	// Detach threadpools from the context
+	llama_detach_threadpool(server->ctx);
+	
+	JNI_CATCH_RET(env, /* void */)
+}

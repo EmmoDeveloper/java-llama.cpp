@@ -31,6 +31,16 @@ public:
 	static void setEmbeddingMode(JNIEnv* env, jobject obj, jboolean embeddings);
 	static void setCausalAttention(JNIEnv* env, jobject obj, jboolean causal);
 	static jstring splitPath(JNIEnv* env, jclass cls, jstring path, jint split);
+	
+	// Tier 3: Advanced system management & performance
+	static jlong getContextSize(JNIEnv* env, jobject obj);
+	static jlong getBatchSize(JNIEnv* env, jobject obj);
+	static jlong getUbatchSize(JNIEnv* env, jobject obj);
+	static jlong getMaxSequences(JNIEnv* env, jobject obj);
+	static jlong getCurrentThreads(JNIEnv* env, jobject obj);
+	static jlong getCurrentThreadsBatch(JNIEnv* env, jobject obj);
+	static void attachThreadPool(JNIEnv* env, jobject obj, jlong threadpool, jlong threadpool_batch);
+	static void detachThreadPool(JNIEnv* env, jobject obj);
 };
 
 #endif // UTILITY_MANAGER_H

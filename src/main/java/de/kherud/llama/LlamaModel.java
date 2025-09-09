@@ -1609,11 +1609,100 @@ public class LlamaModel implements AutoCloseable {
 		setCausalAttentionNative(causal);
 	}
 
+	// ===== TIER 3: ADVANCED SYSTEM MANAGEMENT & PERFORMANCE =====
+
+	/**
+	 * Get the context window size for this model instance.
+	 * This represents the maximum number of tokens that can be processed at once.
+	 *
+	 * @return the context window size in tokens
+	 */
+	public long getContextSize() {
+		return getContextSizeNative();
+	}
+
+	/**
+	 * Get the batch processing size for this model instance.
+	 * This represents the number of tokens processed in each batch.
+	 *
+	 * @return the batch size in tokens
+	 */
+	public long getBatchSize() {
+		return getBatchSizeNative();
+	}
+
+	/**
+	 * Get the micro-batch processing size for this model instance.
+	 * This represents the number of tokens processed in each micro-batch.
+	 *
+	 * @return the micro-batch size in tokens
+	 */
+	public long getUbatchSize() {
+		return getUbatchSizeNative();
+	}
+
+	/**
+	 * Get the maximum number of sequences that can be processed simultaneously.
+	 * This determines the parallelism capabilities of the model instance.
+	 *
+	 * @return the maximum number of parallel sequences
+	 */
+	public long getMaxSequences() {
+		return getMaxSequencesNative();
+	}
+
+	/**
+	 * Get the current number of threads used for single token generation.
+	 *
+	 * @return the current thread count for generation
+	 */
+	public long getCurrentThreads() {
+		return getCurrentThreadsNative();
+	}
+
+	/**
+	 * Get the current number of threads used for batch processing.
+	 *
+	 * @return the current thread count for batch processing
+	 */
+	public long getCurrentThreadsBatch() {
+		return getCurrentThreadsBatchNative();
+	}
+
+	/**
+	 * Attach custom thread pools to this model instance.
+	 * This allows for advanced threading control in enterprise deployments.
+	 * 
+	 * @param threadpool handle to the thread pool for generation
+	 * @param threadpoolBatch handle to the thread pool for batch processing
+	 */
+	public void attachThreadPool(long threadpool, long threadpoolBatch) {
+		attachThreadPoolNative(threadpool, threadpoolBatch);
+	}
+
+	/**
+	 * Detach custom thread pools from this model instance.
+	 * This reverts to using the default threading behavior.
+	 */
+	public void detachThreadPool() {
+		detachThreadPoolNative();
+	}
+
 	private native void setAbortCallbackNative(AbortCallback callback);
 	private native void setThreadCountNative(int threads);
 	private native void synchronizeOperationsNative();
 	private native void setEmbeddingModeNative(boolean embeddings);
 	private native void setCausalAttentionNative(boolean causal);
+	
+	// Tier 3: Advanced system management & performance native methods
+	private native long getContextSizeNative();
+	private native long getBatchSizeNative();
+	private native long getUbatchSizeNative();
+	private native long getMaxSequencesNative();
+	private native long getCurrentThreadsNative();
+	private native long getCurrentThreadsBatchNative();
+	private native void attachThreadPoolNative(long threadpool, long threadpool_batch);
+	private native void detachThreadPoolNative();
 
 	/**
 	 * Interface for abort callbacks.

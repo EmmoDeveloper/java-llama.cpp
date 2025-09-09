@@ -694,4 +694,46 @@ JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_splitPathNative
     return UtilityManager::splitPath(env, cls, path, split);
 }
 
+// ===== TIER 3: ADVANCED SYSTEM MANAGEMENT & PERFORMANCE =====
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getContextSizeNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getContextSize(env, obj);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getBatchSizeNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getBatchSize(env, obj);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getUbatchSizeNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getUbatchSize(env, obj);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getMaxSequencesNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getMaxSequences(env, obj);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getCurrentThreadsNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getCurrentThreads(env, obj);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getCurrentThreadsBatchNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getCurrentThreadsBatch(env, obj);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_attachThreadPoolNative
+  (JNIEnv* env, jobject obj, jlong threadpool, jlong threadpool_batch) {
+    UtilityManager::attachThreadPool(env, obj, threadpool, threadpool_batch);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_detachThreadPoolNative
+  (JNIEnv* env, jobject obj) {
+    UtilityManager::detachThreadPool(env, obj);
+}
+
 } // extern "C"

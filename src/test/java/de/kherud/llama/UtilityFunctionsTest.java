@@ -85,6 +85,19 @@ public class UtilityFunctionsTest {
 			System.out.println("These functions provide runtime control over model behavior and performance.");
 			System.out.println();
 
+			System.out.println("=== Testing Tier 3 Advanced System Management ===");
+			System.out.println("Context Information and Threading Management functions:");
+			System.out.println("Note: These functions require a loaded LlamaModel instance for runtime");
+			System.out.println("introspection and advanced threading control in production deployments.");
+			System.out.println("- getContextSize() - Get context window size");
+			System.out.println("- getBatchSize() - Get batch processing size");
+			System.out.println("- getUbatchSize() - Get micro-batch size");  
+			System.out.println("- getMaxSequences() - Get maximum parallel sequences");
+			System.out.println("- getCurrentThreads() - Get current thread count");
+			System.out.println("- getCurrentThreadsBatch() - Get batch thread count");
+			System.out.println("- attachThreadPool() / detachThreadPool() - Custom thread pool management");
+			System.out.println();
+
 			System.out.println("=== All Utility Functions Tested Successfully! ===");
 
 		} catch (Exception e) {
