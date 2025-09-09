@@ -66,12 +66,7 @@ public class UtilityFunctionsTest {
 
 			// Test logging callback
 			out.println("5. Custom Logging:");
-			LlamaUtils.setLogCallback(new LlamaUtils.LogCallback() {
-				@Override
-				public void onLog(int level, String message) {
-					out.println("   [LOG LEVEL " + level + "] " + message.trim());
-				}
-			});
+			LlamaUtils.setLogCallback((level, message) -> out.println("   [LOG LEVEL " + level + "] " + message.trim()));
 			out.println("   Custom log callback set successfully");
 			out.println();
 
