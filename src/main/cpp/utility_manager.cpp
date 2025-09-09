@@ -486,3 +486,165 @@ void UtilityManager::detachThreadPool(JNIEnv* env, jobject obj) {
 	
 	JNI_CATCH_RET(env, /* void */)
 }
+
+// ===== TIER 4: PERFORMANCE MONITORING & MODEL ARCHITECTURE =====
+
+jstring UtilityManager::getPerformanceData(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return nullptr;
+	}
+	
+	// Get performance data
+	struct llama_perf_context_data perf_data = llama_perf_context(server->ctx);
+	
+	// Format performance data as JSON string
+	std::string perf_json = "{";
+	perf_json += "\"start_time_ms\":" + std::to_string(perf_data.t_start_ms) + ",";
+	perf_json += "\"load_time_ms\":" + std::to_string(perf_data.t_load_ms) + ",";
+	perf_json += "\"prompt_eval_time_ms\":" + std::to_string(perf_data.t_p_eval_ms) + ",";
+	perf_json += "\"eval_time_ms\":" + std::to_string(perf_data.t_eval_ms) + ",";
+	perf_json += "\"prompt_eval_count\":" + std::to_string(perf_data.n_p_eval) + ",";
+	perf_json += "\"eval_count\":" + std::to_string(perf_data.n_eval) + ",";
+	perf_json += "\"reused_count\":" + std::to_string(perf_data.n_reused);
+	perf_json += "}";
+	
+	return JniUtils::string_to_jstring(env, perf_json);
+	
+	JNI_CATCH_RET(env, nullptr)
+}
+
+void UtilityManager::printPerformanceData(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return;
+	}
+	
+	// Print performance data to stderr
+	llama_perf_context_print(server->ctx);
+	
+	JNI_CATCH_RET(env, /* void */)
+}
+
+void UtilityManager::resetPerformanceData(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return;
+	}
+	
+	// Reset performance counters
+	llama_perf_context_reset(server->ctx);
+	
+	JNI_CATCH_RET(env, /* void */)
+}
+
+jlong UtilityManager::getModelLayerCount(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_model_n_layer(server->model));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jlong UtilityManager::getModelTrainingContextSize(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_model_n_ctx_train(server->model));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jboolean UtilityManager::hasEncoder(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return JNI_FALSE;
+	}
+	
+	return llama_model_has_encoder(server->model) ? JNI_TRUE : JNI_FALSE;
+	
+	JNI_CATCH_RET(env, JNI_FALSE)
+}
+
+jboolean UtilityManager::hasDecoder(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return JNI_FALSE;
+	}
+	
+	return llama_model_has_decoder(server->model) ? JNI_TRUE : JNI_FALSE;
+	
+	JNI_CATCH_RET(env, JNI_FALSE)
+}
+
+jint UtilityManager::getRopeType(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jint>(llama_model_rope_type(server->model));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jfloat UtilityManager::getRopeFrequencyScale(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0.0f;
+	}
+	
+	return llama_model_rope_freq_scale_train(server->model);
+	
+	JNI_CATCH_RET(env, 0.0f)
+}

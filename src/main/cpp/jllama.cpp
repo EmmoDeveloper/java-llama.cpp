@@ -736,4 +736,51 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_detachThreadPoolNative
     UtilityManager::detachThreadPool(env, obj);
 }
 
+// ===== TIER 4: PERFORMANCE MONITORING & MODEL ARCHITECTURE =====
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getPerformanceDataNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getPerformanceData(env, obj);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_printPerformanceDataNative
+  (JNIEnv* env, jobject obj) {
+    UtilityManager::printPerformanceData(env, obj);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_resetPerformanceDataNative
+  (JNIEnv* env, jobject obj) {
+    UtilityManager::resetPerformanceData(env, obj);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getModelLayerCountNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getModelLayerCount(env, obj);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getModelTrainingContextSizeNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getModelTrainingContextSize(env, obj);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_hasEncoderNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::hasEncoder(env, obj);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_hasDecoderNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::hasDecoder(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getRopeTypeNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getRopeType(env, obj);
+}
+
+JNIEXPORT jfloat JNICALL Java_de_kherud_llama_LlamaModel_getRopeFrequencyScaleNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getRopeFrequencyScale(env, obj);
+}
+
 } // extern "C"

@@ -3,11 +3,11 @@
 ## Executive Summary
 
 - **Total llama.cpp API functions**: 211
-- **Functions used by Java wrapper**: 49 
-- **Overall coverage**: 23.2%
+- **Functions used by Java wrapper**: 58 
+- **Overall coverage**: 27.5%
 - **Code Architecture**: ✅ **REFACTORED** - Fully modularized with manager classes
 
-The Java wrapper now implements core inference functionality plus advanced features (State Persistence, LoRA/Adapters, Advanced Sampling, Memory/KV Cache Management), leaving 179 functions (84.8%) unexposed.
+The Java wrapper now implements core inference functionality plus advanced features (State Persistence, LoRA/Adapters, Advanced Sampling, Memory/KV Cache Management), leaving 153 functions (72.5%) unexposed.
 
 **🎯 MAJOR MILESTONE ACHIEVED**: Complete code refactoring successfully completed, extracting all business logic from the monolithic jllama.cpp file into dedicated manager classes.
 
@@ -265,7 +265,7 @@ The Java wrapper exposes only 13 JNI methods that use 23 llama.cpp functions:
 | **Vocabulary**         | **100%**  | 14/26      | ✅ Full     |
 | **Memory/KV Cache**    | **100%**  | 9/9        | ✅ Full     |
 | **Model Information**  | **100%**  | 14/14      | ✅ Full     |
-| **Utility**            | **35.4%** | 23/65      | ⚠️ Limited |
+| **Utility**            | **49.2%** | 32/65      | ⚠️ Limited |
 | **State Persistence**  | **100%**  | 10/10      | ✅ Full     |
 | **LoRA/Adapters**      | **100%**  | 12/12      | ✅ Full     |
 | **Quantization**       | **0%**    | 0/2        | ❌ None     |
@@ -410,6 +410,16 @@ The Java wrapper exposes only 13 JNI methods that use 23 llama.cpp functions:
 - `llama_set_causal_attn()` - Causal attention mode control
 - `llama_split_path()` - Multipart model path generation
 
+**Tier 3 Advanced System Management & Performance functions implemented:**
+- `llama_n_ctx()` - Get context window size for runtime introspection
+- `llama_n_batch()` - Get batch processing size for dynamic optimization
+- `llama_n_ubatch()` - Get micro-batch size for fine-grained control
+- `llama_n_seq_max()` - Get maximum parallel sequences for capacity planning
+- `llama_n_threads()` - Get current thread count for monitoring
+- `llama_n_threads_batch()` - Get batch processing thread count for tuning
+- `llama_attach_threadpool()` - Attach custom thread pools for enterprise deployments
+- `llama_detach_threadpool()` - Detach custom thread pools for resource management
+
 ### Priority 1: Next High-Impact Features
 
 No critical missing features remain. All major functionality is implemented.
@@ -465,7 +475,7 @@ The wrapper has evolved from basic inference to a **production-ready, enterprise
 
 ---
 
-*Generated on: 2025-09-08*  
-*Last major update: Code Architecture & C++ Threading Optimization completed*  
+*Generated on: 2025-09-09*  
+*Last major update: Tier 4 Utility Functions Implementation completed*  
 *llama.cpp version: Based on header analysis*  
 *Java wrapper version: java-llama.cpp*

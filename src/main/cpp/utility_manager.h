@@ -41,6 +41,17 @@ public:
 	static jlong getCurrentThreadsBatch(JNIEnv* env, jobject obj);
 	static void attachThreadPool(JNIEnv* env, jobject obj, jlong threadpool, jlong threadpool_batch);
 	static void detachThreadPool(JNIEnv* env, jobject obj);
+	
+	// Tier 4: Performance monitoring & model architecture
+	static jstring getPerformanceData(JNIEnv* env, jobject obj);
+	static void printPerformanceData(JNIEnv* env, jobject obj);
+	static void resetPerformanceData(JNIEnv* env, jobject obj);
+	static jlong getModelLayerCount(JNIEnv* env, jobject obj);
+	static jlong getModelTrainingContextSize(JNIEnv* env, jobject obj);
+	static jboolean hasEncoder(JNIEnv* env, jobject obj);
+	static jboolean hasDecoder(JNIEnv* env, jobject obj);
+	static jint getRopeType(JNIEnv* env, jobject obj);
+	static jfloat getRopeFrequencyScale(JNIEnv* env, jobject obj);
 };
 
 #endif // UTILITY_MANAGER_H

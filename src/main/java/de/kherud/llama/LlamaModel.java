@@ -1688,6 +1688,94 @@ public class LlamaModel implements AutoCloseable {
 		detachThreadPoolNative();
 	}
 
+	// ===== TIER 4: PERFORMANCE MONITORING & MODEL ARCHITECTURE =====
+
+	/**
+	 * Get detailed performance metrics as a JSON string.
+	 * Includes timing information for loading, sampling, and evaluation.
+	 *
+	 * @return JSON string containing performance metrics
+	 */
+	public String getPerformanceData() {
+		return getPerformanceDataNative();
+	}
+
+	/**
+	 * Print performance metrics to standard error.
+	 * Useful for debugging and performance analysis.
+	 */
+	public void printPerformanceData() {
+		printPerformanceDataNative();
+	}
+
+	/**
+	 * Reset all performance counters to zero.
+	 * Call this to start fresh performance measurements.
+	 */
+	public void resetPerformanceData() {
+		resetPerformanceDataNative();
+	}
+
+	/**
+	 * Get the number of layers in this model.
+	 * Useful for understanding model architecture and complexity.
+	 *
+	 * @return the number of model layers
+	 */
+	public long getModelLayerCount() {
+		return getModelLayerCountNative();
+	}
+
+	/**
+	 * Get the training context size for this model.
+	 * This is the maximum context size the model was trained with.
+	 *
+	 * @return the training context size in tokens
+	 */
+	public long getModelTrainingContextSize() {
+		return getModelTrainingContextSizeNative();
+	}
+
+	/**
+	 * Check if this model has an encoder component.
+	 * Encoder-decoder models are used for seq2seq tasks.
+	 *
+	 * @return true if the model has an encoder
+	 */
+	public boolean hasEncoder() {
+		return hasEncoderNative();
+	}
+
+	/**
+	 * Check if this model has a decoder component.
+	 * Most language models have a decoder for generation.
+	 *
+	 * @return true if the model has a decoder
+	 */
+	public boolean hasDecoder() {
+		return hasDecoderNative();
+	}
+
+	/**
+	 * Get the RoPE (Rotary Position Embedding) type used by this model.
+	 * RoPE is a position encoding method used in modern transformers.
+	 *
+	 * @return the RoPE type as an integer constant
+	 */
+	public int getRopeType() {
+		return getRopeTypeNative();
+	}
+
+	/**
+	 * Get the RoPE frequency scale factor used during training.
+	 * This affects how position embeddings are calculated.
+	 *
+	 * @return the RoPE frequency scale factor
+	 */
+	public float getRopeFrequencyScale() {
+		return getRopeFrequencyScaleNative();
+	}
+
 	private native void setAbortCallbackNative(AbortCallback callback);
 	private native void setThreadCountNative(int threads);
 	private native void synchronizeOperationsNative();
@@ -1703,6 +1791,17 @@ public class LlamaModel implements AutoCloseable {
 	private native long getCurrentThreadsBatchNative();
 	private native void attachThreadPoolNative(long threadpool, long threadpool_batch);
 	private native void detachThreadPoolNative();
+	
+	// Tier 4: Performance monitoring & model architecture native methods
+	private native String getPerformanceDataNative();
+	private native void printPerformanceDataNative();
+	private native void resetPerformanceDataNative();
+	private native long getModelLayerCountNative();
+	private native long getModelTrainingContextSizeNative();
+	private native boolean hasEncoderNative();
+	private native boolean hasDecoderNative();
+	private native int getRopeTypeNative();
+	private native float getRopeFrequencyScaleNative();
 
 	/**
 	 * Interface for abort callbacks.
