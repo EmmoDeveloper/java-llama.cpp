@@ -236,7 +236,13 @@ jint ModelInfoManager::getBosToken(JNIEnv* env, jobject obj) {
 	JNI_TRY(env)
 
 	const struct llama_vocab* vocab = getVocab(env, obj);
+	if (env->ExceptionCheck()) {
+		return -1;
+	}
 	validateVocab(env, vocab);
+	if (env->ExceptionCheck()) {
+		return -1;
+	}
 
 	llama_token token = llama_vocab_bos(vocab);
 	return static_cast<jint>(token);
@@ -359,10 +365,17 @@ const struct llama_model* ModelInfoManager::getModel(JNIEnv* env, jobject obj) {
 	jlong ctxHandle = env->GetLongField(obj, fieldId);
 	struct llama_context* ctx = reinterpret_cast<struct llama_context*>(ctxHandle);
 	if (!ctx) {
+		JNIErrorHandler::throw_runtime_exception(env, "Context is null - model not properly loaded");
 		return nullptr;
 	}
 
-	return llama_get_model(ctx);
+	const struct llama_model* model = llama_get_model(ctx);
+	if (!model) {
+		JNIErrorHandler::throw_runtime_exception(env, "Failed to get model from context");
+		return nullptr;
+	}
+
+	return model;
 }
 
 const struct llama_vocab* ModelInfoManager::getVocab(JNIEnv* env, jobject obj) {
