@@ -87,6 +87,30 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_setLogCallbackNative
 JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_splitPathNative
   (JNIEnv *, jclass, jstring, jint);
 
+/*
+ * Class:     de_kherud_llama_LlamaUtils
+ * Method:    initializeBackendNative
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_initializeBackendNative
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     de_kherud_llama_LlamaUtils
+ * Method:    freeBackendNative
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_freeBackendNative
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     de_kherud_llama_LlamaUtils
+ * Method:    initializeNumaNative
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_initializeNumaNative
+  (JNIEnv *, jclass, jint);
+
 #ifdef __cplusplus
 }
 #endif

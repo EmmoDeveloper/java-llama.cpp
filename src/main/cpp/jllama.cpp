@@ -783,4 +783,56 @@ JNIEXPORT jfloat JNICALL Java_de_kherud_llama_LlamaModel_getRopeFrequencyScaleNa
     return UtilityManager::getRopeFrequencyScale(env, obj);
 }
 
+// Tier 5: Advanced model introspection & resource control
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getModelEmbeddingDimensionNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getModelEmbeddingDimension(env, obj);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getModelAttentionHeadsNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getModelAttentionHeads(env, obj);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getModelKeyValueHeadsNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getModelKeyValueHeads(env, obj);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_isRecurrentModelNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::isRecurrentModel(env, obj);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_isDiffusionModelNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::isDiffusionModel(env, obj);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_setWarmupModeNative
+  (JNIEnv* env, jobject obj, jboolean warmup) {
+    UtilityManager::setWarmupMode(env, obj, warmup);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getFlashAttentionTypeNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getFlashAttentionType(env, obj);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_initializeBackendNative
+  (JNIEnv* env, jclass cls) {
+    UtilityManager::initializeBackend(env, cls);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_freeBackendNative
+  (JNIEnv* env, jclass cls) {
+    UtilityManager::freeBackend(env, cls);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_initializeNumaNative
+  (JNIEnv* env, jclass cls, jint strategy) {
+    UtilityManager::initializeNuma(env, cls, strategy);
+}
+
 } // extern "C"

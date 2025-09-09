@@ -52,6 +52,18 @@ public:
 	static jboolean hasDecoder(JNIEnv* env, jobject obj);
 	static jint getRopeType(JNIEnv* env, jobject obj);
 	static jfloat getRopeFrequencyScale(JNIEnv* env, jobject obj);
+	
+	// Tier 5: Advanced model introspection & resource control
+	static jlong getModelEmbeddingDimension(JNIEnv* env, jobject obj);
+	static jlong getModelAttentionHeads(JNIEnv* env, jobject obj);
+	static jlong getModelKeyValueHeads(JNIEnv* env, jobject obj);
+	static jboolean isRecurrentModel(JNIEnv* env, jobject obj);
+	static jboolean isDiffusionModel(JNIEnv* env, jobject obj);
+	static void setWarmupMode(JNIEnv* env, jobject obj, jboolean warmup);
+	static jstring getFlashAttentionType(JNIEnv* env, jobject obj);
+	static void initializeBackend(JNIEnv* env, jclass cls);
+	static void freeBackend(JNIEnv* env, jclass cls);
+	static void initializeNuma(JNIEnv* env, jclass cls, jint strategy);
 };
 
 #endif // UTILITY_MANAGER_H

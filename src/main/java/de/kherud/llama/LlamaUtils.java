@@ -112,6 +112,34 @@ public class LlamaUtils {
 		return splitPathNative(basePath, splitIndex);
 	}
 
+	/**
+	 * Initialize the llama.cpp backend globally.
+	 * This should be called once before creating any models.
+	 * Thread-safe and can be called multiple times.
+	 */
+	public static void initializeBackend() {
+		initializeBackendNative();
+	}
+
+	/**
+	 * Free the llama.cpp backend resources globally.
+	 * This should be called when shutting down the application.
+	 * After this call, no llama.cpp functions should be used.
+	 */
+	public static void freeBackend() {
+		freeBackendNative();
+	}
+
+	/**
+	 * Initialize NUMA optimizations for multi-socket systems.
+	 * This improves performance on systems with multiple CPU sockets.
+	 *
+	 * @param strategy the NUMA strategy (0=disabled, 1=distribute, 2=isolate, 3=numactl)
+	 */
+	public static void initializeNuma(int strategy) {
+		initializeNumaNative(strategy);
+	}
+
 	// Native method declarations
 	private static native boolean supportsGpuOffloadNative();
 	private static native boolean supportsMmapNative();
@@ -123,6 +151,11 @@ public class LlamaUtils {
 	private static native long timeUsNative();
 	private static native void setLogCallbackNative(LogCallback callback);
 	private static native String splitPathNative(String path, int split);
+	
+	// Tier 5: Backend management native methods
+	private static native void initializeBackendNative();
+	private static native void freeBackendNative();
+	private static native void initializeNumaNative(int strategy);
 
 	/**
 	 * Interface for custom log callbacks.

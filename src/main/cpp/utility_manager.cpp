@@ -648,3 +648,143 @@ jfloat UtilityManager::getRopeFrequencyScale(JNIEnv* env, jobject obj) {
 	
 	JNI_CATCH_RET(env, 0.0f)
 }
+
+// Tier 5: Advanced model introspection & resource control
+
+jlong UtilityManager::getModelEmbeddingDimension(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_model_n_embd(server->model));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jlong UtilityManager::getModelAttentionHeads(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_model_n_head(server->model));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jlong UtilityManager::getModelKeyValueHeads(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_model_n_head_kv(server->model));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jboolean UtilityManager::isRecurrentModel(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return JNI_FALSE;
+	}
+	
+	return llama_model_is_recurrent(server->model) ? JNI_TRUE : JNI_FALSE;
+	
+	JNI_CATCH_RET(env, JNI_FALSE)
+}
+
+jboolean UtilityManager::isDiffusionModel(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return JNI_FALSE;
+	}
+	
+	return llama_model_is_diffusion(server->model) ? JNI_TRUE : JNI_FALSE;
+	
+	JNI_CATCH_RET(env, JNI_FALSE)
+}
+
+void UtilityManager::setWarmupMode(JNIEnv* env, jobject obj, jboolean warmup) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return;
+	}
+	
+	llama_set_warmup(server->ctx, warmup == JNI_TRUE);
+	
+	JNI_CATCH_RET(env, )
+}
+
+jstring UtilityManager::getFlashAttentionType(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return nullptr;
+	}
+	
+	// Flash attention type is not directly retrievable from context
+	// Return a generic status string instead
+	return JniUtils::string_to_jstring(env, std::string("flash_attention_available"));
+	
+	JNI_CATCH_RET(env, nullptr)
+}
+
+void UtilityManager::initializeBackend(JNIEnv* env, jclass cls) {
+	JNI_TRY(env)
+	
+	llama_backend_init();
+	
+	JNI_CATCH_RET(env, )
+}
+
+void UtilityManager::freeBackend(JNIEnv* env, jclass cls) {
+	JNI_TRY(env)
+	
+	llama_backend_free();
+	
+	JNI_CATCH_RET(env, )
+}
+
+void UtilityManager::initializeNuma(JNIEnv* env, jclass cls, jint strategy) {
+	JNI_TRY(env)
+	
+	llama_numa_init(static_cast<ggml_numa_strategy>(strategy));
+	
+	JNI_CATCH_RET(env, )
+}

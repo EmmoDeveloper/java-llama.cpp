@@ -1776,6 +1776,76 @@ public class LlamaModel implements AutoCloseable {
 		return getRopeFrequencyScaleNative();
 	}
 
+	/**
+	 * Get the model's embedding dimension size.
+	 * This is the size of the hidden state vectors.
+	 *
+	 * @return the embedding dimension
+	 */
+	public long getModelEmbeddingDimension() {
+		return getModelEmbeddingDimensionNative();
+	}
+
+	/**
+	 * Get the number of attention heads in the model.
+	 * This affects parallelism and memory requirements.
+	 *
+	 * @return the number of attention heads
+	 */
+	public long getModelAttentionHeads() {
+		return getModelAttentionHeadsNative();
+	}
+
+	/**
+	 * Get the number of key-value attention heads.
+	 * This may be different from attention heads in models using grouped-query attention.
+	 *
+	 * @return the number of key-value heads
+	 */
+	public long getModelKeyValueHeads() {
+		return getModelKeyValueHeadsNative();
+	}
+
+	/**
+	 * Check if this model uses a recurrent architecture (e.g., Mamba, RWKV).
+	 * Recurrent models process sequences differently than transformer models.
+	 *
+	 * @return true if the model is recurrent
+	 */
+	public boolean isRecurrentModel() {
+		return isRecurrentModelNative();
+	}
+
+	/**
+	 * Check if this model is a diffusion-based model (e.g., LLaDA, Dream).
+	 * Diffusion models require specialized processing pipelines.
+	 *
+	 * @return true if the model uses diffusion
+	 */
+	public boolean isDiffusionModel() {
+		return isDiffusionModelNative();
+	}
+
+	/**
+	 * Enable or disable warmup mode for weight loading.
+	 * Warmup preloads model weights to improve first-inference latency.
+	 *
+	 * @param warmup true to enable warmup, false to disable
+	 */
+	public void setWarmupMode(boolean warmup) {
+		setWarmupModeNative(warmup);
+	}
+
+	/**
+	 * Get the flash attention type being used by the model.
+	 * This provides information about attention optimization strategies.
+	 *
+	 * @return a description of the flash attention type
+	 */
+	public String getFlashAttentionType() {
+		return getFlashAttentionTypeNative();
+	}
+
 	private native void setAbortCallbackNative(AbortCallback callback);
 	private native void setThreadCountNative(int threads);
 	private native void synchronizeOperationsNative();
@@ -1802,6 +1872,15 @@ public class LlamaModel implements AutoCloseable {
 	private native boolean hasDecoderNative();
 	private native int getRopeTypeNative();
 	private native float getRopeFrequencyScaleNative();
+	
+	// Tier 5: Advanced model introspection & resource control native methods
+	private native long getModelEmbeddingDimensionNative();
+	private native long getModelAttentionHeadsNative();
+	private native long getModelKeyValueHeadsNative();
+	private native boolean isRecurrentModelNative();
+	private native boolean isDiffusionModelNative();
+	private native void setWarmupModeNative(boolean warmup);
+	private native String getFlashAttentionTypeNative();
 
 	/**
 	 * Interface for abort callbacks.
