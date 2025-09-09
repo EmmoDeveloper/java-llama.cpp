@@ -151,6 +151,67 @@ public class LlamaUtils {
 		return extractSplitPrefixNative(path);
 	}
 
+	/**
+	 * Get the default model loading parameters as JSON.
+	 * Provides baseline configuration for consistent model initialization.
+	 *
+	 * @return JSON string containing default model parameters
+	 */
+	public static String getModelDefaultParams() {
+		return getModelDefaultParamsNative();
+	}
+
+	/**
+	 * Get the default context parameters as JSON.
+	 * Provides baseline configuration for context initialization.
+	 *
+	 * @return JSON string containing default context parameters
+	 */
+	public static String getContextDefaultParams() {
+		return getContextDefaultParamsNative();
+	}
+
+	/**
+	 * Get the default sampler chain parameters as JSON.
+	 * Provides baseline configuration for sampler initialization.
+	 *
+	 * @return JSON string containing default sampler chain parameters
+	 */
+	public static String getSamplerChainDefaultParams() {
+		return getSamplerChainDefaultParamsNative();
+	}
+
+	/**
+	 * Get the default quantization parameters as JSON.
+	 * Provides baseline configuration for model quantization.
+	 *
+	 * @return JSON string containing default quantization parameters
+	 */
+	public static String getQuantizationDefaultParams() {
+		return getQuantizationDefaultParamsNative();
+	}
+
+	/**
+	 * Get the name of a flash attention type.
+	 * Provides human-readable description of attention optimization.
+	 *
+	 * @param flashAttnType the flash attention type ID
+	 * @return the name of the flash attention type
+	 */
+	public static String getFlashAttentionTypeName(int flashAttnType) {
+		return getFlashAttentionTypeNameNative(flashAttnType);
+	}
+
+	/**
+	 * Get the list of built-in chat templates.
+	 * Provides available templates for conversation formatting.
+	 *
+	 * @return array of built-in chat template names
+	 */
+	public static String[] getChatBuiltinTemplates() {
+		return getChatBuiltinTemplatesNative();
+	}
+
 	// Native method declarations
 	private static native boolean supportsGpuOffloadNative();
 	private static native boolean supportsMmapNative();
@@ -170,6 +231,14 @@ public class LlamaUtils {
 	
 	// Tier 6: Advanced debugging & production management native methods
 	private static native String extractSplitPrefixNative(String path);
+	
+	// Tier 7: Complete utility mastery native methods
+	private static native String getModelDefaultParamsNative();
+	private static native String getContextDefaultParamsNative();
+	private static native String getSamplerChainDefaultParamsNative();
+	private static native String getQuantizationDefaultParamsNative();
+	private static native String getFlashAttentionTypeNameNative(int flashAttnType);
+	private static native String[] getChatBuiltinTemplatesNative();
 
 	/**
 	 * Interface for custom log callbacks.

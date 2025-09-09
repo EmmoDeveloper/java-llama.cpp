@@ -897,4 +897,36 @@ JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_extractSplitPrefixNati
     return UtilityManager::extractSplitPrefix(env, cls, path);
 }
 
+// Tier 7: Complete utility mastery
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_getModelDefaultParamsNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::getModelDefaultParams(env, cls);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_getContextDefaultParamsNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::getContextDefaultParams(env, cls);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_getSamplerChainDefaultParamsNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::getSamplerChainDefaultParams(env, cls);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_getQuantizationDefaultParamsNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::getQuantizationDefaultParams(env, cls);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_getFlashAttentionTypeNameNative
+  (JNIEnv* env, jclass cls, jint flashAttnType) {
+    return UtilityManager::getFlashAttentionTypeName(env, cls, flashAttnType);
+}
+
+JNIEXPORT jobjectArray JNICALL Java_de_kherud_llama_LlamaUtils_getChatBuiltinTemplatesNative
+  (JNIEnv* env, jclass cls) {
+    return UtilityManager::getChatBuiltinTemplates(env, cls);
+}
+
 } // extern "C"

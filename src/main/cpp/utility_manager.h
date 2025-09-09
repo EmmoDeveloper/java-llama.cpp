@@ -78,6 +78,14 @@ public:
 	static jint getVocabFimSufToken(JNIEnv* env, jobject obj);
 	static jint getVocabFimMidToken(JNIEnv* env, jobject obj);
 	static jstring extractSplitPrefix(JNIEnv* env, jclass cls, jstring path);
+	
+	// Tier 7: Complete utility mastery
+	static jstring getModelDefaultParams(JNIEnv* env, jclass cls);
+	static jstring getContextDefaultParams(JNIEnv* env, jclass cls);
+	static jstring getSamplerChainDefaultParams(JNIEnv* env, jclass cls);
+	static jstring getQuantizationDefaultParams(JNIEnv* env, jclass cls);
+	static jstring getFlashAttentionTypeName(JNIEnv* env, jclass cls, jint flashAttnType);
+	static jobjectArray getChatBuiltinTemplates(JNIEnv* env, jclass cls);
 };
 
 #endif // UTILITY_MANAGER_H

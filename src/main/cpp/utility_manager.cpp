@@ -1013,3 +1013,119 @@ jstring UtilityManager::extractSplitPrefix(JNIEnv* env, jclass cls, jstring path
 	
 	JNI_CATCH_RET(env, nullptr)
 }
+
+// Tier 7: Complete utility mastery
+
+jstring UtilityManager::getModelDefaultParams(JNIEnv* env, jclass cls) {
+	JNI_TRY(env)
+	
+	struct llama_model_params params = llama_model_default_params();
+	
+	// Convert params to JSON string
+	std::string params_json = "{";
+	params_json += "\"n_gpu_layers\":" + std::to_string(params.n_gpu_layers) + ",";
+	params_json += "\"split_mode\":" + std::to_string(params.split_mode) + ",";
+	params_json += "\"main_gpu\":" + std::to_string(params.main_gpu) + ",";
+	params_json += "\"use_mmap\":" + std::string(params.use_mmap ? "true" : "false") + ",";
+	params_json += "\"use_mlock\":" + std::string(params.use_mlock ? "true" : "false") + ",";
+	params_json += "\"check_tensors\":" + std::string(params.check_tensors ? "true" : "false");
+	params_json += "}";
+	
+	return JniUtils::string_to_jstring(env, params_json);
+	
+	JNI_CATCH_RET(env, nullptr)
+}
+
+jstring UtilityManager::getContextDefaultParams(JNIEnv* env, jclass cls) {
+	JNI_TRY(env)
+	
+	struct llama_context_params params = llama_context_default_params();
+	
+	// Convert params to JSON string
+	std::string params_json = "{";
+	params_json += "\"n_ctx\":" + std::to_string(params.n_ctx) + ",";
+	params_json += "\"n_batch\":" + std::to_string(params.n_batch) + ",";
+	params_json += "\"n_ubatch\":" + std::to_string(params.n_ubatch) + ",";
+	params_json += "\"n_seq_max\":" + std::to_string(params.n_seq_max) + ",";
+	params_json += "\"n_threads\":" + std::to_string(params.n_threads) + ",";
+	params_json += "\"n_threads_batch\":" + std::to_string(params.n_threads_batch);
+	params_json += "}";
+	
+	return JniUtils::string_to_jstring(env, params_json);
+	
+	JNI_CATCH_RET(env, nullptr)
+}
+
+jstring UtilityManager::getSamplerChainDefaultParams(JNIEnv* env, jclass cls) {
+	JNI_TRY(env)
+	
+	struct llama_sampler_chain_params params = llama_sampler_chain_default_params();
+	
+	// Convert params to JSON string
+	std::string params_json = "{";
+	params_json += "\"no_perf\":" + std::string(params.no_perf ? "true" : "false");
+	params_json += "}";
+	
+	return JniUtils::string_to_jstring(env, params_json);
+	
+	JNI_CATCH_RET(env, nullptr)
+}
+
+jstring UtilityManager::getQuantizationDefaultParams(JNIEnv* env, jclass cls) {
+	JNI_TRY(env)
+	
+	struct llama_model_quantize_params params = llama_model_quantize_default_params();
+	
+	// Convert params to JSON string  
+	std::string params_json = "{";
+	params_json += "\"nthread\":" + std::to_string(params.nthread) + ",";
+	params_json += "\"ftype\":" + std::to_string(params.ftype) + ",";
+	params_json += "\"allow_requantize\":" + std::string(params.allow_requantize ? "true" : "false") + ",";
+	params_json += "\"quantize_output_tensor\":" + std::string(params.quantize_output_tensor ? "true" : "false");
+	params_json += "}";
+	
+	return JniUtils::string_to_jstring(env, params_json);
+	
+	JNI_CATCH_RET(env, nullptr)
+}
+
+jstring UtilityManager::getFlashAttentionTypeName(JNIEnv* env, jclass cls, jint flashAttnType) {
+	JNI_TRY(env)
+	
+	const char* type_name = llama_flash_attn_type_name(static_cast<llama_flash_attn_type>(flashAttnType));
+	
+	return JniUtils::string_to_jstring(env, std::string(type_name ? type_name : "unknown"));
+	
+	JNI_CATCH_RET(env, nullptr)
+}
+
+jobjectArray UtilityManager::getChatBuiltinTemplates(JNIEnv* env, jclass cls) {
+	JNI_TRY(env)
+	
+	// Get the list of built-in chat templates
+	const char* template_output[32]; // Should be enough for all templates
+	int32_t template_count = llama_chat_builtin_templates(template_output, 32);
+	
+	if (template_count <= 0) {
+		// Return empty array if no templates
+		jclass stringClass = env->FindClass("java/lang/String");
+		return env->NewObjectArray(0, stringClass, nullptr);
+	}
+	
+	// Create Java string array
+	jclass stringClass = env->FindClass("java/lang/String");
+	jobjectArray result = env->NewObjectArray(template_count, stringClass, nullptr);
+	
+	// Fill the array with template names
+	for (int i = 0; i < template_count; i++) {
+		if (template_output[i]) {
+			jstring template_name = env->NewStringUTF(template_output[i]);
+			env->SetObjectArrayElement(result, i, template_name);
+			env->DeleteLocalRef(template_name);
+		}
+	}
+	
+	return result;
+	
+	JNI_CATCH_RET(env, nullptr)
+}

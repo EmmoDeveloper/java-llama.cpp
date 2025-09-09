@@ -9,9 +9,7 @@
 	<packaging>jar</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
-	<description>Java Bindings for llama.cpp - A Port of Facebook's LLaMA model
-		in C/C++.
-	</description>
+	<description>Java Bindings for llama.cpp - A Port of Facebook's LLaMA model in C/C++.</description>
 	<url>https://github.com/kherud/java-llama.cpp</url>
 
 	<licenses>
