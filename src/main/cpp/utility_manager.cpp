@@ -788,3 +788,228 @@ void UtilityManager::initializeNuma(JNIEnv* env, jclass cls, jint strategy) {
 	
 	JNI_CATCH_RET(env, )
 }
+
+// Tier 6: Advanced debugging & production management
+
+jstring UtilityManager::getModelDescription(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return nullptr;
+	}
+	
+	char buffer[1024];
+	int len = llama_model_desc(server->model, buffer, sizeof(buffer));
+	
+	if (len > 0) {
+		return JniUtils::string_to_jstring(env, std::string(buffer, len));
+	}
+	
+	return JniUtils::string_to_jstring(env, std::string("Unknown model"));
+	
+	JNI_CATCH_RET(env, nullptr)
+}
+
+jstring UtilityManager::getModelChatTemplate(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return nullptr;
+	}
+	
+	const char* template_str = llama_model_chat_template(server->model, nullptr);
+	
+	return JniUtils::string_to_jstring(env, std::string(template_str ? template_str : ""));
+	
+	JNI_CATCH_RET(env, nullptr)
+}
+
+jint UtilityManager::getVocabMaskToken(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return -1;
+	}
+	
+	const llama_vocab* vocab = llama_model_get_vocab(server->model);
+	return static_cast<jint>(llama_vocab_mask(vocab));
+	
+	JNI_CATCH_RET(env, -1)
+}
+
+jboolean UtilityManager::shouldAddBosToken(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return JNI_FALSE;
+	}
+	
+	const llama_vocab* vocab = llama_model_get_vocab(server->model);
+	return llama_vocab_get_add_bos(vocab) ? JNI_TRUE : JNI_FALSE;
+	
+	JNI_CATCH_RET(env, JNI_FALSE)
+}
+
+jboolean UtilityManager::shouldAddEosToken(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return JNI_FALSE;
+	}
+	
+	const llama_vocab* vocab = llama_model_get_vocab(server->model);
+	return llama_vocab_get_add_eos(vocab) ? JNI_TRUE : JNI_FALSE;
+	
+	JNI_CATCH_RET(env, JNI_FALSE)
+}
+
+jboolean UtilityManager::shouldAddSepToken(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return JNI_FALSE;
+	}
+	
+	// Note: There's no direct llama_vocab_get_add_sep function,
+	// so we return false as most models don't auto-add sep tokens
+	return JNI_FALSE;
+	
+	JNI_CATCH_RET(env, JNI_FALSE)
+}
+
+jstring UtilityManager::getModelClassifierLabel(JNIEnv* env, jobject obj, jint index) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return nullptr;
+	}
+	
+	const char* label = llama_model_cls_label(server->model, static_cast<uint32_t>(index));
+	
+	return JniUtils::string_to_jstring(env, std::string(label ? label : ""));
+	
+	JNI_CATCH_RET(env, nullptr)
+}
+
+jlong UtilityManager::getModelClassifierOutputCount(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return 0;
+	}
+	
+	return static_cast<jlong>(llama_model_n_cls_out(server->model));
+	
+	JNI_CATCH_RET(env, 0)
+}
+
+jint UtilityManager::getVocabFimPreToken(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return -1;
+	}
+	
+	const llama_vocab* vocab = llama_model_get_vocab(server->model);
+	return static_cast<jint>(llama_vocab_fim_pre(vocab));
+	
+	JNI_CATCH_RET(env, -1)
+}
+
+jint UtilityManager::getVocabFimSufToken(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return -1;
+	}
+	
+	const llama_vocab* vocab = llama_model_get_vocab(server->model);
+	return static_cast<jint>(llama_vocab_fim_suf(vocab));
+	
+	JNI_CATCH_RET(env, -1)
+}
+
+jint UtilityManager::getVocabFimMidToken(JNIEnv* env, jobject obj) {
+	JNI_TRY(env)
+	
+	jlong handle = env->GetLongField(obj, 
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_utility_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model not loaded");
+		return -1;
+	}
+	
+	const llama_vocab* vocab = llama_model_get_vocab(server->model);
+	return static_cast<jint>(llama_vocab_fim_mid(vocab));
+	
+	JNI_CATCH_RET(env, -1)
+}
+
+jstring UtilityManager::extractSplitPrefix(JNIEnv* env, jclass cls, jstring path) {
+	JNI_TRY(env)
+	
+	if (!path) {
+		JNIErrorHandler::throw_illegal_argument(env, "Path cannot be null");
+		return nullptr;
+	}
+	
+	const char* path_str = env->GetStringUTFChars(path, nullptr);
+	if (!path_str) {
+		JNIErrorHandler::throw_out_of_memory(env, "Failed to get path string");
+		return nullptr;
+	}
+	
+	char prefix_buffer[1024];
+	int result = llama_split_prefix(prefix_buffer, sizeof(prefix_buffer), path_str, 0, 1);
+	
+	env->ReleaseStringUTFChars(path, path_str);
+	
+	if (result > 0) {
+		return JniUtils::string_to_jstring(env, std::string(prefix_buffer));
+	} else {
+		return JniUtils::string_to_jstring(env, std::string(""));
+	}
+	
+	JNI_CATCH_RET(env, nullptr)
+}

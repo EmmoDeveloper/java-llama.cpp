@@ -111,6 +111,14 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_freeBackendNative
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_initializeNumaNative
   (JNIEnv *, jclass, jint);
 
+/*
+ * Class:     de_kherud_llama_LlamaUtils
+ * Method:    extractSplitPrefixNative
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_extractSplitPrefixNative
+  (JNIEnv *, jclass, jstring);
+
 #ifdef __cplusplus
 }
 #endif

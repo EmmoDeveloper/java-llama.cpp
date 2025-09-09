@@ -1846,6 +1846,117 @@ public class LlamaModel implements AutoCloseable {
 		return getFlashAttentionTypeNative();
 	}
 
+	/**
+	 * Get a human-readable description of the model.
+	 * This provides model identification information for logging and monitoring.
+	 *
+	 * @return a description string of the model
+	 */
+	public String getModelDescription() {
+		return getModelDescriptionNative();
+	}
+
+	/**
+	 * Get the model's chat template for proper message formatting.
+	 * Essential for chat applications to format conversations correctly.
+	 *
+	 * @return the chat template string, or empty string if not available
+	 */
+	public String getModelChatTemplate() {
+		return getModelChatTemplateNative();
+	}
+
+	/**
+	 * Get the vocabulary mask token for structured generation.
+	 * Used for fill-in-the-middle and structured text tasks.
+	 *
+	 * @return the mask token ID, or -1 if not available
+	 */
+	public int getVocabMaskToken() {
+		return getVocabMaskTokenNative();
+	}
+
+	/**
+	 * Check if the model automatically adds beginning-of-sequence tokens.
+	 * Critical for proper tokenization and avoiding double-tokens.
+	 *
+	 * @return true if BOS tokens are automatically added
+	 */
+	public boolean shouldAddBosToken() {
+		return shouldAddBosTokenNative();
+	}
+
+	/**
+	 * Check if the model automatically adds end-of-sequence tokens.
+	 * Critical for proper tokenization and avoiding double-tokens.
+	 *
+	 * @return true if EOS tokens are automatically added
+	 */
+	public boolean shouldAddEosToken() {
+		return shouldAddEosTokenNative();
+	}
+
+	/**
+	 * Check if the model automatically adds separator tokens.
+	 * Important for multi-turn conversation handling.
+	 *
+	 * @return true if SEP tokens are automatically added
+	 */
+	public boolean shouldAddSepToken() {
+		return shouldAddSepTokenNative();
+	}
+
+	/**
+	 * Get classifier output label for classification models.
+	 * Essential for classification tasks and multi-class prediction.
+	 *
+	 * @param index the classifier output index
+	 * @return the label string for the given index, or empty string if not available
+	 */
+	public String getModelClassifierLabel(int index) {
+		return getModelClassifierLabelNative(index);
+	}
+
+	/**
+	 * Get the number of classifier outputs for classification models.
+	 * Used to determine the number of possible classification results.
+	 *
+	 * @return the number of classifier outputs
+	 */
+	public long getModelClassifierOutputCount() {
+		return getModelClassifierOutputCountNative();
+	}
+
+	/**
+	 * Get the fill-in-the-middle prefix token for code completion.
+	 * Critical for code generation and completion features.
+	 *
+	 * @return the FIM prefix token ID, or -1 if not available
+	 */
+	public int getVocabFimPreToken() {
+		return getVocabFimPreTokenNative();
+	}
+
+	/**
+	 * Get the fill-in-the-middle suffix token for code completion.
+	 * Critical for code generation and completion features.
+	 *
+	 * @return the FIM suffix token ID, or -1 if not available
+	 */
+	public int getVocabFimSufToken() {
+		return getVocabFimSufTokenNative();
+	}
+
+	/**
+	 * Get the fill-in-the-middle middle token for code completion.
+	 * Critical for code generation and completion features.
+	 *
+	 * @return the FIM middle token ID, or -1 if not available
+	 */
+	public int getVocabFimMidToken() {
+		return getVocabFimMidTokenNative();
+	}
+
 	private native void setAbortCallbackNative(AbortCallback callback);
 	private native void setThreadCountNative(int threads);
 	private native void synchronizeOperationsNative();
@@ -1881,6 +1992,19 @@ public class LlamaModel implements AutoCloseable {
 	private native boolean isDiffusionModelNative();
 	private native void setWarmupModeNative(boolean warmup);
 	private native String getFlashAttentionTypeNative();
+	
+	// Tier 6: Advanced debugging & production management native methods
+	private native String getModelDescriptionNative();
+	private native String getModelChatTemplateNative();
+	private native int getVocabMaskTokenNative();
+	private native boolean shouldAddBosTokenNative();
+	private native boolean shouldAddEosTokenNative();
+	private native boolean shouldAddSepTokenNative();
+	private native String getModelClassifierLabelNative(int index);
+	private native long getModelClassifierOutputCountNative();
+	private native int getVocabFimPreTokenNative();
+	private native int getVocabFimSufTokenNative();
+	private native int getVocabFimMidTokenNative();
 
 	/**
 	 * Interface for abort callbacks.

@@ -64,6 +64,20 @@ public:
 	static void initializeBackend(JNIEnv* env, jclass cls);
 	static void freeBackend(JNIEnv* env, jclass cls);
 	static void initializeNuma(JNIEnv* env, jclass cls, jint strategy);
+	
+	// Tier 6: Advanced debugging & production management
+	static jstring getModelDescription(JNIEnv* env, jobject obj);
+	static jstring getModelChatTemplate(JNIEnv* env, jobject obj);
+	static jint getVocabMaskToken(JNIEnv* env, jobject obj);
+	static jboolean shouldAddBosToken(JNIEnv* env, jobject obj);
+	static jboolean shouldAddEosToken(JNIEnv* env, jobject obj);
+	static jboolean shouldAddSepToken(JNIEnv* env, jobject obj);
+	static jstring getModelClassifierLabel(JNIEnv* env, jobject obj, jint index);
+	static jlong getModelClassifierOutputCount(JNIEnv* env, jobject obj);
+	static jint getVocabFimPreToken(JNIEnv* env, jobject obj);
+	static jint getVocabFimSufToken(JNIEnv* env, jobject obj);
+	static jint getVocabFimMidToken(JNIEnv* env, jobject obj);
+	static jstring extractSplitPrefix(JNIEnv* env, jclass cls, jstring path);
 };
 
 #endif // UTILITY_MANAGER_H

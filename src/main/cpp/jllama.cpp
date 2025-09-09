@@ -835,4 +835,66 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaUtils_initializeNumaNative
     UtilityManager::initializeNuma(env, cls, strategy);
 }
 
+// Tier 6: Advanced debugging & production management
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getModelDescriptionNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getModelDescription(env, obj);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getModelChatTemplateNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getModelChatTemplate(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getVocabMaskTokenNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getVocabMaskToken(env, obj);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_shouldAddBosTokenNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::shouldAddBosToken(env, obj);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_shouldAddEosTokenNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::shouldAddEosToken(env, obj);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_shouldAddSepTokenNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::shouldAddSepToken(env, obj);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getModelClassifierLabelNative
+  (JNIEnv* env, jobject obj, jint index) {
+    return UtilityManager::getModelClassifierLabel(env, obj, index);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_getModelClassifierOutputCountNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getModelClassifierOutputCount(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getVocabFimPreTokenNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getVocabFimPreToken(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getVocabFimSufTokenNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getVocabFimSufToken(env, obj);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getVocabFimMidTokenNative
+  (JNIEnv* env, jobject obj) {
+    return UtilityManager::getVocabFimMidToken(env, obj);
+}
+
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_extractSplitPrefixNative
+  (JNIEnv* env, jclass cls, jstring path) {
+    return UtilityManager::extractSplitPrefix(env, cls, path);
+}
+
 } // extern "C"

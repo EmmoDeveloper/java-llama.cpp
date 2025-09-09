@@ -140,6 +140,17 @@ public class LlamaUtils {
 		initializeNumaNative(strategy);
 	}
 
+	/**
+	 * Extract the path prefix from a split model file path.
+	 * Important for model file management and validation.
+	 *
+	 * @param path the split model file path
+	 * @return the extracted prefix, or empty string if extraction fails
+	 */
+	public static String extractSplitPrefix(String path) {
+		return extractSplitPrefixNative(path);
+	}
+
 	// Native method declarations
 	private static native boolean supportsGpuOffloadNative();
 	private static native boolean supportsMmapNative();
@@ -156,6 +167,9 @@ public class LlamaUtils {
 	private static native void initializeBackendNative();
 	private static native void freeBackendNative();
 	private static native void initializeNumaNative(int strategy);
+	
+	// Tier 6: Advanced debugging & production management native methods
+	private static native String extractSplitPrefixNative(String path);
 
 	/**
 	 * Interface for custom log callbacks.

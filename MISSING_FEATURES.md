@@ -3,11 +3,11 @@
 ## Executive Summary
 
 - **Total llama.cpp API functions**: 211
-- **Functions used by Java wrapper**: 68 
-- **Overall coverage**: 32.2%
+- **Functions used by Java wrapper**: 80 
+- **Overall coverage**: 37.9%
 - **Code Architecture**: ✅ **REFACTORED** - Fully modularized with manager classes
 
-The Java wrapper now implements core inference functionality plus advanced features (State Persistence, LoRA/Adapters, Advanced Sampling, Memory/KV Cache Management), leaving 143 functions (67.8%) unexposed.
+The Java wrapper now implements core inference functionality plus advanced features (State Persistence, LoRA/Adapters, Advanced Sampling, Memory/KV Cache Management), leaving 131 functions (62.1%) unexposed.
 
 **🎯 MAJOR MILESTONE ACHIEVED**: Complete code refactoring successfully completed, extracting all business logic from the monolithic jllama.cpp file into dedicated manager classes.
 
@@ -265,7 +265,7 @@ The Java wrapper exposes only 13 JNI methods that use 23 llama.cpp functions:
 | **Vocabulary**         | **100%**  | 14/26      | ✅ Full     |
 | **Memory/KV Cache**    | **100%**  | 9/9        | ✅ Full     |
 | **Model Information**  | **100%**  | 14/14      | ✅ Full     |
-| **Utility**            | **64.6%** | 42/65      | ✅ Strong   |
+| **Utility**            | **83.1%** | 54/65      | ✅ Excellent |
 | **State Persistence**  | **100%**  | 10/10      | ✅ Full     |
 | **LoRA/Adapters**      | **100%**  | 12/12      | ✅ Full     |
 | **Quantization**       | **0%**    | 0/2        | ❌ None     |
@@ -476,6 +476,6 @@ The wrapper has evolved from basic inference to a **production-ready, enterprise
 ---
 
 *Generated on: 2025-09-09*  
-*Last major update: Tier 5 Utility Functions Implementation completed*  
+*Last major update: Tier 6 Utility Functions Implementation completed (83.1% coverage)*  
 *llama.cpp version: Based on header analysis*  
 *Java wrapper version: java-llama.cpp*
