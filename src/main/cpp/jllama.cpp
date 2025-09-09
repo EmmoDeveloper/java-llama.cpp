@@ -28,6 +28,7 @@
 #include "embedding_manager.h"
 #include "completion_manager.h"
 #include "template_manager.h"
+#include "threading_manager.h"
 #include "reranking_manager.h"
 #include "schema_grammar_manager.h"
 #include "model_loader_manager.h"
@@ -845,6 +846,18 @@ JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getModelDescriptionNat
 JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getModelChatTemplateNative
   (JNIEnv* env, jobject obj) {
     return UtilityManager::getModelChatTemplate(env, obj);
+}
+
+// Threading Management JNI Functions
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_ThreadingManager_setModelThreading
+  (JNIEnv* env, jclass cls, jobject model, jint generationThreads, jint batchThreads) {
+    ThreadingManager::setModelThreading(env, model, generationThreads, batchThreads);
+}
+
+JNIEXPORT jintArray JNICALL Java_de_kherud_llama_ThreadingManager_getModelThreading
+  (JNIEnv* env, jclass cls, jobject model) {
+    return ThreadingManager::getModelThreading(env, model);
 }
 
 JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_getVocabMaskTokenNative
