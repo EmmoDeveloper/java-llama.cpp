@@ -1,5 +1,7 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -10,6 +12,7 @@ import org.junit.Assert;
  * Test comprehensive error handling in the JNI layer
  */
 public class ErrorHandlingTest {
+	private static final System.Logger logger = System.getLogger(ErrorHandlingTest.class.getName());
 
     private static LlamaModel model;
 
@@ -119,7 +122,7 @@ public class ErrorHandlingTest {
             // If it fails, it should fail gracefully with a meaningful message
             Assert.assertTrue("Exception should have meaningful message",
                 e.getMessage() != null && !e.getMessage().isEmpty());
-            System.out.println("Long input handling failed gracefully: " + e.getMessage());
+            logger.log(DEBUG, "Long input handling failed gracefully: " + e.getMessage());
         }
     }
 

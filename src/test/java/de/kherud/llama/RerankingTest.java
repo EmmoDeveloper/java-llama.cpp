@@ -1,5 +1,7 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.Assert;
@@ -8,6 +10,7 @@ import org.junit.AfterClass;
 import java.util.List;
 
 public class RerankingTest {
+	private static final System.Logger logger = System.getLogger(RerankingTest.class.getName());
 
 	private static LlamaModel model;
 
@@ -32,7 +35,7 @@ public class RerankingTest {
 
 	@Test
 	public void testBasicReranking() {
-		System.out.println("\n=== Basic Reranking Test ===");
+		logger.log(DEBUG, "\n=== Basic Reranking Test ===");
 
 		String query = "Machine learning is";
 		String[] documents = {
@@ -49,8 +52,8 @@ public class RerankingTest {
 		Assert.assertEquals("Should have scores for all documents", 4, output.probabilities.size());
 		Assert.assertTrue("Output should be final", output.stop);
 
-		System.out.printf("Query: \"%s\"\n", query);
-		System.out.println("Document scores:");
+		logger.log(DEBUG, "Query: \"%s\"", query);
+		logger.log(DEBUG, "Document scores:");
 
 		float maxScore = Float.NEGATIVE_INFINITY;
 		String bestMatch = null;
@@ -58,7 +61,7 @@ public class RerankingTest {
 		for (String doc : documents) {
 			Float score = output.probabilities.get(doc);
 			Assert.assertNotNull(String.format("Score should exist for document: %s", doc), score);
-			System.out.printf("  Score %.6f: %s\n", score, doc.substring(0, Math.min(50, doc.length())) + "...");
+			logger.log(DEBUG, "  Score %.6f: %s", score, doc.substring(0, Math.min(50, doc.length())) + "...");
 
 			if (score > maxScore) {
 				maxScore = score;
@@ -66,7 +69,7 @@ public class RerankingTest {
 			}
 		}
 
-		System.out.printf("Best match: %s\n", bestMatch);
+		logger.log(DEBUG, "Best match: %s", bestMatch);
 
 		// Verify that scores are different (not all the same)
 		long uniqueScores = output.probabilities.values().stream()
@@ -75,12 +78,12 @@ public class RerankingTest {
 			.count();
 		Assert.assertTrue("Scores should vary between documents", uniqueScores > 1);
 
-		System.out.println("✅ Basic reranking test passed!");
+		logger.log(DEBUG, "✅ Basic reranking test passed!");
 	}
 
 	@Test
 	public void testRerankingConsistency() {
-		System.out.println("\n=== Reranking Consistency Test ===");
+		logger.log(DEBUG, "\n=== Reranking Consistency Test ===");
 
 		String query = "Programming languages";
 		String[] documents = {
@@ -93,28 +96,28 @@ public class RerankingTest {
 		LlamaOutput output1 = model.rerank(query, documents);
 		LlamaOutput output2 = model.rerank(query, documents);
 
-		System.out.println("Comparing scores across multiple runs:");
+		logger.log(DEBUG, "Comparing scores across multiple runs:");
 
 		for (String doc : documents) {
 			Float score1 = output1.probabilities.get(doc);
 			Float score2 = output2.probabilities.get(doc);
 
-			System.out.printf("Document: %s\n", doc.substring(0, Math.min(40, doc.length())) + "...");
-			System.out.printf("  Run 1: %.6f\n", score1);
-			System.out.printf("  Run 2: %.6f\n", score2);
-			System.out.printf("  Diff:  %.6f\n", Math.abs(score1 - score2));
+			logger.log(DEBUG, "Document: %s", doc.substring(0, Math.min(40, doc.length())) + "...");
+			logger.log(DEBUG, "  Run 1: %.6f", score1);
+			logger.log(DEBUG, "  Run 2: %.6f", score2);
+			logger.log(DEBUG, "  Diff:  %.6f", Math.abs(score1 - score2));
 
 			// Scores should be identical for same query-document pairs
 			Assert.assertEquals("Reranking should be deterministic", score1, score2, 0.0001f);
 		}
 
-		System.out.println("✅ Reranking consistency test passed!");
+		logger.log(DEBUG, "✅ Reranking consistency test passed!");
 	}
 
 	@Test
 	@Ignore
 	public void testRerankingWithoutRerankingMode() {
-		System.out.println("\n=== Test Without Reranking Mode ===");
+		logger.log(DEBUG, "\n=== Test Without Reranking Mode ===");
 
 		// Create model without reranking enabled
 		// Note: NOT calling .enableReranking()
@@ -133,17 +136,17 @@ public class RerankingTest {
 			LlamaOutput output = nonRerankingModel.rerank(query, documents);
 			Assert.fail("Expected IllegalStateException when reranking is not enabled");
 		} catch (IllegalStateException e) {
-			System.out.println("✅ Correctly threw exception: " + e.getMessage());
+			logger.log(DEBUG, "✅ Correctly threw exception: " + e.getMessage());
 			Assert.assertTrue("Exception message should mention reranking support",
 				e.getMessage().contains("reranking support"));
 		}
 
-		System.out.println("✅ Non-reranking mode test passed!");
+		logger.log(DEBUG, "✅ Non-reranking mode test passed!");
 	}
 
 	@Test
 	public void testRerankingWithDifferentQueries() {
-		System.out.println("\n=== Different Queries Test ===");
+		logger.log(DEBUG, "\n=== Different Queries Test ===");
 
 		String[] documents = {
 			"The quick brown fox jumps over the lazy dog.",
@@ -159,12 +162,12 @@ public class RerankingTest {
 			"space technology"
 		};
 
-		System.out.println("Testing how different queries rank the same documents:");
+		logger.log(DEBUG, "Testing how different queries rank the same documents:");
 
 		for (String query : queries) {
 			LlamaOutput output = model.rerank(query, documents);
 
-			System.out.printf("\nQuery: \"%s\"\n", query);
+			logger.log(DEBUG, "\nQuery: \"%s\"", query);
 
 			// Find the highest scoring document for this query
 			float maxScore = Float.NEGATIVE_INFINITY;
@@ -174,7 +177,7 @@ public class RerankingTest {
 			for (int j = 0; j < documents.length; j++) {
 				String doc = documents[j];
 				Float score = output.probabilities.get(doc);
-				System.out.printf("  [%d] %.6f: %s\n", j, score, doc.substring(0, Math.min(40, doc.length())) + "...");
+				logger.log(DEBUG, "  [%d] %.6f: %s", j, score, doc.substring(0, Math.min(40, doc.length())) + "...");
 
 				if (score > maxScore) {
 					maxScore = score;
@@ -183,18 +186,18 @@ public class RerankingTest {
 				}
 			}
 
-			System.out.printf("Best match [%d]: %s\n", bestDocIndex, bestDoc);
+			logger.log(DEBUG, "Best match [%d]: %s", bestDocIndex, bestDoc);
 
 			// Verify we have scores for all documents
 			Assert.assertEquals("Should have scores for all documents", documents.length, output.probabilities.size());
 		}
 
-		System.out.println("✅ Different queries test passed!");
+		logger.log(DEBUG, "✅ Different queries test passed!");
 	}
 
 	@Test
 	public void testJavaApiIntegration() {
-		System.out.println("\n=== Java API Integration Test ===");
+		logger.log(DEBUG, "\n=== Java API Integration Test ===");
 
 		String query = "software development";
 		String[] documents = {
@@ -210,8 +213,8 @@ public class RerankingTest {
 		Assert.assertNotNull("Ranked results should not be null", rankedResults);
 		Assert.assertEquals("Should have results for all documents", documents.length, rankedResults.size());
 
-		System.out.printf("Query: \"%s\"\n", query);
-		System.out.println("Ranked results (highest to lowest score):");
+		logger.log(DEBUG, "Query: \"%s\"", query);
+		logger.log(DEBUG, "Ranked results (highest to lowest score):");
 
 		float previousScore = Float.MAX_VALUE;
 		for (int i = 0; i < rankedResults.size(); i++) {
@@ -219,7 +222,7 @@ public class RerankingTest {
 			String doc = result.key();
 			Float score = result.value();
 
-			System.out.printf("%d. Score %.6f: %s\n", i + 1, score,
+			logger.log(DEBUG, "%d. Score %.6f: %s", i + 1, score,
 				doc.substring(0, Math.min(50, doc.length())) + "...");
 
 			// Verify sorting is correct (scores should be in descending order)
@@ -232,6 +235,6 @@ public class RerankingTest {
 		List<Pair<String, Float>> unsortedResults = model.rerank(false, query, documents);
 		Assert.assertEquals("Should have same number of results", rankedResults.size(), unsortedResults.size());
 
-		System.out.println("✅ Java API integration test passed!");
+		logger.log(DEBUG, "✅ Java API integration test passed!");
 	}
 }

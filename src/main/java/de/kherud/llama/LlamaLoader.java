@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
+import static java.lang.System.Logger.Level.DEBUG;
 
 /**
  * Set the system properties, de.kherud.llama.lib.path, de.kherud.llama.lib.name, appropriately so that the
@@ -42,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 class LlamaLoader {
+	private static final System.Logger logger = System.getLogger(LlamaLoader.class.getName());
 	private static boolean initialized = false;
 
 	private LlamaLoader() {
@@ -58,7 +60,7 @@ class LlamaLoader {
 		if ("Mac".equals(OSInfo.getOSName())) {
 			String nativeDirName = getNativeResourcePath();
 			String tempFolder = getTempDir().getAbsolutePath();
-			System.out.println(nativeDirName);
+			logger.log(DEBUG, nativeDirName);
 			Path metalFilePath = extractFile(nativeDirName, "ggml-metal.metal", tempFolder, false);
 			if (metalFilePath == null) {
 				System.err.println("'ggml-metal.metal' not found");
@@ -213,7 +215,7 @@ class LlamaLoader {
 				}
 			}
 
-			System.out.println("Extracted '" + fileName + "' to '" + extractedFilePath + "'");
+			logger.log(DEBUG, "Extracted '" + fileName + "' to '" + extractedFilePath + "'");
 			return extractedFilePath;
 		}
 		catch (IOException e) {

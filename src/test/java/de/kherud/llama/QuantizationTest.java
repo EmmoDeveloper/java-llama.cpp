@@ -1,9 +1,12 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 public class QuantizationTest {
+	private static final System.Logger logger = System.getLogger(QuantizationTest.class.getName());
 
 	@Test
 	public void testGetDefaultParams() {
@@ -13,21 +16,21 @@ public class QuantizationTest {
 		Assert.assertTrue("Default thread count should be non-negative", params.getThreadCount() >= 0);
 		Assert.assertNotNull("Default quantization type should not be null", params.getQuantizationType());
 
-		System.out.println("Default quantization parameters:");
-		System.out.println("  Thread count: " + params.getThreadCount());
-		System.out.println("  Quantization type: " + params.getQuantizationType());
-		System.out.println("  Allow requantize: " + params.isAllowRequantize());
-		System.out.println("  Quantize output tensor: " + params.isQuantizeOutputTensor());
-		System.out.println("  Only copy: " + params.isOnlyCopy());
-		System.out.println("  Pure: " + params.isPure());
-		System.out.println("  Keep split: " + params.isKeepSplit());
+		logger.log(DEBUG, "Default quantization parameters:");
+		logger.log(DEBUG, "  Thread count: " + params.getThreadCount());
+		logger.log(DEBUG, "  Quantization type: " + params.getQuantizationType());
+		logger.log(DEBUG, "  Allow requantize: " + params.isAllowRequantize());
+		logger.log(DEBUG, "  Quantize output tensor: " + params.isQuantizeOutputTensor());
+		logger.log(DEBUG, "  Only copy: " + params.isOnlyCopy());
+		logger.log(DEBUG, "  Pure: " + params.isPure());
+		logger.log(DEBUG, "  Keep split: " + params.isKeepSplit());
 	}
 
 	@Test
 	public void testQuantizationTypes() {
-		System.out.println("Available quantization types:");
+		logger.log(DEBUG, "Available quantization types:");
 		for (LlamaQuantizer.QuantizationType type : LlamaQuantizer.QuantizationType.values()) {
-			System.out.println("  " + type);
+			logger.log(DEBUG, "  " + type);
 		}
 
 		LlamaQuantizer.QuantizationType q4_0 = LlamaQuantizer.QuantizationType.MOSTLY_Q4_0;
@@ -41,7 +44,7 @@ public class QuantizationTest {
 			LlamaQuantizer.QuantizationType.fromValue(999);
 			Assert.fail("Should throw exception for invalid quantization type");
 		} catch (IllegalArgumentException e) {
-			System.out.println("Correctly caught invalid quantization type: " + e.getMessage());
+			logger.log(DEBUG, "Correctly caught invalid quantization type: " + e.getMessage());
 		}
 	}
 
@@ -67,28 +70,28 @@ public class QuantizationTest {
 			LlamaQuantizer.quantizeModel(null, "output.gguf");
 			Assert.fail("Should throw IllegalArgumentException for null input path");
 		} catch (IllegalArgumentException e) {
-			System.out.println("Correctly caught null input path: " + e.getMessage());
+			logger.log(DEBUG, "Correctly caught null input path: " + e.getMessage());
 		}
 
 		try {
 			LlamaQuantizer.quantizeModel("", "output.gguf");
 			Assert.fail("Should throw IllegalArgumentException for empty input path");
 		} catch (IllegalArgumentException e) {
-			System.out.println("Correctly caught empty input path: " + e.getMessage());
+			logger.log(DEBUG, "Correctly caught empty input path: " + e.getMessage());
 		}
 
 		try {
 			LlamaQuantizer.quantizeModel("input.gguf", null);
 			Assert.fail("Should throw IllegalArgumentException for null output path");
 		} catch (IllegalArgumentException e) {
-			System.out.println("Correctly caught null output path: " + e.getMessage());
+			logger.log(DEBUG, "Correctly caught null output path: " + e.getMessage());
 		}
 
 		try {
 			LlamaQuantizer.quantizeModel("input.gguf", "");
 			Assert.fail("Should throw IllegalArgumentException for empty output path");
 		} catch (IllegalArgumentException e) {
-			System.out.println("Correctly caught empty output path: " + e.getMessage());
+			logger.log(DEBUG, "Correctly caught empty output path: " + e.getMessage());
 		}
 	}
 
@@ -98,7 +101,7 @@ public class QuantizationTest {
 			LlamaQuantizer.quantizeModel("nonexistent.gguf", "output.gguf");
 			Assert.fail("Should throw LlamaException for nonexistent input file");
 		} catch (LlamaException e) {
-			System.out.println("Correctly caught quantization error for nonexistent file: " + e.getMessage());
+			logger.log(DEBUG, "Correctly caught quantization error for nonexistent file: " + e.getMessage());
 		}
 	}
 
@@ -107,59 +110,59 @@ public class QuantizationTest {
 		try {
 			LlamaQuantizer.quantizeModel("nonexistent.gguf", "output.gguf", LlamaQuantizer.QuantizationType.MOSTLY_Q4_0);
 		} catch (LlamaException e) {
-			System.out.println("Convenience method with QuantizationType correctly failed: " + e.getMessage());
+			logger.log(DEBUG, "Convenience method with QuantizationType correctly failed: " + e.getMessage());
 		}
 
 		try {
 			LlamaQuantizer.quantizeModel("nonexistent.gguf", "output.gguf");
 		} catch (LlamaException e) {
-			System.out.println("Convenience method with defaults correctly failed: " + e.getMessage());
+			logger.log(DEBUG, "Convenience method with defaults correctly failed: " + e.getMessage());
 		}
 	}
 
 	@Test
 	public void testQuantizationDemo() {
-		System.out.println("\n=== QUANTIZATION FUNCTIONALITY DEMO ===");
+		logger.log(DEBUG, "\n=== QUANTIZATION FUNCTIONALITY DEMO ===");
 
-		System.out.println("\n1. Available Quantization Types:");
+		logger.log(DEBUG, "\n1. Available Quantization Types:");
 		for (LlamaQuantizer.QuantizationType type : LlamaQuantizer.QuantizationType.values()) {
 			if (type.getValue() <= 20) {  // Show common types
-				System.out.println("   " + String.format("%-12s", type.getDescription()) +
+				logger.log(DEBUG, "   " + String.format("%-12s", type.getDescription()) +
 					" (ID: " + String.format("%2d", type.getValue()) + ") - " + type);
 			}
 		}
 
-		System.out.println("\n2. Default Quantization Parameters:");
+		logger.log(DEBUG, "\n2. Default Quantization Parameters:");
 		LlamaQuantizer.QuantizationParams defaultParams = LlamaQuantizer.getDefaultParams();
-		System.out.println("   Threads: " + (defaultParams.getThreadCount() == 0 ? "auto" : defaultParams.getThreadCount()));
-		System.out.println("   Type: " + defaultParams.getQuantizationType().getDescription());
-		System.out.println("   Allow requantize: " + defaultParams.isAllowRequantize());
-		System.out.println("   Quantize output: " + defaultParams.isQuantizeOutputTensor());
+		logger.log(DEBUG, "   Threads: " + (defaultParams.getThreadCount() == 0 ? "auto" : defaultParams.getThreadCount()));
+		logger.log(DEBUG, "   Type: " + defaultParams.getQuantizationType().getDescription());
+		logger.log(DEBUG, "   Allow requantize: " + defaultParams.isAllowRequantize());
+		logger.log(DEBUG, "   Quantize output: " + defaultParams.isQuantizeOutputTensor());
 
-		System.out.println("\n3. Custom Parameters Example:");
+		logger.log(DEBUG, "\n3. Custom Parameters Example:");
 		LlamaQuantizer.QuantizationParams customParams = new LlamaQuantizer.QuantizationParams()
 			.setThreadCount(8)
 			.setQuantizationType(LlamaQuantizer.QuantizationType.MOSTLY_Q4_K_M)
 			.setAllowRequantize(true)
 			.setPure(true);
 
-		System.out.println("   Custom config: " + customParams.getQuantizationType().getDescription() +
+		logger.log(DEBUG, "   Custom config: " + customParams.getQuantizationType().getDescription() +
 			" with " + customParams.getThreadCount() + " threads");
 
-		System.out.println("\n4. Quantization API Usage Examples:");
-		System.out.println("   // Default quantization:");
-		System.out.println("   LlamaQuantizer.quantizeModel(\"model.gguf\", \"model_q4_0.gguf\");");
-		System.out.println("   ");
-		System.out.println("   // Specific type:");
-		System.out.println("   LlamaQuantizer.quantizeModel(\"model.gguf\", \"model_q8_0.gguf\", QuantizationType.MOSTLY_Q8_0);");
-		System.out.println("   ");
-		System.out.println("   // Custom parameters:");
-		System.out.println("   QuantizationParams params = new QuantizationParams()");
-		System.out.println("       .setQuantizationType(QuantizationType.MOSTLY_Q4_K_M)");
-		System.out.println("       .setThreadCount(8);");
-		System.out.println("   LlamaQuantizer.quantizeModel(\"input.gguf\", \"output.gguf\", params);");
+		logger.log(DEBUG, "\n4. Quantization API Usage Examples:");
+		logger.log(DEBUG, "   // Default quantization:");
+		logger.log(DEBUG, "   LlamaQuantizer.quantizeModel(\"model.gguf\", \"model_q4_0.gguf\");");
+		logger.log(DEBUG, "   ");
+		logger.log(DEBUG, "   // Specific type:");
+		logger.log(DEBUG, "   LlamaQuantizer.quantizeModel(\"model.gguf\", \"model_q8_0.gguf\", QuantizationType.MOSTLY_Q8_0);");
+		logger.log(DEBUG, "   ");
+		logger.log(DEBUG, "   // Custom parameters:");
+		logger.log(DEBUG, "   QuantizationParams params = new QuantizationParams()");
+		logger.log(DEBUG, "       .setQuantizationType(QuantizationType.MOSTLY_Q4_K_M)");
+		logger.log(DEBUG, "       .setThreadCount(8);");
+		logger.log(DEBUG, "   LlamaQuantizer.quantizeModel(\"input.gguf\", \"output.gguf\", params);");
 
-		System.out.println("\nQuantization functionality is ready for use!");
-		System.out.println("Note: This test validates the API without actual model files.");
+		logger.log(DEBUG, "\nQuantization functionality is ready for use!");
+		logger.log(DEBUG, "Note: This test validates the API without actual model files.");
 	}
 }

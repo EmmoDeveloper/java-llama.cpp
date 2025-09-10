@@ -1,6 +1,7 @@
 package de.kherud.llama;
 
 import de.kherud.llama.args.PoolingType;
+import static java.lang.System.Logger.Level.DEBUG;
 
 /**
  * Workload-specific optimization utilities for different LLM operations.
@@ -23,7 +24,7 @@ import de.kherud.llama.args.PoolingType;
  * </pre>
  */
 public class WorkloadOptimizer {
-
+	private static final System.Logger logger = System.getLogger(WorkloadOptimizer.class.getName());
 	private WorkloadOptimizer() {
 	}
 
@@ -46,13 +47,13 @@ public class WorkloadOptimizer {
 		if (!optimized.parameters.containsKey("--batch-size")) {
 			// Moderate batch size for completion - balance latency vs throughput
 			optimized.setBatchSize(256);
-			System.out.println("🔧 Completion: Optimized batch size for low-latency generation");
+			logger.log(DEBUG, "🔧 Completion: Optimized batch size for low-latency generation");
 		}
 
 		// Enable continuous batching for better throughput if not set
 		if (!optimized.parameters.containsKey("--cont-batching")) {
 			optimized.parameters.put("--cont-batching", null);
-			System.out.println("🔧 Completion: Enabled continuous batching");
+			logger.log(DEBUG, "🔧 Completion: Enabled continuous batching");
 		}
 
 		return optimized;
@@ -77,19 +78,19 @@ public class WorkloadOptimizer {
 		if (!optimized.parameters.containsKey("--batch-size")) {
 			// Large batch size for embeddings - optimize for throughput
 			optimized.setBatchSize(1024);
-			System.out.println("🔧 Embedding: Optimized batch size for high-throughput processing");
+			logger.log(DEBUG, "🔧 Embedding: Optimized batch size for high-throughput processing");
 		}
 
 		// Ensure embedding mode is enabled
 		if (!optimized.parameters.containsKey("--embedding")) {
 			optimized.enableEmbedding();
-			System.out.println("🔧 Embedding: Enabled embedding mode");
+			logger.log(DEBUG, "🔧 Embedding: Enabled embedding mode");
 		}
 
 		// Use pooling mean for better embedding quality
 		if (!optimized.parameters.containsKey("--pooling")) {
 			optimized.setPoolingType(PoolingType.MEAN);
-			System.out.println("🔧 Embedding: Using mean pooling for better quality");
+			logger.log(DEBUG, "🔧 Embedding: Using mean pooling for better quality");
 		}
 
 		return optimized;
@@ -114,19 +115,19 @@ public class WorkloadOptimizer {
 		if (!optimized.parameters.containsKey("--batch-size")) {
 			// Medium batch size for reranking - balance between individual doc processing and throughput
 			optimized.setBatchSize(512);
-			System.out.println("🔧 Reranking: Optimized batch size for document processing");
+			logger.log(DEBUG, "🔧 Reranking: Optimized batch size for document processing");
 		}
 
 		// Enable reranking mode
 		if (!optimized.parameters.containsKey("--reranking")) {
 			optimized.enableReranking();
-			System.out.println("🔧 Reranking: Enabled reranking mode");
+			logger.log(DEBUG, "🔧 Reranking: Enabled reranking mode");
 		}
 
 		// Use appropriate pooling for reranking scores
 		if (!optimized.parameters.containsKey("--pooling")) {
 			optimized.setPoolingType(PoolingType.RANK);
-			System.out.println("🔧 Reranking: Using rank pooling for score computation");
+			logger.log(DEBUG, "🔧 Reranking: Using rank pooling for score computation");
 		}
 
 		return optimized;
@@ -166,16 +167,15 @@ public class WorkloadOptimizer {
 	 * Print threading recommendations for manual tuning.
 	 */
 	public static void printThreadingRecommendations() {
-		System.out.println("\n📊 Threading Recommendations:");
-		System.out.printf("   • Completion:  %d threads (balanced latency/throughput)\n",
+		logger.log(DEBUG, "\n📊 Threading Recommendations:");
+		logger.log(DEBUG, "   • Completion:  %d threads (balanced latency/throughput)",
 			ThreadingOptimizer.getRecommendedThreads(ThreadingOptimizer.WorkloadType.COMPLETION));
-		System.out.printf("   • Embedding:   %d threads (compute-intensive)\n",
+		logger.log(DEBUG, "   • Embedding:   %d threads (compute-intensive)",
 			ThreadingOptimizer.getRecommendedThreads(ThreadingOptimizer.WorkloadType.EMBEDDING));
-		System.out.printf("   • Reranking:   %d threads (high parallelism)\n",
+		logger.log(DEBUG, "   • Reranking:   %d threads (high parallelism)",
 			ThreadingOptimizer.getRecommendedThreads(ThreadingOptimizer.WorkloadType.RERANKING));
-		System.out.printf("   • General:     %d threads (balanced workload)\n",
+		logger.log(DEBUG, "   • General:     %d threads (balanced workload)",
 			ThreadingOptimizer.getRecommendedThreads(ThreadingOptimizer.WorkloadType.GENERAL));
-		System.out.println();
 	}
 
 	/**

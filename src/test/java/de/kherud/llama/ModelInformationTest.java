@@ -1,10 +1,13 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.Assert;
 import org.junit.Test;
 import java.util.Map;
 
 public class ModelInformationTest {
+	private static final System.Logger logger = System.getLogger(ModelInformationTest.class.getName());
 
 	private LlamaModel createModel() {
 		// Use the same model configuration as other tests
@@ -26,7 +29,7 @@ public class ModelInformationTest {
 			Assert.assertTrue("CodeLlama 7B should have at least 6 billion parameters", paramCount > 6_000_000_000L);
 			Assert.assertTrue("CodeLlama 7B should have less than 10 billion parameters", paramCount < 10_000_000_000L);
 
-			System.out.println("Model parameter count: " + String.format("%,d", paramCount));
+			logger.log(DEBUG, "Model parameter count: " + String.format("%,d", paramCount));
 		}
 	}
 
@@ -42,7 +45,7 @@ public class ModelInformationTest {
 			Assert.assertTrue("Q2_K model should be at least 2GB", modelSize > 2_000_000_000L);
 			Assert.assertTrue("Q2_K model should be less than 20GB", modelSize < 20_000_000_000L);
 
-			System.out.println("Model size: " + String.format("%.2f GB", modelSize / 1_000_000_000.0));
+			logger.log(DEBUG, "Model size: " + String.format("%.2f GB", modelSize / 1_000_000_000.0));
 		}
 	}
 
@@ -52,7 +55,7 @@ public class ModelInformationTest {
 			// Test metadata count
 			int metadataCount = model.getModelMetadataCount();
 			Assert.assertTrue("Metadata count should be non-negative", metadataCount >= 0);
-			System.out.println("Metadata entries: " + metadataCount);
+			logger.log(DEBUG, "Metadata entries: " + metadataCount);
 
 			if (metadataCount > 0) {
 				// Test individual metadata access
@@ -62,7 +65,7 @@ public class ModelInformationTest {
 				Assert.assertNotNull("First metadata key should not be null", firstKey);
 				Assert.assertNotNull("First metadata value should not be null", firstValue);
 
-				System.out.println("First metadata: " + firstKey + " = " + firstValue);
+				logger.log(DEBUG, "First metadata: " + firstKey + " = " + firstValue);
 
 				// Test metadata by key lookup
 				if (!firstKey.isEmpty()) {
@@ -77,10 +80,10 @@ public class ModelInformationTest {
 			Assert.assertEquals("Metadata map size should match count", metadataCount, allMetadata.size());
 
 			// Print some interesting metadata
-			System.out.println("Model metadata:");
+			logger.log(DEBUG, "Model metadata:");
 			allMetadata.entrySet().stream()
 				.limit(10)  // Print first 10 entries
-				.forEach(entry -> System.out.println("  " + entry.getKey() + " = " + entry.getValue()));
+				.forEach(entry -> logger.log(DEBUG, "  " + entry.getKey() + " = " + entry.getValue()));
 		}
 	}
 
@@ -90,7 +93,7 @@ public class ModelInformationTest {
 			// Test vocabulary type
 			int vocabType = model.getVocabularyType();
 			Assert.assertTrue("Vocabulary type should be non-negative", vocabType >= 0);
-			System.out.println("Vocabulary type: " + vocabType);
+			logger.log(DEBUG, "Vocabulary type: " + vocabType);
 
 			// Test vocabulary size
 			int vocabSize = model.getVocabularySize();
@@ -100,7 +103,7 @@ public class ModelInformationTest {
 			Assert.assertTrue("Vocabulary should have at least 1000 tokens", vocabSize >= 1000);
 			Assert.assertTrue("Vocabulary should have less than 100000 tokens", vocabSize < 100000);
 
-			System.out.println("Vocabulary size: " + String.format("%,d", vocabSize));
+			logger.log(DEBUG, "Vocabulary size: " + String.format("%,d", vocabSize));
 		}
 	}
 
@@ -115,13 +118,13 @@ public class ModelInformationTest {
 			int nlToken = model.getNlToken();
 			int padToken = model.getPadToken();
 
-			System.out.println("Special tokens:");
-			System.out.println("  BOS (Beginning of Sequence): " + bosToken);
-			System.out.println("  EOS (End of Sequence): " + eosToken);
-			System.out.println("  EOT (End of Turn): " + eotToken);
-			System.out.println("  SEP (Separator): " + sepToken);
-			System.out.println("  NL (Newline): " + nlToken);
-			System.out.println("  PAD (Padding): " + padToken);
+			logger.log(DEBUG, "Special tokens:");
+			logger.log(DEBUG, "  BOS (Beginning of Sequence): " + bosToken);
+			logger.log(DEBUG, "  EOS (End of Sequence): " + eosToken);
+			logger.log(DEBUG, "  EOT (End of Turn): " + eotToken);
+			logger.log(DEBUG, "  SEP (Separator): " + sepToken);
+			logger.log(DEBUG, "  NL (Newline): " + nlToken);
+			logger.log(DEBUG, "  PAD (Padding): " + padToken);
 
 			// Most models should have at least BOS and EOS tokens
 			// (Some may return -1 if not available, which is valid)
@@ -154,7 +157,7 @@ public class ModelInformationTest {
 				// Token text can be empty for some special tokens
 
 				// Token scores can be any float value including negative
-				System.out.println("Token " + i + ": '" + tokenText + "' (score: " + tokenScore + ", attrs: " + tokenAttrs + ")");
+				logger.log(DEBUG, "Token " + i + ": '" + tokenText + "' (score: " + tokenScore + ", attrs: " + tokenAttrs + ")");
 			}
 		}
 	}
@@ -168,14 +171,14 @@ public class ModelInformationTest {
 			// Test EOG (End of Generation) checking
 			if (eosToken != -1) {
 				boolean isEogEos = model.isEogToken(eosToken);
-				System.out.println("EOS token (" + eosToken + ") is EOG: " + isEogEos);
+				logger.log(DEBUG, "EOS token (" + eosToken + ") is EOG: " + isEogEos);
 				// EOS tokens are typically EOG tokens, but not always
 			}
 
 			// Test control token checking
 			if (bosToken != -1) {
 				boolean isControlBos = model.isControlToken(bosToken);
-				System.out.println("BOS token (" + bosToken + ") is control: " + isControlBos);
+				logger.log(DEBUG, "BOS token (" + bosToken + ") is control: " + isControlBos);
 				// BOS tokens are typically control tokens
 			}
 
@@ -186,7 +189,7 @@ public class ModelInformationTest {
 				boolean isControl = model.isControlToken(i);
 				String tokenText = model.getTokenText(i);
 
-				System.out.println("Token " + i + " ('" + tokenText + "'): EOG=" + isEog + ", Control=" + isControl);
+				logger.log(DEBUG, "Token " + i + " ('" + tokenText + "'): EOG=" + isEog + ", Control=" + isControl);
 			}
 		}
 	}
@@ -199,7 +202,7 @@ public class ModelInformationTest {
 				model.getModelMetadataKey(-1);
 				Assert.fail("Should throw IllegalArgumentException for negative index");
 			} catch (IllegalArgumentException e) {
-				System.out.println("Correctly caught negative metadata index");
+				logger.log(DEBUG, "Correctly caught negative metadata index");
 			}
 
 			// Test null metadata key
@@ -207,7 +210,7 @@ public class ModelInformationTest {
 				model.getModelMetadataValue(null);
 				Assert.fail("Should throw IllegalArgumentException for null key");
 			} catch (IllegalArgumentException e) {
-				System.out.println("Correctly caught null metadata key");
+				logger.log(DEBUG, "Correctly caught null metadata key");
 			}
 
 			// Test negative token ID
@@ -215,7 +218,7 @@ public class ModelInformationTest {
 				model.getTokenText(-1);
 				Assert.fail("Should throw IllegalArgumentException for negative token ID");
 			} catch (IllegalArgumentException e) {
-				System.out.println("Correctly caught negative token ID");
+				logger.log(DEBUG, "Correctly caught negative token ID");
 			}
 
 			// Test invalid token ID (beyond vocabulary)
@@ -224,7 +227,7 @@ public class ModelInformationTest {
 				model.getTokenText(vocabSize + 1000);
 				Assert.fail("Should throw exception for token ID beyond vocabulary");
 			} catch (IllegalArgumentException e) {
-				System.out.println("Correctly caught invalid token ID: " + e.getMessage());
+				logger.log(DEBUG, "Correctly caught invalid token ID: " + e.getMessage());
 			}
 		}
 	}
@@ -233,7 +236,7 @@ public class ModelInformationTest {
 	public void testModelIntrospection() {
 		try (LlamaModel model = createModel()) {
 			// Comprehensive model information display
-			System.out.println("\n=== MODEL INTROSPECTION ===");
+			logger.log(DEBUG, "\n=== MODEL INTROSPECTION ===");
 
 			// Basic model info
 			long paramCount = model.getModelParameterCount();
@@ -241,23 +244,23 @@ public class ModelInformationTest {
 			int vocabSize = model.getVocabularySize();
 			int vocabType = model.getVocabularyType();
 
-			System.out.println("Parameters: " + String.format("%,d", paramCount));
-			System.out.println("Model size: " + String.format("%.2f GB", modelSize / 1_000_000_000.0));
-			System.out.println("Vocabulary size: " + String.format("%,d", vocabSize));
-			System.out.println("Vocabulary type: " + vocabType);
+			logger.log(DEBUG, "Parameters: " + String.format("%,d", paramCount));
+			logger.log(DEBUG, "Model size: " + String.format("%.2f GB", modelSize / 1_000_000_000.0));
+			logger.log(DEBUG, "Vocabulary size: " + String.format("%,d", vocabSize));
+			logger.log(DEBUG, "Vocabulary type: " + vocabType);
 
 			// Special tokens
-			System.out.println("\nSpecial tokens:");
-			System.out.println("  BOS: " + model.getBosToken());
-			System.out.println("  EOS: " + model.getEosToken());
-			System.out.println("  EOT: " + model.getEotToken());
-			System.out.println("  SEP: " + model.getSepToken());
-			System.out.println("  NL: " + model.getNlToken());
-			System.out.println("  PAD: " + model.getPadToken());
+			logger.log(DEBUG, "\nSpecial tokens:");
+			logger.log(DEBUG, "  BOS: " + model.getBosToken());
+			logger.log(DEBUG, "  EOS: " + model.getEosToken());
+			logger.log(DEBUG, "  EOT: " + model.getEotToken());
+			logger.log(DEBUG, "  SEP: " + model.getSepToken());
+			logger.log(DEBUG, "  NL: " + model.getNlToken());
+			logger.log(DEBUG, "  PAD: " + model.getPadToken());
 
 			// Model metadata highlights
 			Map<String, String> metadata = model.getModelMetadata();
-			System.out.println("\nModel metadata (" + metadata.size() + " entries):");
+			logger.log(DEBUG, "\nModel metadata (" + metadata.size() + " entries):");
 			metadata.entrySet().stream()
 				.filter(entry -> {
 					String key = entry.getKey().toLowerCase();
@@ -266,7 +269,7 @@ public class ModelInformationTest {
 						   key.contains("author") || key.contains("license");
 				})
 				.limit(5)
-				.forEach(entry -> System.out.println("  " + entry.getKey() + " = " + entry.getValue()));
+				.forEach(entry -> logger.log(DEBUG, "  " + entry.getKey() + " = " + entry.getValue()));
 		}
 	}
 
@@ -277,7 +280,7 @@ public class ModelInformationTest {
 			String testString = "Hello world";
 			int[] tokens = model.encode(testString);
 
-			System.out.println("Tokenization of '" + testString + "':");
+			logger.log(DEBUG, "Tokenization of '" + testString + "':");
 			for (int i = 0; i < tokens.length && i < 10; i++) {  // Limit to first 10 tokens
 				int tokenId = tokens[i];
 				String tokenText = model.getTokenText(tokenId);
@@ -285,7 +288,7 @@ public class ModelInformationTest {
 				boolean isControl = model.isControlToken(tokenId);
 				boolean isEog = model.isEogToken(tokenId);
 
-				System.out.println("  Token " + tokenId + ": '" + tokenText + "' " +
+				logger.log(DEBUG, "  Token " + tokenId + ": '" + tokenText + "' " +
 					"(score: " + String.format("%.3f", tokenScore) +
 					", control: " + isControl + ", eog: " + isEog + ")");
 			}
@@ -318,10 +321,10 @@ public class ModelInformationTest {
 							float score = model.getTokenScore(tokenId);
 							boolean isControl = model.isControlToken(tokenId);
 
-							System.out.println("Token " + tokenId + ": '" + text + "' " +
+							logger.log(DEBUG, "Token " + tokenId + ": '" + text + "' " +
 								"(score: " + String.format("%.3f", score) + ", control: " + isControl + ")");
 						} catch (Exception e) {
-							System.out.println("Error accessing token " + tokenId + ": " + e.getMessage());
+							logger.log(DEBUG, "Error accessing token " + tokenId + ": " + e.getMessage());
 						}
 					}
 				}

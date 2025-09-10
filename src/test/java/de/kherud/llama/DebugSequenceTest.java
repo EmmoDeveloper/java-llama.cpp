@@ -1,52 +1,54 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
 import org.junit.Test;
 
 public class DebugSequenceTest {
+	private static final System.Logger logger = System.getLogger(DebugSequenceTest.class.getName());
 
 	@Test
 	public void testSequenceDebug() {
-		System.out.println("=== Debug Sequence State Test ===");
+		logger.log(DEBUG, "=== Debug Sequence State Test ===");
 		try {
 			ModelParameters params = new ModelParameters()
 				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(99);
-			System.out.println("Creating model...");
+			logger.log(DEBUG, "Creating model...");
 
 			try (LlamaModel model = new LlamaModel(params)) {
-				System.out.println("Model created successfully");
+				logger.log(DEBUG, "Model created successfully");
 
 				// Try getting sequence state size for unused sequence
-				System.out.println("Getting sequence state size for unused sequence 0...");
+				logger.log(DEBUG, "Getting sequence state size for unused sequence 0...");
 				try {
 					long seqStateSize = model.getSequenceStateSize(0);
-					System.out.println("SUCCESS: Unused sequence 0 state size: " + seqStateSize);
+					logger.log(DEBUG, "SUCCESS: Unused sequence 0 state size: " + seqStateSize);
 				} catch (Exception e) {
-					System.out.println("FAILED: " + e.getMessage());
+					logger.log(DEBUG, "FAILED: " + e.getMessage());
 					e.printStackTrace();
 				}
 
 				// Try regular state size for comparison
-				System.out.println("Getting regular state size...");
+				logger.log(DEBUG, "Getting regular state size...");
 				try {
 					// First encode something to create state
 					int[] tokens = model.encode("test");
-					System.out.println("Encoded " + tokens.length + " tokens");
+					logger.log(DEBUG, "Encoded " + tokens.length + " tokens");
 
 					long stateSize = model.getModelStateSize();
-					System.out.println("SUCCESS: Model state size: " + stateSize);
+					logger.log(DEBUG, "SUCCESS: Model state size: " + stateSize);
 				} catch (Exception e) {
-					System.out.println("FAILED: " + e.getMessage());
+					logger.log(DEBUG, "FAILED: " + e.getMessage());
 					e.printStackTrace();
 				}
 
 				// Now try sequence state after using the model
-				System.out.println("Getting sequence state size after model usage...");
+				logger.log(DEBUG, "Getting sequence state size after model usage...");
 				try {
 					long seqStateSize = model.getSequenceStateSize(0);
-					System.out.println("SUCCESS: Used sequence 0 state size: " + seqStateSize);
+					logger.log(DEBUG, "SUCCESS: Used sequence 0 state size: " + seqStateSize);
 				} catch (Exception e) {
-					System.out.println("FAILED: " + e.getMessage());
+					logger.log(DEBUG, "FAILED: " + e.getMessage());
 					e.printStackTrace();
 				}
 			}
@@ -55,6 +57,6 @@ public class DebugSequenceTest {
 			e.printStackTrace();
 			throw e;
 		}
-		System.out.println("=== Debug Complete ===");
+		logger.log(DEBUG, "=== Debug Complete ===");
 	}
 }

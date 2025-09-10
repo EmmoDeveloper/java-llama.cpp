@@ -1,32 +1,35 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 public class SimpleStateTest {
+	private static final System.Logger logger = System.getLogger(SimpleStateTest.class.getName());
 
 	@Test
 	public void testBasicStateSize() {
-		System.out.println("=== Starting Simple State Test ===");
+		logger.log(DEBUG, "=== Starting Simple State Test ===");
 		try {
 			ModelParameters params = new ModelParameters()
 				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(99);
-			System.out.println("Creating model...");
+			logger.log(DEBUG, "Creating model...");
 
 			try (LlamaModel model = new LlamaModel(params)) {
-				System.out.println("Model created successfully");
+				logger.log(DEBUG, "Model created successfully");
 
 				// Try encoding some text first
-				System.out.println("Encoding text...");
+				logger.log(DEBUG, "Encoding text...");
 				int[] tokens = model.encode("The quick brown fox");
-				System.out.println("Tokens encoded: " + (tokens != null ? tokens.length : "null"));
+				logger.log(DEBUG, "Tokens encoded: " + (tokens != null ? tokens.length : "null"));
 
 				if (tokens != null && tokens.length > 0) {
 					// Now try to get state size
-					System.out.println("Getting state size...");
+					logger.log(DEBUG, "Getting state size...");
 					long stateSize = model.getModelStateSize();
-					System.out.println("State size: " + stateSize);
+					logger.log(DEBUG, "State size: " + stateSize);
 					Assert.assertTrue("State size should be positive", stateSize > 0);
 				} else {
 					System.err.println("Encoding failed - tokens is null or empty");
@@ -37,6 +40,6 @@ public class SimpleStateTest {
 			e.printStackTrace();
 			throw e;
 		}
-		System.out.println("=== Test Complete ===");
+		logger.log(DEBUG, "=== Test Complete ===");
 	}
 }

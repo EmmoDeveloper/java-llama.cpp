@@ -1,47 +1,50 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.Test;
 
 public class DebugBasicTest {
+	private static final System.Logger logger = System.getLogger(DebugBasicTest.class.getName());
 
 	@Test
 	public void testBasicOperations() {
-		System.out.println("=== Debug Basic Operations ===");
+		logger.log(DEBUG, "=== Debug Basic Operations ===");
 		ModelParameters params = new ModelParameters()
 			.setModel("models/codellama-7b.Q2_K.gguf")
 			.setGpuLayers(99);
 
 		try (LlamaModel model = new LlamaModel(params)) {
-			System.out.println("Model created");
+			logger.log(DEBUG, "Model created");
 
 			// Test encode
 			String testPrompt = "The quick brown fox";
-			System.out.println("Testing encode with: '" + testPrompt + "'");
+			logger.log(DEBUG, "Testing encode with: '" + testPrompt + "'");
 			int[] tokens = model.encode(testPrompt);
-			System.out.println("Encode result: " + (tokens != null ? tokens.length + " tokens" : "null"));
+			logger.log(DEBUG, "Encode result: " + (tokens != null ? tokens.length + " tokens" : "null"));
 			if (tokens != null) {
-				System.out.println("First few tokens: " + java.util.Arrays.toString(java.util.Arrays.copyOf(tokens, Math.min(5, tokens.length))));
+				logger.log(DEBUG, "First few tokens: " + java.util.Arrays.toString(java.util.Arrays.copyOf(tokens, Math.min(5, tokens.length))));
 			}
 
 			// Test getModelState
-			System.out.println("Testing getModelState...");
+			logger.log(DEBUG, "Testing getModelState...");
 			try {
 				byte[] state = model.getModelState();
-				System.out.println("getModelState result: " + (state != null ? state.length + " bytes" : "null"));
+				logger.log(DEBUG, "getModelState result: " + (state != null ? state.length + " bytes" : "null"));
 			} catch (Exception e) {
-				System.out.println("getModelState failed: " + e.getMessage());
+				logger.log(DEBUG, "getModelState failed: " + e.getMessage());
 			}
 
 			// Test complete
-			System.out.println("Testing complete...");
+			logger.log(DEBUG, "Testing complete...");
 			try {
 				InferenceParameters inferParams = new InferenceParameters(testPrompt).setNPredict(1);
 				String result = model.complete(inferParams);
-				System.out.println("Complete result: " + (result != null ? "'" + result + "'" : "null"));
+				logger.log(DEBUG, "Complete result: " + (result != null ? "'" + result + "'" : "null"));
 			} catch (Exception e) {
-				System.out.println("Complete failed: " + e.getMessage());
+				logger.log(DEBUG, "Complete failed: " + e.getMessage());
 			}
 		}
-		System.out.println("=== Debug Complete ===");
+		logger.log(DEBUG, "=== Debug Complete ===");
 	}
 }

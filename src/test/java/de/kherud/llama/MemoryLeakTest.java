@@ -1,5 +1,7 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -13,6 +15,7 @@ import java.util.List;
  * Tests various scenarios that could lead to native memory leaks
  */
 public class MemoryLeakTest {
+	private static final System.Logger logger = System.getLogger(MemoryLeakTest.class.getName());
 
 	private static LlamaModel model;
 	private static final int STRESS_ITERATIONS = 100;
@@ -48,10 +51,10 @@ public class MemoryLeakTest {
 
 	@Test
 	public void testRepeatedCompletion() {
-		System.out.println("\n=== Memory Leak Test: Repeated Completion ===");
+		logger.log(DEBUG, "\n=== Memory Leak Test: Repeated Completion ===");
 
 		long initialMemory = getUsedMemory();
-		System.out.println("Initial memory usage: " + formatBytes(initialMemory));
+		logger.log(DEBUG, "Initial memory usage: " + formatBytes(initialMemory));
 
 		// Perform multiple completions
 		for (int i = 0; i < STRESS_ITERATIONS; i++) {
@@ -67,7 +70,7 @@ public class MemoryLeakTest {
 			// Periodic memory check
 			if (i % 20 == 19) {
 				long currentMemory = getUsedMemory();
-				System.out.println("Memory after " + (i + 1) + " completions: " + formatBytes(currentMemory));
+				logger.log(DEBUG, "Memory after " + (i + 1) + " completions: " + formatBytes(currentMemory));
 
 				// Force GC to clean up any Java-side references
 				System.gc();
@@ -84,22 +87,22 @@ public class MemoryLeakTest {
 		long finalMemory = getUsedMemory();
 		long memoryGrowth = finalMemory - initialMemory;
 
-		System.out.println("Final memory usage: " + formatBytes(finalMemory));
-		System.out.println("Memory growth: " + formatBytes(memoryGrowth));
+		logger.log(DEBUG, "Final memory usage: " + formatBytes(finalMemory));
+		logger.log(DEBUG, "Memory growth: " + formatBytes(memoryGrowth));
 
 		// Allow for some memory growth but flag excessive growth (>50MB)
 		Assert.assertTrue("Excessive memory growth detected: " + formatBytes(memoryGrowth),
 			memoryGrowth < 50 * 1024 * 1024);
 
-		System.out.println("✅ Repeated completion test passed!");
+		logger.log(DEBUG, "✅ Repeated completion test passed!");
 	}
 
 	@Test
 	public void testRepeatedGeneration() {
-		System.out.println("\n=== Memory Leak Test: Repeated Generation ===");
+		logger.log(DEBUG, "\n=== Memory Leak Test: Repeated Generation ===");
 
 		long initialMemory = getUsedMemory();
-		System.out.println("Initial memory usage: " + formatBytes(initialMemory));
+		logger.log(DEBUG, "Initial memory usage: " + formatBytes(initialMemory));
 
 		// Test streaming generation which uses different code paths
 		for (int i = 0; i < STRESS_ITERATIONS / 2; i++) { // Fewer iterations for streaming
@@ -119,7 +122,7 @@ public class MemoryLeakTest {
 			// Periodic memory check
 			if (i % 10 == 9) {
 				long currentMemory = getUsedMemory();
-				System.out.println("Memory after " + (i + 1) + " generations: " + formatBytes(currentMemory));
+				logger.log(DEBUG, "Memory after " + (i + 1) + " generations: " + formatBytes(currentMemory));
 				System.gc();
 				Thread.yield();
 			}
@@ -134,22 +137,22 @@ public class MemoryLeakTest {
 		long finalMemory = getUsedMemory();
 		long memoryGrowth = finalMemory - initialMemory;
 
-		System.out.println("Final memory usage: " + formatBytes(finalMemory));
-		System.out.println("Memory growth: " + formatBytes(memoryGrowth));
+		logger.log(DEBUG, "Final memory usage: " + formatBytes(finalMemory));
+		logger.log(DEBUG, "Memory growth: " + formatBytes(memoryGrowth));
 
 		// Allow for some memory growth but flag excessive growth (>50MB)
 		Assert.assertTrue("Excessive memory growth detected: " + formatBytes(memoryGrowth),
 			memoryGrowth < 50 * 1024 * 1024);
 
-		System.out.println("✅ Repeated generation test passed!");
+		logger.log(DEBUG, "✅ Repeated generation test passed!");
 	}
 
 	@Test
 	public void testRepeatedTokenization() {
-		System.out.println("\n=== Memory Leak Test: Repeated Tokenization ===");
+		logger.log(DEBUG, "\n=== Memory Leak Test: Repeated Tokenization ===");
 
 		long initialMemory = getUsedMemory();
-		System.out.println("Initial memory usage: " + formatBytes(initialMemory));
+		logger.log(DEBUG, "Initial memory usage: " + formatBytes(initialMemory));
 
 		String[] testTexts = {
 			"Hello, world!",
@@ -162,7 +165,7 @@ public class MemoryLeakTest {
 		// Perform encode/decode cycles
 		for (int i = 0; i < STRESS_ITERATIONS; i++) {
 			String text = testTexts[i % testTexts.length];
-			System.out.println("text = " + text);
+			logger.log(DEBUG, "text = " + text);
 
 			// Encode
 			int[] tokens = model.encode(text);
@@ -171,7 +174,7 @@ public class MemoryLeakTest {
 
 			// Decode
 			String decoded = model.decode(tokens);
-			System.out.println("decoded = " + decoded);
+			logger.log(DEBUG, "decoded = " + decoded);
 
 			Assert.assertNotNull("Decoded text should not be null", decoded);
 
@@ -182,7 +185,7 @@ public class MemoryLeakTest {
 			// Periodic memory check
 			if (i % 25 == 24) {
 				long currentMemory = getUsedMemory();
-				System.out.println("Memory after " + (i + 1) + " tokenizations: " + formatBytes(currentMemory));
+				logger.log(DEBUG, "Memory after " + (i + 1) + " tokenizations: " + formatBytes(currentMemory));
 				System.gc();
 				Thread.yield();
 			}
@@ -197,22 +200,22 @@ public class MemoryLeakTest {
 		long finalMemory = getUsedMemory();
 		long memoryGrowth = finalMemory - initialMemory;
 
-		System.out.println("Final memory usage: " + formatBytes(finalMemory));
-		System.out.println("Memory growth: " + formatBytes(memoryGrowth));
+		logger.log(DEBUG, "Final memory usage: " + formatBytes(finalMemory));
+		logger.log(DEBUG, "Memory growth: " + formatBytes(memoryGrowth));
 
 		// Allow for some memory growth but flag excessive growth (>20MB)
 		Assert.assertTrue("Excessive memory growth detected: " + formatBytes(memoryGrowth),
 			memoryGrowth < 20 * 1024 * 1024);
 
-		System.out.println("✅ Repeated tokenization test passed!");
+		logger.log(DEBUG, "✅ Repeated tokenization test passed!");
 	}
 
 	@Test
 	public void testMultipleModelInstances() {
-		System.out.println("\n=== Memory Leak Test: Multiple Model Instances ===");
+		logger.log(DEBUG, "\n=== Memory Leak Test: Multiple Model Instances ===");
 
 		long initialMemory = getUsedMemory();
-		System.out.println("Initial memory usage: " + formatBytes(initialMemory));
+		logger.log(DEBUG, "Initial memory usage: " + formatBytes(initialMemory));
 
 		// Create and destroy multiple model instances
 		List<LlamaModel> models = new ArrayList<>();
@@ -237,7 +240,7 @@ public class MemoryLeakTest {
 				Assert.assertNotNull("Model " + i + " should produce output", result);
 
 				long currentMemory = getUsedMemory();
-				System.out.println("Memory after creating model " + (i + 1) + ": " + formatBytes(currentMemory));
+				logger.log(DEBUG, "Memory after creating model " + (i + 1) + ": " + formatBytes(currentMemory));
 			}
 
 		} finally {
@@ -257,22 +260,22 @@ public class MemoryLeakTest {
 		long finalMemory = getUsedMemory();
 		long memoryGrowth = finalMemory - initialMemory;
 
-		System.out.println("Final memory usage after cleanup: " + formatBytes(finalMemory));
-		System.out.println("Net memory growth: " + formatBytes(memoryGrowth));
+		logger.log(DEBUG, "Final memory usage after cleanup: " + formatBytes(finalMemory));
+		logger.log(DEBUG, "Net memory growth: " + formatBytes(memoryGrowth));
 
 		// Should return close to initial memory usage (allow 100MB variance)
 		Assert.assertTrue("Models may not have been properly cleaned up: " + formatBytes(memoryGrowth),
 			Math.abs(memoryGrowth) < 100 * 1024 * 1024);
 
-		System.out.println("✅ Multiple model instances test passed!");
+		logger.log(DEBUG, "✅ Multiple model instances test passed!");
 	}
 
 	@Test
 	public void testTemplateMemory() {
-		System.out.println("\n=== Memory Leak Test: Template Operations ===");
+		logger.log(DEBUG, "\n=== Memory Leak Test: Template Operations ===");
 
 		long initialMemory = getUsedMemory();
-		System.out.println("Initial memory usage: " + formatBytes(initialMemory));
+		logger.log(DEBUG, "Initial memory usage: " + formatBytes(initialMemory));
 
 		// Test template operations repeatedly
 		for (int i = 0; i < STRESS_ITERATIONS; i++) {
@@ -294,7 +297,7 @@ public class MemoryLeakTest {
 			// Periodic memory check
 			if (i % 25 == 24) {
 				long currentMemory = getUsedMemory();
-				System.out.println("Memory after " + (i + 1) + " template operations: " + formatBytes(currentMemory));
+				logger.log(DEBUG, "Memory after " + (i + 1) + " template operations: " + formatBytes(currentMemory));
 				System.gc();
 				Thread.yield();
 			}
@@ -309,14 +312,14 @@ public class MemoryLeakTest {
 		long finalMemory = getUsedMemory();
 		long memoryGrowth = finalMemory - initialMemory;
 
-		System.out.println("Final memory usage: " + formatBytes(finalMemory));
-		System.out.println("Memory growth: " + formatBytes(memoryGrowth));
+		logger.log(DEBUG, "Final memory usage: " + formatBytes(finalMemory));
+		logger.log(DEBUG, "Memory growth: " + formatBytes(memoryGrowth));
 
 		// Allow for some memory growth but flag excessive growth (>15MB)
 		Assert.assertTrue("Excessive memory growth detected: " + formatBytes(memoryGrowth),
 			memoryGrowth < 15 * 1024 * 1024);
 
-		System.out.println("✅ Template memory test passed!");
+		logger.log(DEBUG, "✅ Template memory test passed!");
 	}
 
 	// Helper methods

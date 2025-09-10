@@ -1,5 +1,7 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -13,6 +15,7 @@ import static de.kherud.llama.MemoryLeakTest.getUsedMemory;
  * Tests various scenarios that could lead to native memory leaks
  */
 public class MemoryLeakEmbeddingTest {
+	private static final System.Logger logger = System.getLogger(MemoryLeakEmbeddingTest.class.getName());
 
 	private static LlamaModel model;
 	private static final int STRESS_ITERATIONS = 100;
@@ -49,10 +52,10 @@ public class MemoryLeakEmbeddingTest {
 
 	@Test
 	public void testRepeatedEmbedding() {
-		System.out.println("\n=== Memory Leak Test: Repeated Embedding ===");
+		logger.log(DEBUG, "\n=== Memory Leak Test: Repeated Embedding ===");
 
 		long initialMemory = getUsedMemory();
-		System.out.println("Initial memory usage: " + formatBytes(initialMemory));
+		logger.log(DEBUG, "Initial memory usage: " + formatBytes(initialMemory));
 
 		String[] testTexts = {
 			"Hello world",
@@ -83,7 +86,7 @@ public class MemoryLeakEmbeddingTest {
 			// Periodic memory check
 			if (i % 20 == 19) {
 				long currentMemory = getUsedMemory();
-				System.out.println("Memory after " + (i + 1) + " embeddings: " + formatBytes(currentMemory));
+				logger.log(DEBUG, "Memory after " + (i + 1) + " embeddings: " + formatBytes(currentMemory));
 				System.gc();
 				Thread.yield();
 			}
@@ -98,13 +101,13 @@ public class MemoryLeakEmbeddingTest {
 		long finalMemory = getUsedMemory();
 		long memoryGrowth = finalMemory - initialMemory;
 
-		System.out.println("Final memory usage: " + formatBytes(finalMemory));
-		System.out.println("Memory growth: " + formatBytes(memoryGrowth));
+		logger.log(DEBUG, "Final memory usage: " + formatBytes(finalMemory));
+		logger.log(DEBUG, "Memory growth: " + formatBytes(memoryGrowth));
 
 		// Allow for some memory growth but flag excessive growth (>30MB)
 		Assert.assertTrue("Excessive memory growth detected: " + formatBytes(memoryGrowth),
 			memoryGrowth < 30 * 1024 * 1024);
 
-		System.out.println("✅ Repeated embedding test passed!");
+		logger.log(DEBUG, "✅ Repeated embedding test passed!");
 	}
 }

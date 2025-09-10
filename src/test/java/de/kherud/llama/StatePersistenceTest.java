@@ -1,5 +1,7 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -8,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class StatePersistenceTest {
+	private static final System.Logger logger = System.getLogger(StatePersistenceTest.class.getName());
 
 	private static final String TEST_PROMPT = "The quick brown fox";
 
@@ -29,7 +32,7 @@ public class StatePersistenceTest {
 			long stateSize = model.getModelStateSize();
 			Assert.assertTrue("State size should be positive", stateSize > 0);
 
-			System.out.println("Model state size: " + stateSize + " bytes");
+			logger.log(DEBUG, "Model state size: " + stateSize + " bytes");
 		}
 	}
 
@@ -46,7 +49,7 @@ public class StatePersistenceTest {
 			Assert.assertNotNull("State data should not be null", stateData);
 			Assert.assertTrue("State data should not be empty", stateData.length > 0);
 
-			System.out.println("Captured state data: " + stateData.length + " bytes");
+			logger.log(DEBUG, "Captured state data: " + stateData.length + " bytes");
 
 			// Create a new model instance to restore state to
 			ModelParameters params = new ModelParameters()
@@ -57,7 +60,7 @@ public class StatePersistenceTest {
 				long loaded = newModel.setModelState(stateData);
 				Assert.assertTrue("Should have loaded some bytes", loaded > 0);
 
-				System.out.println("Loaded " + loaded + " bytes of state data");
+				logger.log(DEBUG, "Loaded " + loaded + " bytes of state data");
 			}
 		}
 	}
@@ -82,7 +85,7 @@ public class StatePersistenceTest {
 				Assert.assertTrue("State file should exist", stateFile.exists());
 				Assert.assertTrue("State file should not be empty", stateFile.length() > 0);
 
-				System.out.println("Saved state file: " + stateFile.length() + " bytes");
+				logger.log(DEBUG, "Saved state file: " + stateFile.length() + " bytes");
 
 				// Create new model and load state
 				ModelParameters params = new ModelParameters()
@@ -94,7 +97,7 @@ public class StatePersistenceTest {
 					Assert.assertNotNull("Loaded tokens should not be null", loadedTokens);
 					Assert.assertArrayEquals("Loaded tokens should match original", originalTokens, loadedTokens);
 
-					System.out.println("Successfully loaded state with " + loadedTokens.length + " tokens");
+					logger.log(DEBUG, "Successfully loaded state with " + loadedTokens.length + " tokens");
 				}
 
 			} finally {
@@ -134,7 +137,7 @@ public class StatePersistenceTest {
 					Assert.assertNotNull("Loaded tokens should not be null", loadedTokens);
 					Assert.assertEquals("Should have no tokens when none were saved", 0, loadedTokens.length);
 
-					System.out.println("Successfully loaded state without tokens");
+					logger.log(DEBUG, "Successfully loaded state without tokens");
 				}
 
 			} finally {
@@ -150,7 +153,7 @@ public class StatePersistenceTest {
 			long seqStateSize = model.getSequenceStateSize(0);
 			Assert.assertTrue("Unused sequence should have minimal state size", seqStateSize >= 0);
 
-			System.out.println("Sequence 0 state size (unused): " + seqStateSize + " bytes");
+			logger.log(DEBUG, "Sequence 0 state size (unused): " + seqStateSize + " bytes");
 
 			// Generate context for sequence 0 by doing inference
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT).setNPredict(1);
@@ -161,7 +164,7 @@ public class StatePersistenceTest {
 			seqStateSize = model.getSequenceStateSize(0);
 			Assert.assertTrue("Used sequence should have positive state size", seqStateSize > 0);
 
-			System.out.println("Sequence 0 state size (after inference): " + seqStateSize + " bytes");
+			logger.log(DEBUG, "Sequence 0 state size (after inference): " + seqStateSize + " bytes");
 		}
 	}
 
@@ -172,7 +175,7 @@ public class StatePersistenceTest {
 			byte[] seqStateData = model.getSequenceState(0);
 			Assert.assertNotNull("Sequence state data should not be null", seqStateData);
 
-			System.out.println("Sequence 0 state data (unused): " + seqStateData.length + " bytes");
+			logger.log(DEBUG, "Sequence 0 state data (unused): " + seqStateData.length + " bytes");
 
 			// Generate context for sequence 0 by doing inference
 			InferenceParameters params = new InferenceParameters(TEST_PROMPT).setNPredict(1);
@@ -184,7 +187,7 @@ public class StatePersistenceTest {
 			Assert.assertNotNull("Sequence state data should not be null", seqStateData);
 			Assert.assertTrue("Used sequence should have state data", seqStateData.length > 0);
 
-			System.out.println("Sequence 0 state data (after inference): " + seqStateData.length + " bytes");
+			logger.log(DEBUG, "Sequence 0 state data (after inference): " + seqStateData.length + " bytes");
 
 			// Create new model and restore sequence state
 			ModelParameters newParams = new ModelParameters()
@@ -194,7 +197,7 @@ public class StatePersistenceTest {
 				long loaded = newModel.setSequenceState(seqStateData, 0);
 				Assert.assertTrue("Should have loaded sequence state", loaded > 0);
 
-				System.out.println("Loaded " + loaded + " bytes of sequence state");
+				logger.log(DEBUG, "Loaded " + loaded + " bytes of sequence state");
 			}
 		}
 	}
@@ -223,7 +226,7 @@ public class StatePersistenceTest {
 				File stateFile = new File(filePath);
 				Assert.assertTrue("Sequence state file should exist", stateFile.exists());
 
-				System.out.println("Saved " + saved + " bytes of sequence state");
+				logger.log(DEBUG, "Saved " + saved + " bytes of sequence state");
 
 				// Create new model and load sequence state
 				ModelParameters newParams = new ModelParameters()
@@ -235,7 +238,7 @@ public class StatePersistenceTest {
 					Assert.assertNotNull("Loaded tokens should not be null", loadedTokens);
 					Assert.assertArrayEquals("Loaded tokens should match original", originalTokens, loadedTokens);
 
-					System.out.println("Successfully loaded sequence state with " + loadedTokens.length + " tokens");
+					logger.log(DEBUG, "Successfully loaded sequence state with " + loadedTokens.length + " tokens");
 				}
 
 			} finally {
@@ -308,7 +311,7 @@ public class StatePersistenceTest {
 					long newStateSize = newModel.getModelStateSize();
 					Assert.assertEquals("State size should be consistent", originalStateSize, newStateSize);
 
-					System.out.println("Round-trip test successful - state consistency maintained");
+					logger.log(DEBUG, "Round-trip test successful - state consistency maintained");
 				}
 
 			} finally {

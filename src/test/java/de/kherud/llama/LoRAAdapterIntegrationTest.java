@@ -1,5 +1,7 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.Test;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -8,6 +10,7 @@ import org.junit.Assume;
 import java.io.File;
 
 public class LoRAAdapterIntegrationTest {
+	private static final System.Logger logger = System.getLogger(LoRAAdapterIntegrationTest.class.getName());
 
 	private static LlamaModel model;
 	private static final String LORA_TEST_PATH = "/work/java/java-llama.cpp/models/LoRA-Llama-3.1-8B-MultiReflection-f16.gguf";
@@ -52,7 +55,7 @@ public class LoRAAdapterIntegrationTest {
 
 	@Test
 	public void testLoRAAdapterRealFileIntegration() {
-		System.out.println("\n=== LoRA Adapter Real File Integration Test ===");
+		logger.log(DEBUG, "\n=== LoRA Adapter Real File Integration Test ===");
 
 		// Check if we have a real LoRA file to test with (must be >1KB to be valid)
 		String testLoRAPath = null;
@@ -63,14 +66,14 @@ public class LoRAAdapterIntegrationTest {
 		}
 
 		if (testLoRAPath == null) {
-			System.out.println("⚠️  No valid LoRA test file found - testing error handling only");
+			logger.log(DEBUG, "⚠️  No valid LoRA test file found - testing error handling only");
 
 			// Test that our error handling works correctly for nonexistent file
 			try {
 				model.loadLoRAAdapter("/nonexistent/lora/file.safetensors");
 				Assert.fail("Should throw exception for nonexistent file");
 			} catch (LlamaException e) {
-				System.out.println("✅ Correctly handled nonexistent file: " + e.getMessage());
+				logger.log(DEBUG, "✅ Correctly handled nonexistent file: " + e.getMessage());
 			}
 
 			// Test handling of invalid/dummy file if it exists
@@ -79,95 +82,95 @@ public class LoRAAdapterIntegrationTest {
 					model.loadLoRAAdapter(LORA_TEST_PATH_ALT);
 					Assert.fail("Should throw exception for invalid LoRA file");
 				} catch (LlamaException e) {
-					System.out.println("✅ Correctly rejected invalid/dummy LoRA file: " + e.getMessage());
+					logger.log(DEBUG, "✅ Correctly rejected invalid/dummy LoRA file: " + e.getMessage());
 				}
 			}
 
-			System.out.println("✅ Error handling test passed (no valid LoRA file available)");
+			logger.log(DEBUG, "✅ Error handling test passed (no valid LoRA file available)");
 			return;
 		}
 
 		// Test with real LoRA file
-		System.out.println("📁 Testing with LoRA file: " + testLoRAPath);
+		logger.log(DEBUG, "📁 Testing with LoRA file: " + testLoRAPath);
 
 		try {
 			// Load LoRA adapter
 			long adapterHandle = model.loadLoRAAdapter(testLoRAPath);
-			System.out.println("✅ Successfully loaded LoRA adapter, handle: " + adapterHandle);
+			logger.log(DEBUG, "✅ Successfully loaded LoRA adapter, handle: " + adapterHandle);
 			Assert.assertTrue("Adapter handle should be valid", adapterHandle != -1 && adapterHandle != 0);
 
 			// Test setting adapter with different scales
 			int result1 = model.setLoRAAdapter(adapterHandle, 1.0f);
-			System.out.println("✅ Set LoRA adapter with scale 1.0: result = " + result1);
+			logger.log(DEBUG, "✅ Set LoRA adapter with scale 1.0: result = " + result1);
 
 			int result2 = model.setLoRAAdapter(adapterHandle, 0.5f);
-			System.out.println("✅ Set LoRA adapter with scale 0.5: result = " + result2);
+			logger.log(DEBUG, "✅ Set LoRA adapter with scale 0.5: result = " + result2);
 
 			// Test default scale
 			int result3 = model.setLoRAAdapter(adapterHandle);
-			System.out.println("✅ Set LoRA adapter with default scale: result = " + result3);
+			logger.log(DEBUG, "✅ Set LoRA adapter with default scale: result = " + result3);
 
 			// Test removing adapter
 			int removeResult = model.removeLoRAAdapter(adapterHandle);
-			System.out.println("✅ Removed LoRA adapter: result = " + removeResult);
+			logger.log(DEBUG, "✅ Removed LoRA adapter: result = " + removeResult);
 
 			// Test metadata access
 			try {
 				int metaCount = model.getLoRAAdapterMetadataCount(adapterHandle);
-				System.out.println("📊 LoRA adapter metadata count: " + metaCount);
+				logger.log(DEBUG, "📊 LoRA adapter metadata count: " + metaCount);
 
 				if (metaCount > 0) {
 					for (int i = 0; i < Math.min(metaCount, 5); i++) {
 						String key = model.getLoRAAdapterMetadataKey(adapterHandle, i);
 						String value = model.getLoRAAdapterMetadataValue(adapterHandle, i);
-						System.out.printf("📋 Metadata[%d]: %s = %s\n", i, key, value);
+						logger.log(DEBUG, "📋 Metadata[%d]: %s = %s", i, key, value);
 					}
 				}
 			} catch (LlamaException e) {
-				System.out.println("ℹ️  Metadata access failed (expected after removal): " + e.getMessage());
+				logger.log(DEBUG, "ℹ️  Metadata access failed (expected after removal): " + e.getMessage());
 			}
 
 			// Test ALORA functionality
 			try {
 				long tokenCount = model.getAloraInvocationTokenCount(adapterHandle);
-				System.out.println("🔢 ALORA token count: " + tokenCount);
+				logger.log(DEBUG, "🔢 ALORA token count: " + tokenCount);
 
 				if (tokenCount > 0) {
 					int[] tokens = model.getAloraInvocationTokens(adapterHandle);
-					System.out.printf("🎯 ALORA tokens (%d): [", tokens.length);
+					logger.log(DEBUG, "🎯 ALORA tokens (%d): [", tokens.length);
 					for (int i = 0; i < Math.min(tokens.length, 10); i++) {
-						System.out.print(tokens[i]);
-						if (i < Math.min(tokens.length, 10) - 1) System.out.print(", ");
+						logger.log(DEBUG, tokens[i]);
+						if (i < Math.min(tokens.length, 10) - 1) logger.log(DEBUG, ", ");
 					}
-					if (tokens.length > 10) System.out.print("...");
-					System.out.println("]");
+					if (tokens.length > 10) logger.log(DEBUG, "...");
+					logger.log(DEBUG, "]");
 				} else {
-					System.out.println("ℹ️  Not an ALORA adapter (token count: 0)");
+					logger.log(DEBUG, "ℹ️  Not an ALORA adapter (token count: 0)");
 				}
 			} catch (LlamaException e) {
-				System.out.println("ℹ️  ALORA access failed (expected after removal): " + e.getMessage());
+				logger.log(DEBUG, "ℹ️  ALORA access failed (expected after removal): " + e.getMessage());
 			}
 
 			// Clean up
 			model.freeLoRAAdapter(adapterHandle);
-			System.out.println("🧹 Freed LoRA adapter");
+			logger.log(DEBUG, "🧹 Freed LoRA adapter");
 
 		} catch (LlamaException e) {
 			Assert.fail("Real LoRA integration test failed: " + e.getMessage());
 		}
 
-		System.out.println("✅ Real LoRA integration test passed!");
+		logger.log(DEBUG, "✅ Real LoRA integration test passed!");
 	}
 
 	@Test
 	public void testControlVectorIntegration() {
-		System.out.println("\n=== Control Vector Integration Test ===");
+		logger.log(DEBUG, "\n=== Control Vector Integration Test ===");
 
 		try {
 			// Test control vector operations
-			System.out.println("🧹 Clearing any existing control vectors");
+			logger.log(DEBUG, "🧹 Clearing any existing control vectors");
 			int clearResult = model.clearControlVector();
-			System.out.println("✅ Initial clear result: " + clearResult);
+			logger.log(DEBUG, "✅ Initial clear result: " + clearResult);
 
 			// Test with different sized control vectors
 			float[][] testVectors = {
@@ -186,66 +189,66 @@ public class LoRAAdapterIntegrationTest {
 			}
 
 			for (float[] vector : testVectors) {
-				System.out.printf("🧪 Testing control vector with %d elements\n", vector.length);
+				logger.log(DEBUG, "🧪 Testing control vector with %d elements", vector.length);
 
 				try {
 					int result = model.applyControlVector(vector);
-					System.out.printf("✅ Applied control vector[%d]: result = %d\n", vector.length, result);
+					logger.log(DEBUG, "✅ Applied control vector[%d]: result = %d", vector.length, result);
 				} catch (LlamaException e) {
-					System.out.printf("ℹ️  Control vector[%d] failed (may be expected): %s\n", vector.length, e.getMessage());
+					logger.log(DEBUG, "ℹ️  Control vector[%d] failed (may be expected): %s", vector.length, e.getMessage());
 				}
 			}
 
 			// Test null control vector (clear)
 			int nullResult = model.applyControlVector(null);
-			System.out.println("✅ Applied null control vector (clear): result = " + nullResult);
+			logger.log(DEBUG, "✅ Applied null control vector (clear): result = " + nullResult);
 
 			// Final cleanup
 			model.clearControlVector();
-			System.out.println("🧹 Final control vector cleanup completed");
+			logger.log(DEBUG, "🧹 Final control vector cleanup completed");
 
 		} catch (Exception e) {
 			Assert.fail("Control vector integration test failed: " + e.getMessage());
 		}
 
-		System.out.println("✅ Control vector integration test passed!");
+		logger.log(DEBUG, "✅ Control vector integration test passed!");
 	}
 
 	@Test
 	public void testLoRAWorkflowWithClearOperations() {
-		System.out.println("\n=== LoRA Workflow with Clear Operations Test ===");
+		logger.log(DEBUG, "\n=== LoRA Workflow with Clear Operations Test ===");
 
 		try {
 			// Test clear operations work correctly
-			System.out.println("🧹 Step 1: Clear all adapters and control vectors");
+			logger.log(DEBUG, "🧹 Step 1: Clear all adapters and control vectors");
 			model.clearLoRAAdapters();
 			model.clearControlVector();
 
 			// Test multiple clear operations (should be safe)
-			System.out.println("🧹 Step 2: Multiple clear operations");
+			logger.log(DEBUG, "🧹 Step 2: Multiple clear operations");
 			for (int i = 0; i < 3; i++) {
 				model.clearLoRAAdapters();
 				model.clearControlVector();
 			}
-			System.out.println("✅ Multiple clears completed without error");
+			logger.log(DEBUG, "✅ Multiple clears completed without error");
 
 			// Test that we can perform operations after clearing
-			System.out.println("🔧 Step 3: Test operations after clearing");
+			logger.log(DEBUG, "🔧 Step 3: Test operations after clearing");
 
 			// Apply and clear control vector
 			float[] testVector = {0.1f, 0.2f, 0.3f, 0.4f};
 			try {
 				int applyResult = model.applyControlVector(testVector);
-				System.out.println("✅ Applied test control vector after clear: " + applyResult);
+				logger.log(DEBUG, "✅ Applied test control vector after clear: " + applyResult);
 
 				int clearResult = model.clearControlVector();
-				System.out.println("✅ Cleared control vector: " + clearResult);
+				logger.log(DEBUG, "✅ Cleared control vector: " + clearResult);
 			} catch (LlamaException e) {
-				System.out.println("ℹ️  Control vector operations failed (may be model-dependent): " + e.getMessage());
+				logger.log(DEBUG, "ℹ️  Control vector operations failed (may be model-dependent): " + e.getMessage());
 			}
 
 			// Final state verification
-			System.out.println("🧹 Step 4: Final cleanup and verification");
+			logger.log(DEBUG, "🧹 Step 4: Final cleanup and verification");
 			model.clearLoRAAdapters();
 			model.clearControlVector();
 
@@ -254,19 +257,19 @@ public class LoRAAdapterIntegrationTest {
 				model.setLoRAAdapter(-1L, 1.0f);
 				Assert.fail("Should fail with invalid adapter handle");
 			} catch (LlamaException e) {
-				System.out.println("✅ Invalid operations still fail correctly: " + e.getMessage());
+				logger.log(DEBUG, "✅ Invalid operations still fail correctly: " + e.getMessage());
 			}
 
 		} catch (Exception e) {
 			Assert.fail("LoRA workflow test failed: " + e.getMessage());
 		}
 
-		System.out.println("✅ LoRA workflow test passed!");
+		logger.log(DEBUG, "✅ LoRA workflow test passed!");
 	}
 
 	@Test
 	public void testErrorHandlingEdgeCases() {
-		System.out.println("\n=== Error Handling Edge Cases Test ===");
+		logger.log(DEBUG, "\n=== Error Handling Edge Cases Test ===");
 
 		// Test various invalid inputs
 		String[] invalidPaths = {
@@ -281,15 +284,15 @@ public class LoRAAdapterIntegrationTest {
 		for (String path : invalidPaths) {
 			try {
 				if (path == null) {
-					System.out.println("🧪 Testing null path");
+					logger.log(DEBUG, "🧪 Testing null path");
 					model.loadLoRAAdapter(null);
 				} else {
-					System.out.printf("🧪 Testing invalid path: '%s'\n", path);
+					logger.log(DEBUG, "🧪 Testing invalid path: '%s'", path);
 					model.loadLoRAAdapter(path);
 				}
 				Assert.fail("Should have thrown exception for invalid path: " + path);
 			} catch (IllegalArgumentException | LlamaException e) {
-				System.out.printf("✅ Correctly handled invalid path '%s': %s\n",
+				logger.log(DEBUG, "✅ Correctly handled invalid path '%s': %s",
 					path == null ? "null" : path, e.getClass().getSimpleName());
 			}
 		}
@@ -298,23 +301,23 @@ public class LoRAAdapterIntegrationTest {
 		long[] invalidHandles = {-1L, 0L, Long.MAX_VALUE, Long.MIN_VALUE};
 
 		for (long handle : invalidHandles) {
-			System.out.printf("🧪 Testing invalid handle: %d\n", handle);
+			logger.log(DEBUG, "🧪 Testing invalid handle: %d", handle);
 
 			try {
 				model.setLoRAAdapter(handle, 1.0f);
 				Assert.fail("Should have thrown exception for invalid handle: " + handle);
 			} catch (LlamaException e) {
-				System.out.printf("✅ setLoRAAdapter correctly handled invalid handle %d\n", handle);
+				logger.log(DEBUG, "✅ setLoRAAdapter correctly handled invalid handle %d", handle);
 			}
 
 			try {
 				model.getLoRAAdapterMetadataCount(handle);
 				Assert.fail("Should have thrown exception for invalid handle: " + handle);
 			} catch (LlamaException e) {
-				System.out.printf("✅ getLoRAAdapterMetadataCount correctly handled invalid handle %d\n", handle);
+				logger.log(DEBUG, "✅ getLoRAAdapterMetadataCount correctly handled invalid handle %d", handle);
 			}
 		}
 
-		System.out.println("✅ Error handling edge cases test passed!");
+		logger.log(DEBUG, "✅ Error handling edge cases test passed!");
 	}
 }

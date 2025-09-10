@@ -1,9 +1,12 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 public class MemoryKVCacheTest {
+	private static final System.Logger logger = System.getLogger(MemoryKVCacheTest.class.getName());
 
 	private static final String TEST_PROMPT = "The quick brown fox";
 
@@ -37,14 +40,14 @@ public class MemoryKVCacheTest {
 				Assert.assertTrue("Should be able to query sequence 0 positions", seq0Min >= -1);
 				Assert.assertTrue("Should be able to query sequence 1 positions", seq1Min >= -1);
 
-				System.out.println("Sequence 0 range: [" + seq0Min + ", " + seq0Max + "]");
-				System.out.println("Sequence 1 range: [" + seq1Min + ", " + seq1Max + "]");
+				logger.log(DEBUG, "Sequence 0 range: [" + seq0Min + ", " + seq0Max + "]");
+				logger.log(DEBUG, "Sequence 1 range: [" + seq1Min + ", " + seq1Max + "]");
 			} catch (Exception e) {
 				// This is acceptable if sequences have no data
-				System.out.println("Sequences have no position data: " + e.getMessage());
+				logger.log(DEBUG, "Sequences have no position data: " + e.getMessage());
 			}
 
-			System.out.println("Successfully copied sequence 0 to sequence 1");
+			logger.log(DEBUG, "Successfully copied sequence 0 to sequence 1");
 		}
 	}
 
@@ -59,7 +62,7 @@ public class MemoryKVCacheTest {
 			// Copy partial range from sequence 0 to sequence 2
 			model.copySequence(0, 2, 0, 5);
 
-			System.out.println("Successfully copied partial range from sequence 0 to sequence 2");
+			logger.log(DEBUG, "Successfully copied partial range from sequence 0 to sequence 2");
 		}
 	}
 
@@ -79,7 +82,7 @@ public class MemoryKVCacheTest {
 			// Keep only sequence 0, which should clear sequence 1
 			model.keepSequence(0);
 
-			System.out.println("Successfully kept sequence 0 and cleared others");
+			logger.log(DEBUG, "Successfully kept sequence 0 and cleared others");
 		}
 	}
 
@@ -94,7 +97,7 @@ public class MemoryKVCacheTest {
 			// Add position delta to shift positions
 			model.addPositionDelta(0, 0, -1, 10);
 
-			System.out.println("Successfully added position delta to sequence 0");
+			logger.log(DEBUG, "Successfully added position delta to sequence 0");
 		}
 	}
 
@@ -109,7 +112,7 @@ public class MemoryKVCacheTest {
 			// Divide positions by 2 to compress them
 			model.dividePositions(0, 0, -1, 2);
 
-			System.out.println("Successfully divided positions in sequence 0");
+			logger.log(DEBUG, "Successfully divided positions in sequence 0");
 		}
 	}
 
@@ -132,16 +135,16 @@ public class MemoryKVCacheTest {
 					Assert.assertTrue("Max position should be >= min position", maxPos >= minPos);
 				}
 
-				System.out.println("Sequence 0 position range: [" + minPos + ", " + maxPos + "]");
+				logger.log(DEBUG, "Sequence 0 position range: [" + minPos + ", " + maxPos + "]");
 
 				// Test with non-existent sequence
 				int minPos99 = model.getSequenceMinPosition(99);
 				int maxPos99 = model.getSequenceMaxPosition(99);
 
-				System.out.println("Sequence 99 position range: [" + minPos99 + ", " + maxPos99 + "]");
+				logger.log(DEBUG, "Sequence 99 position range: [" + minPos99 + ", " + maxPos99 + "]");
 			} catch (Exception e) {
 				// This is acceptable if sequence has no positions
-				System.out.println("No position data available: " + e.getMessage());
+				logger.log(DEBUG, "No position data available: " + e.getMessage());
 			}
 		}
 	}
@@ -152,7 +155,7 @@ public class MemoryKVCacheTest {
 			boolean canShift = model.canShiftContext();
 
 			// Just verify we get a boolean response
-			System.out.println("Context shifting support: " + canShift);
+			logger.log(DEBUG, "Context shifting support: " + canShift);
 		}
 	}
 
@@ -166,7 +169,7 @@ public class MemoryKVCacheTest {
 
 			// Clear memory with data clearing
 			model.clearMemory(true);
-			System.out.println("Successfully cleared memory with data clearing");
+			logger.log(DEBUG, "Successfully cleared memory with data clearing");
 
 			// Generate context again
 			result = model.complete(params);
@@ -174,11 +177,11 @@ public class MemoryKVCacheTest {
 
 			// Clear memory without data clearing (metadata only)
 			model.clearMemory(false);
-			System.out.println("Successfully cleared memory metadata only");
+			logger.log(DEBUG, "Successfully cleared memory metadata only");
 
 			// Test convenience method
 			model.clearMemory();
-			System.out.println("Successfully cleared memory using convenience method");
+			logger.log(DEBUG, "Successfully cleared memory using convenience method");
 		}
 	}
 
@@ -194,11 +197,11 @@ public class MemoryKVCacheTest {
 			boolean removed = model.removeSequenceTokens(0, 2, 6);
 
 			// Result depends on whether there were tokens to remove
-			System.out.println("Token removal result: " + removed);
+			logger.log(DEBUG, "Token removal result: " + removed);
 
 			// Remove all tokens from sequence 0
 			boolean removedAll = model.removeSequenceTokens(0, 0, -1);
-			System.out.println("Remove all tokens result: " + removedAll);
+			logger.log(DEBUG, "Remove all tokens result: " + removedAll);
 		}
 	}
 
@@ -211,7 +214,7 @@ public class MemoryKVCacheTest {
 				Assert.fail("Should throw IllegalArgumentException for negative source sequence ID");
 			} catch (IllegalArgumentException e) {
 				// Expected
-				System.out.println("Correctly caught negative source sequence ID");
+				logger.log(DEBUG, "Correctly caught negative source sequence ID");
 			}
 
 			try {
@@ -219,7 +222,7 @@ public class MemoryKVCacheTest {
 				Assert.fail("Should throw IllegalArgumentException for negative destination sequence ID");
 			} catch (IllegalArgumentException e) {
 				// Expected
-				System.out.println("Correctly caught negative destination sequence ID");
+				logger.log(DEBUG, "Correctly caught negative destination sequence ID");
 			}
 
 			try {
@@ -227,7 +230,7 @@ public class MemoryKVCacheTest {
 				Assert.fail("Should throw IllegalArgumentException for negative sequence ID");
 			} catch (IllegalArgumentException e) {
 				// Expected
-				System.out.println("Correctly caught negative sequence ID in keepSequence");
+				logger.log(DEBUG, "Correctly caught negative sequence ID in keepSequence");
 			}
 		}
 	}
@@ -241,7 +244,7 @@ public class MemoryKVCacheTest {
 				Assert.fail("Should throw IllegalArgumentException for negative start position");
 			} catch (IllegalArgumentException e) {
 				// Expected
-				System.out.println("Correctly caught negative start position");
+				logger.log(DEBUG, "Correctly caught negative start position");
 			}
 
 			try {
@@ -249,7 +252,7 @@ public class MemoryKVCacheTest {
 				Assert.fail("Should throw IllegalArgumentException for end <= start position");
 			} catch (IllegalArgumentException e) {
 				// Expected
-				System.out.println("Correctly caught end <= start position");
+				logger.log(DEBUG, "Correctly caught end <= start position");
 			}
 
 			try {
@@ -257,7 +260,7 @@ public class MemoryKVCacheTest {
 				Assert.fail("Should throw IllegalArgumentException for zero divisor");
 			} catch (IllegalArgumentException e) {
 				// Expected
-				System.out.println("Correctly caught zero divisor");
+				logger.log(DEBUG, "Correctly caught zero divisor");
 			}
 
 			try {
@@ -265,7 +268,7 @@ public class MemoryKVCacheTest {
 				Assert.fail("Should throw IllegalArgumentException for negative divisor");
 			} catch (IllegalArgumentException e) {
 				// Expected
-				System.out.println("Correctly caught negative divisor");
+				logger.log(DEBUG, "Correctly caught negative divisor");
 			}
 		}
 	}
@@ -286,9 +289,9 @@ public class MemoryKVCacheTest {
 			String continuation0 = model.complete(continueParams);
 			Assert.assertNotNull("Continuation in sequence 0 should work", continuation0);
 
-			System.out.println("Successfully created sequence branching scenario");
-			System.out.println("Original: " + result0);
-			System.out.println("Branch continuation: " + continuation0);
+			logger.log(DEBUG, "Successfully created sequence branching scenario");
+			logger.log(DEBUG, "Original: " + result0);
+			logger.log(DEBUG, "Branch continuation: " + continuation0);
 		}
 	}
 
@@ -319,8 +322,8 @@ public class MemoryKVCacheTest {
 			String finalResult = model.complete(params2);
 			Assert.assertNotNull("Final result after optimization should not be null", finalResult);
 
-			System.out.println("Successfully performed memory optimization");
-			System.out.println("Final result: " + finalResult);
+			logger.log(DEBUG, "Successfully performed memory optimization");
+			logger.log(DEBUG, "Final result: " + finalResult);
 		}
 	}
 
@@ -340,8 +343,8 @@ public class MemoryKVCacheTest {
 			model.addPositionDelta(10, 0, 4, -2);  // Shift first 4 positions back
 			model.dividePositions(11, 3, -1, 2);   // Compress positions 3+ by half
 
-			System.out.println("Successfully performed operations on longer sequences");
-			System.out.println("Result length: " + result.length());
+			logger.log(DEBUG, "Successfully performed operations on longer sequences");
+			logger.log(DEBUG, "Result length: " + result.length());
 		}
 	}
 }

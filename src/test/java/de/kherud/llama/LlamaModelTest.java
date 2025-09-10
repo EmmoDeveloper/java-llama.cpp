@@ -3,6 +3,7 @@ package de.kherud.llama;
 import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
+import static java.lang.System.Logger.Level.DEBUG;
 
 import de.kherud.llama.args.LogFormat;
 import org.junit.AfterClass;
@@ -16,7 +17,7 @@ import org.junit.Test;
  * remove .enableEmbedding() from model setup and add .enableReRanking() and then enable the test.
  */
 public class LlamaModelTest {
-
+	private static final System.Logger logger = System.getLogger(LlamaModelTest.class.getName());
 	private static final String prefix = "public static String removeNonAscii(String s) {\n    // ";
 	private static final String suffix = "\n    return result;\n}";
 	private static final int nPredict = 10;
@@ -26,8 +27,8 @@ public class LlamaModelTest {
 	@BeforeClass
 	public static void setup() {
 		System.setProperty("de.kherud.llama.lib.path", "src/main/resources/de/kherud/llama/Linux/x86_64");
-//		LlamaModel.setLogger(LogFormat.TEXT, (level, msg) -> System.out.println(level + ": " + msg));
-		// Use the new completion-optimized factory method  
+//		LlamaModel.setLogger(LogFormat.TEXT, (level, msg) -> logger.log(DEBUG, level + ": " + msg));
+		// Use the new completion-optimized factory method
 		model = LlamaModel.forCompletion(
 			new ModelParameters()
 				.setCtxSize(512)
@@ -175,7 +176,7 @@ public class LlamaModelTest {
 		};
 		LlamaOutput llamaOutput = model.rerank(query, TEST_DOCUMENTS[0], TEST_DOCUMENTS[1], TEST_DOCUMENTS[2], TEST_DOCUMENTS[3] );
 
-		System.out.println(llamaOutput);
+		logger.log(DEBUG, llamaOutput);
 	}
 
 	@Test
@@ -233,19 +234,19 @@ public class LlamaModelTest {
 			.setNPredict(nPredict)
 			.setSeed(42);
 
-		System.out.println("########## Log Text ##########");
+		logger.log(DEBUG, "########## Log Text ##########");
 		LlamaModel.setLogger(LogFormat.TEXT, null);
 		model.complete(params);
 
-		System.out.println("########## Log JSON ##########");
+		logger.log(DEBUG, "########## Log JSON ##########");
 		LlamaModel.setLogger(LogFormat.JSON, null);
 		model.complete(params);
 
-		System.out.println("########## Log None ##########");
+		logger.log(DEBUG, "########## Log None ##########");
 		LlamaModel.setLogger(LogFormat.TEXT, (level, msg) -> {});
 		model.complete(params);
 
-		System.out.println("##############################");
+		logger.log(DEBUG, "##############################");
 	}
 
 	private String completeAndReadStdOut() {

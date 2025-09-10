@@ -1,31 +1,19 @@
 package de.kherud.llama;
+import static java.lang.System.Logger.Level.DEBUG;
 
 /**
  * Automatic GPU detection and configuration for optimal performance defaults.
- * Intelligently detects available GPU capabilities and suggests best settings.
+ * Intelligently detects available GPU capabilities and suggests the best settings.
  */
 public class GpuDetector {
+	private static final System.Logger logger = System.getLogger(GpuDetector.class.getName());
 	private static final int MAX_GPU_LAYERS = 999; // Let llama.cpp decide the actual limit
 
 	private static GpuInfo cachedGpuInfo = null;
 
-	public static class GpuInfo {
-		public final boolean cudaAvailable;
-		public final long totalMemoryMB;
-		public final String deviceName;
-		public final int recommendedLayers;
-		public final boolean shouldUseGpu;
+	public record GpuInfo(boolean cudaAvailable, long totalMemoryMB, String deviceName, int recommendedLayers, boolean shouldUseGpu) {
 
-		GpuInfo(boolean cudaAvailable, long totalMemoryMB, String deviceName,
-		        int recommendedLayers, boolean shouldUseGpu) {
-			this.cudaAvailable = cudaAvailable;
-			this.totalMemoryMB = totalMemoryMB;
-			this.deviceName = deviceName;
-			this.recommendedLayers = recommendedLayers;
-			this.shouldUseGpu = shouldUseGpu;
-		}
-
-		@Override
+	@Override
 		public String toString() {
 			if (!cudaAvailable) {
 				return "GPU: Not available (using CPU)";
@@ -57,8 +45,7 @@ public class GpuDetector {
 			LlamaModel.setLogger(null, logger::logMessage);
 
 			// Use direct native loading to avoid recursion
-			LlamaModel testModel = new LlamaModel();
-			try {
+			try (LlamaModel testModel = new LlamaModel()) {
 				testModel.loadModelDirect(testParams.toArray()); // Direct call without auto-detection
 
 				// Give logger time to capture messages
@@ -67,14 +54,13 @@ public class GpuDetector {
 				cachedGpuInfo = logger.buildGpuInfo();
 
 			} finally {
-				testModel.close();
 				// Reset logger
 				LlamaModel.setLogger(null, null);
 			}
 
 		} catch (Exception e) {
 			// Fallback: assume no GPU available
-			System.out.println("GPU detection failed, using CPU-only mode: " + e.getMessage());
+			logger.log(DEBUG, "GPU detection failed, using CPU-only mode: " + e.getMessage());
 			cachedGpuInfo = new GpuInfo(false, 0, "None", 0, false);
 		}
 
@@ -87,17 +73,17 @@ public class GpuDetector {
 	public static ModelParameters applyIntelligentDefaults(ModelParameters params) {
 		GpuInfo gpu = detectGpu();
 
-		System.out.println("🔍 " + gpu);
+		logger.log(DEBUG, "🔍 " + gpu);
 
 		if (gpu.shouldUseGpu && gpu.recommendedLayers > 0) {
 			// Only set GPU layers if not explicitly configured by user
 			if (!hasExplicitGpuLayers(params)) {
 				params.setGpuLayers(gpu.recommendedLayers);
-				System.out.println("🚀 Auto-configured GPU layers: " + gpu.recommendedLayers +
+				logger.log(DEBUG, "🚀 Auto-configured GPU layers: " + gpu.recommendedLayers +
 					" (for " + String.format("%.1f", gpu.totalMemoryMB / 1024.0) + " GB GPU)");
 			}
 		} else {
-			System.out.println("💻 Using CPU-only mode");
+			logger.log(DEBUG, "💻 Using CPU-only mode");
 		}
 
 		// Apply other intelligent defaults
@@ -122,7 +108,7 @@ public class GpuDetector {
 		if (gpu.shouldUseGpu && gpu.totalMemoryMB > 8192) { // 8GB+ GPUs
 			if (!params.parameters.containsKey("--flash-attn")) {
 				params.enableFlashAttn();
-				System.out.println("⚡ Enabled Flash Attention for large GPU");
+				logger.log(DEBUG, "⚡ Enabled Flash Attention for large GPU");
 			}
 		}
 
@@ -138,7 +124,7 @@ public class GpuDetector {
 			                 gpu.totalMemoryMB > 8192 ? 2048 :    // 8GB+ GPU
 			                 gpu.shouldUseGpu ? 1024 : 512;       // Other GPU or CPU
 			params.setCtxSize(contextSize);
-			System.out.println("📝 Auto-configured context size: " + contextSize);
+			logger.log(DEBUG, "📝 Auto-configured context size: " + contextSize);
 		}
 
 		return params;

@@ -1,13 +1,16 @@
 package de.kherud.llama;
 
+import static java.lang.System.Logger.Level.DEBUG;
+
 import org.junit.Test;
 import org.junit.Assert;
 
 public class GpuOffloadingTest {
+	private static final System.Logger logger = System.getLogger(GpuOffloadingTest.class.getName());
 
 	@Test
 	public void testGpuLayerOffloading() {
-		System.out.println("\n=== GPU Layer Offloading Test (Performance-Based Verification) ===\n");
+		logger.log(DEBUG, "\n=== GPU Layer Offloading Test (Performance-Based Verification) ===\n");
 
 		// Instead of complex log parsing, test actual GPU performance
 		// by comparing CPU vs GPU speeds directly
@@ -15,13 +18,13 @@ public class GpuOffloadingTest {
 		String testPrompt = "def quicksort(arr):";
 		int nPredict = 8;
 
-		System.out.println("1. Testing CPU-only model (0 GPU layers):");
+		logger.log(DEBUG, "1. Testing CPU-only model (0 GPU layers):");
 		long cpuTime = testModelPerformance(0, testPrompt, nPredict);
 
-		System.out.println("\n2. Testing GPU-accelerated model (43 GPU layers):");
+		logger.log(DEBUG, "\n2. Testing GPU-accelerated model (43 GPU layers):");
 		long gpuTime = testModelPerformance(43, testPrompt, nPredict);
 
-		System.out.println("\n3. Testing smart defaults model (auto GPU detection):");
+		logger.log(DEBUG, "\n3. Testing smart defaults model (auto GPU detection):");
 		LlamaModel smartModel = null;
 		long smartTime;
 		int smartTokens = 0;
@@ -43,7 +46,7 @@ public class GpuOffloadingTest {
 			}
 			smartTime = System.currentTimeMillis() - startTime;
 
-			System.out.printf("  Smart defaults: %d tokens in %d ms (%.1f tok/s)\n",
+			logger.log(DEBUG, "  Smart defaults: %d tokens in %d ms (%.1f tok/s)",
 				smartTokens, smartTime, smartTokens * 1000.0 / smartTime);
 
 		} finally {
@@ -53,16 +56,16 @@ public class GpuOffloadingTest {
 		}
 
 		// Analysis and verification
-		System.out.println("\n=== Performance Analysis ===");
-		System.out.println("CPU-only time: " + cpuTime + " ms");
-		System.out.println("GPU-explicit time: " + gpuTime + " ms");
-		System.out.println("Smart defaults time: " + smartTime + " ms");
+		logger.log(DEBUG, "\n=== Performance Analysis ===");
+		logger.log(DEBUG, "CPU-only time: " + cpuTime + " ms");
+		logger.log(DEBUG, "GPU-explicit time: " + gpuTime + " ms");
+		logger.log(DEBUG, "Smart defaults time: " + smartTime + " ms");
 
 		double gpuSpeedup = (double) cpuTime / gpuTime;
 		double smartSpeedup = (double) cpuTime / smartTime;
 
-		System.out.printf("GPU speedup vs CPU: %.2fx\n", gpuSpeedup);
-		System.out.printf("Smart defaults speedup vs CPU: %.2fx\n", smartSpeedup);
+		logger.log(DEBUG, "GPU speedup vs CPU: %.2fx", gpuSpeedup);
+		logger.log(DEBUG, "Smart defaults speedup vs CPU: %.2fx", smartSpeedup);
 
 		// Verify GPU is actually providing acceleration
 		Assert.assertTrue("CPU time should be > 0", cpuTime > 0);
@@ -81,40 +84,40 @@ public class GpuOffloadingTest {
 		Assert.assertTrue("Should generate tokens with all configurations",
 			smartTokens > 0);
 
-		System.out.println("\n✅ GPU Offloading Test PASSED");
-		System.out.printf("   - GPU provides %.2fx speedup over CPU\n", gpuSpeedup);
-		System.out.printf("   - Smart defaults provide %.2fx speedup over CPU\n", smartSpeedup);
-		System.out.println("   - All models generate tokens successfully");
+		logger.log(DEBUG, "\n✅ GPU Offloading Test PASSED");
+		logger.log(DEBUG, "   - GPU provides %.2fx speedup over CPU", gpuSpeedup);
+		logger.log(DEBUG, "   - Smart defaults provide %.2fx speedup over CPU", smartSpeedup);
+		logger.log(DEBUG, "   - All models generate tokens successfully");
 	}
 
 	@Test
 	public void testCompareGpuVsCpuPerformance() {
-		System.out.println("\n=== GPU vs CPU Performance Comparison ===\n");
+		logger.log(DEBUG, "\n=== GPU vs CPU Performance Comparison ===\n");
 
 		String prompt = "public static int fibonacci(int n) {";
 		int nPredict = 20;
 
 		// Test with CPU only (0 GPU layers)
-		System.out.println("Testing CPU-only performance...");
+		logger.log(DEBUG, "Testing CPU-only performance...");
 		long cpuTime = benchmarkModel(0, prompt, nPredict);
 
 		// Test with GPU (all layers)
-		System.out.println("\nTesting GPU-accelerated performance...");
+		logger.log(DEBUG, "\nTesting GPU-accelerated performance...");
 		long gpuTime = benchmarkModel(43, prompt, nPredict);
 
 		// Calculate speedup
 		double speedup = (double) cpuTime / gpuTime;
 
-		System.out.println("\n=== Performance Results ===");
-		System.out.println("CPU-only time: " + cpuTime + " ms");
-		System.out.println("GPU-accelerated time: " + gpuTime + " ms");
-		System.out.printf("Speedup: %.2fx faster with GPU\n", speedup);
+		logger.log(DEBUG, "\n=== Performance Results ===");
+		logger.log(DEBUG, "CPU-only time: " + cpuTime + " ms");
+		logger.log(DEBUG, "GPU-accelerated time: " + gpuTime + " ms");
+		logger.log(DEBUG, "Speedup: %.2fx faster with GPU", speedup);
 
 		// GPU should be faster than CPU
 		Assert.assertTrue("GPU should be faster than CPU (GPU: " + gpuTime + "ms, CPU: " + cpuTime + "ms)",
 			gpuTime < cpuTime);
 
-		System.out.println("\n✅ Performance comparison test PASSED");
+		logger.log(DEBUG, "\n✅ Performance comparison test PASSED");
 	}
 
 	private long testModelPerformance(int gpuLayers, String prompt, int nPredict) {
@@ -143,8 +146,8 @@ public class GpuOffloadingTest {
 			long endTime = System.currentTimeMillis();
 			long duration = endTime - startTime;
 
-			System.out.println("  Generated " + tokenCount + " tokens in " + duration + " ms");
-			System.out.printf("  Speed: %.2f tokens/second\n", tokenCount * 1000.0 / duration);
+			logger.log(DEBUG, "  Generated " + tokenCount + " tokens in " + duration + " ms");
+			logger.log(DEBUG, "  Speed: %.2f tokens/second", tokenCount * 1000.0 / duration);
 
 			return duration;
 
