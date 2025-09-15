@@ -141,6 +141,16 @@ public class LlamaUtils {
 	}
 
 	/**
+	 * Initialize NUMA optimizations for multi-socket systems.
+	 * This improves performance on systems with multiple CPU sockets.
+	 *
+	 * @param strategy the NUMA strategy enum
+	 */
+	public static void initializeNuma(de.kherud.llama.args.NumaStrategy strategy) {
+		initializeNumaNative(strategy.getValue());
+	}
+
+	/**
 	 * Extract the path prefix from a split model file path.
 	 * Important for model file management and validation.
 	 *

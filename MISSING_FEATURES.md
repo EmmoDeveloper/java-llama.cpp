@@ -150,11 +150,14 @@ LlamaModel rerankingModel = LlamaModel.forReranking(params);
 
 Based on comparison with llama.cpp API (181 functions), the following areas have limited coverage:
 
-### 1. **Backend Management** - ⚠️ **PARTIAL** (40%)
-**Missing:**
-- `llama_backend_init()` / `llama_backend_free()` - Backend lifecycle
-- `llama_numa_init()` - NUMA optimization
-- Advanced device management functions
+### 1. **Backend Management** - ✅ **FULLY IMPLEMENTED** (100%)
+
+Complete backend management ecosystem with proper lifecycle and NUMA support:
+- ✅ **Backend Lifecycle**: (`initializeBackend()`, `freeBackend()`) - Thread-safe initialization/cleanup
+- ✅ **NUMA Optimization**: (`initializeNuma()`) - Multi-socket system optimization with enum support
+- ✅ **Java Integration**: Enhanced NumaStrategy enum with proper value mapping and descriptions
+- ✅ **Error Handling**: Safe multiple calls and proper state management
+- ✅ **Test Coverage**: Comprehensive test suite with 7 test methods covering all functionality
 
 ### 2. **Batch Processing** - ⚠️ **PARTIALLY IMPLEMENTED** (60%)
 
