@@ -32,7 +32,7 @@ public class LlamaModelTest {
 		model = LlamaModel.forCompletion(
 			new ModelParameters()
 				.setCtxSize(512)
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				//.setModelUrl("https://huggingface.co/TheBloke/CodeLlama-7B-GGUF/resolve/main/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(43)
 				.enableEmbedding().enableLogTimestamps().enableLogPrefix()

@@ -30,7 +30,7 @@ public class MemoryLeakTest {
 		model = new LlamaModel(
 			new ModelParameters()
 				.setCtxSize(512)
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(43)
 				.enableLogTimestamps()
 				.enableLogPrefix()
@@ -225,7 +225,7 @@ public class MemoryLeakTest {
 				LlamaModel testModel = new LlamaModel(
 					new ModelParameters()
 						.setCtxSize(256) // Smaller context to save memory
-						.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+						.setModel("models/codellama-7b.Q2_K.gguf")
 						.setGpuLayers(10) // Fewer GPU layers to test CPU/GPU memory management
 				);
 

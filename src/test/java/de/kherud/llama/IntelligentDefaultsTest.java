@@ -17,7 +17,7 @@ public class IntelligentDefaultsTest {
 
 		LlamaModel autoModel = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				// No explicit GPU layers - should be auto-configured
 		);
 
@@ -26,7 +26,7 @@ public class IntelligentDefaultsTest {
 
 		LlamaModel explicitModel = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(16) // Explicit setting - should not be overridden
 		);
 
@@ -88,14 +88,14 @@ public class IntelligentDefaultsTest {
 		// Test 1: Manual configuration (old way)
 		logger.log(DEBUG, "1. Testing manual GPU configuration...");
 		long manualTime = benchmarkModel("Manual", new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+			.setModel("models/codellama-7b.Q2_K.gguf")
 			.setGpuLayers(43)  // Manual setting
 			.setCtxSize(512), prompt, nPredict);
 
 		// Test 2: Auto-configuration (new way)
 		logger.log(DEBUG, "\n2. Testing auto-configured model...");
 		long autoTime = benchmarkModel("Auto", new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+			.setModel("models/codellama-7b.Q2_K.gguf")
 			// No explicit GPU config - let auto-detection handle it
 			, prompt, nPredict);
 

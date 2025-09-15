@@ -33,6 +33,8 @@
 #include "schema_grammar_manager.h"
 #include "model_loader_manager.h"
 #include "utility_manager.h"
+#include "system_info_manager.h"
+#include "batch_manager.h"
 
 // Global server management
 std::mutex g_servers_mutex;
@@ -940,6 +942,113 @@ JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaUtils_getFlashAttentionTypeN
 JNIEXPORT jobjectArray JNICALL Java_de_kherud_llama_LlamaUtils_getChatBuiltinTemplatesNative
   (JNIEnv* env, jclass cls) {
     return UtilityManager::getChatBuiltinTemplates(env, cls);
+}
+
+// System Information JNI bindings
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_SystemInfo_getSystemInfoNative
+  (JNIEnv* env, jclass cls) {
+    return SystemInfoManager::getSystemInfo(env);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_SystemInfo_getHighPrecisionTimeNative
+  (JNIEnv* env, jclass cls) {
+    return SystemInfoManager::getTimeUs(env);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_SystemInfo_supportsMemoryMappingNative
+  (JNIEnv* env, jclass cls) {
+    return SystemInfoManager::supportsMmap(env);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_SystemInfo_supportsMemoryLockingNative
+  (JNIEnv* env, jclass cls) {
+    return SystemInfoManager::supportsMlock(env);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_SystemInfo_supportsGpuOffloadNative
+  (JNIEnv* env, jclass cls) {
+    return SystemInfoManager::supportsGpuOffload(env);
+}
+
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_SystemInfo_supportsRemoteProcedureCallNative
+  (JNIEnv* env, jclass cls) {
+    return SystemInfoManager::supportsRpc(env);
+}
+
+// Batch Processing JNI bindings
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_BatchProcessor_initializeBatchNative
+  (JNIEnv* env, jclass cls, jint tokenCount, jint embeddingSize, jint maxSequences) {
+    return BatchManager::initializeBatch(env, tokenCount, embeddingSize, maxSequences);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_BatchProcessor_freeBatchNative
+  (JNIEnv* env, jclass cls, jlong batchHandle) {
+    BatchManager::freeBatch(env, batchHandle);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_BatchProcessor_encodeContextNative
+  (JNIEnv* env, jclass cls, jobject modelObj, jlong batchHandle) {
+    return BatchManager::encodeContext(env, modelObj, batchHandle);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_BatchProcessor_decodeTokensNative
+  (JNIEnv* env, jclass cls, jobject modelObj, jlong batchHandle) {
+    return BatchManager::decodeTokens(env, modelObj, batchHandle);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_BatchProcessor_setBatchTokensNative
+  (JNIEnv* env, jclass cls, jlong batchHandle, jintArray tokens) {
+    BatchManager::setBatchTokens(env, batchHandle, tokens);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_BatchProcessor_setBatchEmbeddingsNative
+  (JNIEnv* env, jclass cls, jlong batchHandle, jfloatArray embeddings) {
+    BatchManager::setBatchEmbeddings(env, batchHandle, embeddings);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_BatchProcessor_setBatchPositionsNative
+  (JNIEnv* env, jclass cls, jlong batchHandle, jintArray positions) {
+    BatchManager::setBatchPositions(env, batchHandle, positions);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_BatchProcessor_setBatchSequenceIdsNative
+  (JNIEnv* env, jclass cls, jlong batchHandle, jintArray sequenceIds) {
+    BatchManager::setBatchSequenceIds(env, batchHandle, sequenceIds);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_BatchProcessor_setBatchLogitFlagsNative
+  (JNIEnv* env, jclass cls, jlong batchHandle, jbyteArray logitFlags) {
+    BatchManager::setBatchLogitFlags(env, batchHandle, logitFlags);
+}
+
+JNIEXPORT jintArray JNICALL Java_de_kherud_llama_BatchProcessor_getBatchTokensNative
+  (JNIEnv* env, jclass cls, jlong batchHandle) {
+    return BatchManager::getBatchTokens(env, batchHandle);
+}
+
+JNIEXPORT jfloatArray JNICALL Java_de_kherud_llama_BatchProcessor_getBatchEmbeddingsNative
+  (JNIEnv* env, jclass cls, jlong batchHandle) {
+    return BatchManager::getBatchEmbeddings(env, batchHandle);
+}
+
+JNIEXPORT jintArray JNICALL Java_de_kherud_llama_BatchProcessor_getBatchPositionsNative
+  (JNIEnv* env, jclass cls, jlong batchHandle) {
+    return BatchManager::getBatchPositions(env, batchHandle);
+}
+
+JNIEXPORT jintArray JNICALL Java_de_kherud_llama_BatchProcessor_getBatchSequenceIdsNative
+  (JNIEnv* env, jclass cls, jlong batchHandle) {
+    return BatchManager::getBatchSequenceIds(env, batchHandle);
+}
+
+JNIEXPORT jbyteArray JNICALL Java_de_kherud_llama_BatchProcessor_getBatchLogitFlagsNative
+  (JNIEnv* env, jclass cls, jlong batchHandle) {
+    return BatchManager::getBatchLogitFlags(env, batchHandle);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_BatchProcessor_getBatchTokenCountNative
+  (JNIEnv* env, jclass cls, jlong batchHandle) {
+    return BatchManager::getBatchTokenCount(env, batchHandle);
 }
 
 } // extern "C"

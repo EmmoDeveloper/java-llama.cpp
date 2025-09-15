@@ -21,7 +21,7 @@ public class LoRAAdapterTest {
 			model = new LlamaModel(
 				new ModelParameters()
 					.setCtxSize(512)
-					.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+					.setModel("models/codellama-7b.Q2_K.gguf")
 					.setGpuLayers(10) // Reduced for stability
 			);
 			logger.log(DEBUG, "✅ Model loaded successfully for LoRA tests");

@@ -17,7 +17,7 @@ public class MemoryOptimizerTest {
 		// Test that memory optimization is applied automatically through smart defaults
 		LlamaModel model = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				// No explicit memory settings - should be auto-optimized
 		);
 
@@ -55,7 +55,7 @@ public class MemoryOptimizerTest {
 		// Test memory-efficient configuration creation
 		logger.log(DEBUG, "🔧 Creating memory-efficient configuration:");
 		ModelParameters memoryEfficientParams = MemoryOptimizer.createMemoryEfficientConfig(
-			"/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf"
+			"models/codellama-7b.Q2_K.gguf"
 		);
 
 		// Test the configuration works

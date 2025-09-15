@@ -78,7 +78,7 @@ public class BatchOptimizationTest {
 
 			try (LlamaModel model = new LlamaModel(
 				new ModelParameters()
-					.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+					.setModel("models/codellama-7b.Q2_K.gguf")
 					.setCtxSize(ctxSize)
 					.setBatchSize(fixedBatchSize)
 					.setGpuLayers(43)
@@ -123,7 +123,7 @@ public class BatchOptimizationTest {
 
 		logger.log(DEBUG, "\n2. Optimized Configuration (Large Batch):");
 		ModelParameters optimized1 = new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+			.setModel("models/codellama-7b.Q2_K.gguf")
 			.setBatchSize(1024)
 			.setUbatchSize(512)
 			.setCtxSize(2048)
@@ -132,7 +132,7 @@ public class BatchOptimizationTest {
 
 		logger.log(DEBUG, "\n3. Optimized Configuration (Medium Batch):");
 		ModelParameters optimized2 = new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+			.setModel("models/codellama-7b.Q2_K.gguf")
 			.setBatchSize(256)
 			.setUbatchSize(256)
 			.setCtxSize(2048)
@@ -161,7 +161,7 @@ public class BatchOptimizationTest {
 	private BatchResult benchmarkBatchSize(int batchSize, String prompt, int nPredict) {
 		try (LlamaModel model = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setBatchSize(batchSize)
 				.setCtxSize(2048)
 				.setGpuLayers(43)
@@ -201,7 +201,7 @@ public class BatchOptimizationTest {
 
 			try (LlamaModel model = new LlamaModel(
 				new ModelParameters()
-					.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+					.setModel("models/codellama-7b.Q2_K.gguf")
 					.setBatchSize(optimalBatchSize)
 					.setUbatchSize(ubatchSize)
 					.setCtxSize(1024)
@@ -230,7 +230,7 @@ public class BatchOptimizationTest {
 
 	private long benchmarkConfiguration(String name, ModelParameters params, String prompt, int nPredict) {
 		try (LlamaModel model = new LlamaModel(Objects.requireNonNullElseGet(params, () -> new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")))) {
+			.setModel("models/codellama-7b.Q2_K.gguf")))) {
 			// Use smart defaults
 
 			InferenceParameters inferenceParams = new InferenceParameters(prompt)

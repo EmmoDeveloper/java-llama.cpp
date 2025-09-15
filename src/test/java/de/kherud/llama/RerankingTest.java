@@ -21,7 +21,7 @@ public class RerankingTest {
 		model = LlamaModel.forReranking(
 			new ModelParameters()
 				.setCtxSize(512)
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(43)
 		);
 	}
@@ -125,7 +125,7 @@ public class RerankingTest {
 		try (LlamaModel nonRerankingModel = new LlamaModel(
 			new ModelParameters()
 				.setCtxSize(512)
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(43)
 			// Note: NOT calling .enableReranking()
 		)) {

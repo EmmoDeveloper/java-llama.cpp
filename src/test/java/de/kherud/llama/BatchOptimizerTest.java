@@ -45,7 +45,7 @@ public class BatchOptimizerTest {
 
 		LlamaModel model = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				// No explicit batch config - should be auto-optimized
 		);
 
@@ -83,7 +83,7 @@ public class BatchOptimizerTest {
 
 		// Test that explicit user batch settings are preserved
 		ModelParameters userParams = new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+			.setModel("models/codellama-7b.Q2_K.gguf")
 			.setBatchSize(128)  // Explicit user choice
 			.setUbatchSize(64)  // Explicit user choice
 			.setCtxSize(1024);
@@ -111,7 +111,7 @@ public class BatchOptimizerTest {
 
 		// Test ubatch > batch warning
 		ModelParameters invalidParams = new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+			.setModel("models/codellama-7b.Q2_K.gguf")
 			.setBatchSize(256)
 			.setUbatchSize(512);  // Invalid: ubatch > batch
 
@@ -120,7 +120,7 @@ public class BatchOptimizerTest {
 
 		// Test very small batch size
 		ModelParameters smallParams = new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+			.setModel("models/codellama-7b.Q2_K.gguf")
 			.setBatchSize(32);  // Very small
 
 		logger.log(DEBUG, "\nValidating very small batch size (32):");

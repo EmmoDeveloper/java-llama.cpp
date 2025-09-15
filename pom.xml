@@ -46,8 +46,8 @@
 	<!--	</distributionManagement>-->
 
 	<properties>
-		<maven.compiler.source>17</maven.compiler.source>
-		<maven.compiler.target>17</maven.compiler.target>
+		<maven.compiler.source>24</maven.compiler.source>
+		<maven.compiler.target>24</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jna.version>5.13.0</jna.version>
 		<junit.version>4.13.2</junit.version>
@@ -67,7 +67,7 @@
 			<version>24.1.0</version>
 			<scope>compile</scope>
 		</dependency>
-		
+
 		<!-- Jackson for JSON processing in function calling system -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>

@@ -16,7 +16,7 @@ public class SimpleGpuTest {
 		logger.log(DEBUG, "1. Loading model with 0 GPU layers (CPU only)...");
 		LlamaModel cpuModel = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(0)  // CPU only
 				.setCtxSize(512)
 		);
@@ -25,7 +25,7 @@ public class SimpleGpuTest {
 		logger.log(DEBUG, "\n2. Loading model with 43 GPU layers...");
 		LlamaModel gpuModel = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(43)  // GPU offloading
 				.setCtxSize(512)
 		);

@@ -23,7 +23,7 @@ public class InferencePatternsTest {
 		model = new LlamaModel(
 			new ModelParameters()
 				.setCtxSize(1024)
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(20)
 		);
 	}

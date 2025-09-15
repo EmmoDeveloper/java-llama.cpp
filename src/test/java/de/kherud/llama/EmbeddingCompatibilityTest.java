@@ -18,7 +18,7 @@ public class EmbeddingCompatibilityTest {
 		try (LlamaModel model = new LlamaModel(
 			new ModelParameters()
 				.setCtxSize(512)
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(43)
 				.enableEmbedding()
 		)) {
@@ -53,7 +53,7 @@ public class EmbeddingCompatibilityTest {
 			try (LlamaModel nonEmbeddingModel = new LlamaModel(
 				new ModelParameters()
 					.setCtxSize(512)
-					.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+					.setModel("models/codellama-7b.Q2_K.gguf")
 					.setGpuLayers(43)
 				// Note: NOT calling .enableEmbedding()
 			)) {

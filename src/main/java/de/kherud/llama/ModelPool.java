@@ -67,7 +67,6 @@ public class ModelPool implements AutoCloseable {
 
 	private final PoolConfig config;
 	private final Map<ModelType, List<ModelInstance>> modelPools;
-	private final Map<ModelType, ModelParameters> modelConfigs;
 	private final ReadWriteLock poolLock;
 	private final ExecutorService executor;
 	private final ScheduledExecutorService healthChecker;
@@ -80,7 +79,6 @@ public class ModelPool implements AutoCloseable {
 	public ModelPool(PoolConfig config) {
 		this.config = config;
 		this.modelPools = new EnumMap<>(ModelType.class);
-		this.modelConfigs = new EnumMap<>(ModelType.class);
 		this.poolLock = new ReentrantReadWriteLock();
 
 		// Use virtual threads if available and enabled
@@ -116,7 +114,6 @@ public class ModelPool implements AutoCloseable {
 	 * Add completion models to the pool
 	 */
 	public ModelPool withCompletion(ModelParameters params) {
-		modelConfigs.put(ModelType.COMPLETION, params);
 		initializePool(ModelType.COMPLETION, params, config.completionPoolSize);
 		return this;
 	}
@@ -125,7 +122,6 @@ public class ModelPool implements AutoCloseable {
 	 * Add embedding models to the pool
 	 */
 	public ModelPool withEmbedding(ModelParameters params) {
-		modelConfigs.put(ModelType.EMBEDDING, params);
 		initializePool(ModelType.EMBEDDING, params, config.embeddingPoolSize);
 		return this;
 	}
@@ -134,7 +130,6 @@ public class ModelPool implements AutoCloseable {
 	 * Add reranking models to the pool
 	 */
 	public ModelPool withReranking(ModelParameters params) {
-		modelConfigs.put(ModelType.RERANKING, params);
 		initializePool(ModelType.RERANKING, params, config.rerankingPoolSize);
 		return this;
 	}
@@ -267,7 +262,7 @@ public class ModelPool implements AutoCloseable {
 		}
 	}
 
-	private LlamaModel createOptimizedModel(ModelType type, ModelParameters params) {
+	private static LlamaModel createOptimizedModel(ModelType type, ModelParameters params) {
 		return switch (type) {
 			case COMPLETION -> LlamaModel.forCompletion(params);
 			case EMBEDDING -> LlamaModel.forEmbedding(params);

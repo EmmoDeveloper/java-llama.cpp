@@ -17,7 +17,7 @@ public class SimpleIntelligentTest {
 		// Create a model with minimal parameters - GPU should be auto-detected
 		LlamaModel model = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				// No GPU layers specified - should be auto-configured
 		);
 

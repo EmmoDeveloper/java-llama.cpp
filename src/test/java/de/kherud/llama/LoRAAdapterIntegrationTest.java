@@ -13,8 +13,8 @@ public class LoRAAdapterIntegrationTest {
 	private static final System.Logger logger = System.getLogger(LoRAAdapterIntegrationTest.class.getName());
 
 	private static LlamaModel model;
-	private static final String LORA_TEST_PATH = "/work/java/java-llama.cpp/models/LoRA-Llama-3.1-8B-MultiReflection-f16.gguf";
-	private static final String LORA_TEST_PATH_ALT = "/work/java/java-llama.cpp/models/lora-test.gguf";
+	private static final String LORA_TEST_PATH = "models/LoRA-Llama-3.1-8B-MultiReflection-f16.gguf";
+	private static final String LORA_TEST_PATH_ALT = "models/lora-test.gguf";
 
 	@BeforeClass
 	public static void setup() {
@@ -22,10 +22,10 @@ public class LoRAAdapterIntegrationTest {
 
 		// Try to find an available model (Llama 3.1 models are preferred for LoRA compatibility)
 		String[] modelPaths = {
-			"/work/java/java-llama.cpp/models/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf",  // Matches our LoRA adapter
-			"/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf",
-			"/work/java/fork/java-llama.cpp/models/codellama-7b.Q2_K.gguf",
-			"/work/java/ai-ide-jvm/jvm-ai-ide/src/main/resources/models/Qwen3-4B-Instruct-2507-F16.gguf"
+			"models/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf",  // Matches our LoRA adapter
+			"models/codellama-7b.Q2_K.gguf",
+			"models/codellama-7b.Q2_K.gguf",
+			"models/codellama-7b.Q2_K.gguf"
 		};
 
 		String availableModel = null;

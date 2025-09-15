@@ -20,7 +20,7 @@ public class WorkloadOptimizerIntegrationTest {
 		// Base model parameters
 		ModelParameters baseParams = new ModelParameters()
 			.setCtxSize(512)
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+			.setModel("models/codellama-7b.Q2_K.gguf")
 			.setGpuLayers(43);
 
 		// Test completion-optimized model

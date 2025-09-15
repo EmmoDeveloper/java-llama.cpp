@@ -18,7 +18,7 @@ public class SmartDefaultsTest {
 		// Test 1: Old way - manual configuration
 		logger.log(DEBUG, "1. Testing manual configuration (old way):");
 		long manualTime = benchmarkModel("Manual", new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+			.setModel("models/codellama-7b.Q2_K.gguf")
 			.setGpuLayers(43)
 			.setCtxSize(512)
 			.setBatchSize(256), prompt, nPredict);
@@ -26,14 +26,14 @@ public class SmartDefaultsTest {
 		// Test 2: New way - smart defaults (minimal configuration)
 		logger.log(DEBUG, "\n2. Testing smart defaults (new way):");
 		long smartTime = benchmarkModel("Smart", new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+			.setModel("models/codellama-7b.Q2_K.gguf")
 			// Only specify model path - everything else auto-configured
 			, prompt, nPredict);
 
 		// Test 3: User override preservation
 		logger.log(DEBUG, "\n3. Testing that explicit user settings are preserved:");
 		long explicitTime = benchmarkModel("Explicit", new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+			.setModel("models/codellama-7b.Q2_K.gguf")
 			.setGpuLayers(16)  // Explicit setting - should NOT be overridden
 			.setCtxSize(1024), prompt, nPredict);
 
@@ -63,7 +63,7 @@ public class SmartDefaultsTest {
 		logger.log(DEBUG, "🎯 What users get automatically with smart defaults:");
 
 		ModelParameters testParams = new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf");
+			.setModel("models/codellama-7b.Q2_K.gguf");
 
 		// Apply smart defaults to see what gets configured
 		ModelParameters configured = SmartDefaults.apply(testParams);
@@ -76,7 +76,7 @@ public class SmartDefaultsTest {
 
 		// Quick performance verification
 		LlamaModel model = new LlamaModel(new ModelParameters()
-			.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf"));
+			.setModel("models/codellama-7b.Q2_K.gguf"));
 
 		InferenceParameters params = new InferenceParameters("Hello world")
 			.setNPredict(5)

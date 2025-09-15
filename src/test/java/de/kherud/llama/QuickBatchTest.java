@@ -89,7 +89,7 @@ public class QuickBatchTest {
 	private BatchResult quickBenchmark(int batchSize, String prompt, int nPredict) {
 		try (LlamaModel model = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setBatchSize(batchSize)
 				.setCtxSize(1024) // Smaller context for speed
 				.setGpuLayers(43)
@@ -104,7 +104,7 @@ public class QuickBatchTest {
 	private BatchResult benchmarkWithDefaults(String prompt, int nPredict) {
 		try (LlamaModel model = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setCtxSize(1024)
 		)) {
 			// Use smart defaults
@@ -117,7 +117,7 @@ public class QuickBatchTest {
 	private BatchResult benchmarkWithConfig(int batchSize, int ubatchSize, String prompt, int nPredict) {
 		try (LlamaModel model = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setBatchSize(batchSize)
 				.setUbatchSize(ubatchSize)
 				.setCtxSize(1024)

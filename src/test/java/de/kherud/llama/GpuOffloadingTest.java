@@ -32,7 +32,7 @@ public class GpuOffloadingTest {
 		try {
 			smartModel = new LlamaModel(
 				new ModelParameters()
-					.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+					.setModel("models/codellama-7b.Q2_K.gguf")
 					// No explicit GPU config - should auto-configure GPU
 			);
 
@@ -127,7 +127,7 @@ public class GpuOffloadingTest {
 	private long benchmarkModel(int gpuLayers, String prompt, int nPredict) {
 		try (LlamaModel model = new LlamaModel(
 			new ModelParameters()
-				.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(gpuLayers)
 				.setCtxSize(512)
 		)) {

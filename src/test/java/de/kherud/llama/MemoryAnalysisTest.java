@@ -39,7 +39,7 @@ public class MemoryAnalysisTest {
 			logger.log(DEBUG, "Loading model...");
 			model = new LlamaModel(
 				new ModelParameters()
-					.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+					.setModel("models/codellama-7b.Q2_K.gguf")
 					.setCtxSize(1024)
 					.setGpuLayers(43)
 			);
@@ -119,7 +119,7 @@ public class MemoryAnalysisTest {
 
 			try (LlamaModel model = new LlamaModel(
 				new ModelParameters()
-					.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+					.setModel("models/codellama-7b.Q2_K.gguf")
 					.setCtxSize(512)
 					.setGpuLayers(43)
 			)) {
@@ -193,7 +193,7 @@ public class MemoryAnalysisTest {
 				logger.log(DEBUG, "Creating model %d...", i + 1);
 				LlamaModel model = new LlamaModel(
 					new ModelParameters()
-						.setModel("/work/java/java-llama.cpp/models/codellama-7b.Q2_K.gguf")
+						.setModel("models/codellama-7b.Q2_K.gguf")
 						.setCtxSize(256) // Smaller for memory efficiency
 						.setGpuLayers(43)
 				);
