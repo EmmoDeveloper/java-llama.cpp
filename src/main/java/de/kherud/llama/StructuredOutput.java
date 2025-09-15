@@ -1,20 +1,14 @@
 package de.kherud.llama;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Service for generating structured outputs using a LlamaModel.
  * Uses static utilities from StructuredOutputUtils.
  */
-public class StructuredOutput {
-
-	private final LlamaModel model;
-
-	public StructuredOutput(LlamaModel model) {
-		this.model = model;
-	}
+public record StructuredOutput(LlamaModel model) {
 
 	/**
 	 * Generate JSON output with schema validation
@@ -60,7 +54,7 @@ public class StructuredOutput {
 	 * Generate function call with custom parameters
 	 */
 	public StructuredOutputUtils.FunctionCallResult generateFunctionCall(String prompt, List<StructuredOutputUtils.FunctionSpec> functions,
-																		InferenceParameters params) {
+																		 InferenceParameters params) {
 		// Format prompt with function specifications
 		String functionPrompt = StructuredOutputUtils.formatFunctionPrompt(prompt, functions);
 		params.setPrompt(functionPrompt);
@@ -97,12 +91,7 @@ public class StructuredOutput {
 	/**
 	 * Simple length-based scorer
 	 */
-	public static class LengthScorer implements OutputScorer {
-		private final boolean preferLonger;
-
-		public LengthScorer(boolean preferLonger) {
-			this.preferLonger = preferLonger;
-		}
+	public record LengthScorer(boolean preferLonger) implements OutputScorer {
 
 		@Override
 		public String selectBest(List<String> candidates) {
