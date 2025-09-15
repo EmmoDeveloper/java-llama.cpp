@@ -35,6 +35,7 @@
 #include "utility_manager.h"
 #include "system_info_manager.h"
 #include "batch_manager.h"
+#include "training_manager.h"
 
 // Global server management
 std::mutex g_servers_mutex;
@@ -1053,6 +1054,42 @@ JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaQuantizer_getDefaultQuantiza
 JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaQuantizer_quantizeModelNative
   (JNIEnv* env, jclass cls, jstring inputPath, jstring outputPath, jobject params) {
     return QuantizationManager::quantizeModel(env, inputPath, outputPath, params);
+}
+
+// Training Management JNI bindings
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaTrainer_validateDatasetNative
+  (JNIEnv* env, jclass cls, jstring datasetPath) {
+    return TrainingManager::validateDataset(env, cls, datasetPath);
+}
+
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaTrainer_prepareTrainingNative
+  (JNIEnv* env, jclass cls, jobject model, jobject params) {
+    return TrainingManager::prepareTraining(env, cls, model, params);
+}
+
+JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaTrainer_trainEpochNative
+  (JNIEnv* env, jclass cls, jlong trainingHandle, jstring datasetPath, jobject callback) {
+    return TrainingManager::trainEpoch(env, cls, trainingHandle, datasetPath, callback);
+}
+
+JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaTrainer_evaluateNative
+  (JNIEnv* env, jclass cls, jlong trainingHandle, jstring validationDatasetPath) {
+    return TrainingManager::evaluate(env, cls, trainingHandle, validationDatasetPath);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaTrainer_saveCheckpointNative
+  (JNIEnv* env, jclass cls, jlong trainingHandle, jstring checkpointPath) {
+    TrainingManager::saveCheckpoint(env, cls, trainingHandle, checkpointPath);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaTrainer_loadCheckpointNative
+  (JNIEnv* env, jclass cls, jlong trainingHandle, jstring checkpointPath) {
+    TrainingManager::loadCheckpoint(env, cls, trainingHandle, checkpointPath);
+}
+
+JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaTrainer_finishTrainingNative
+  (JNIEnv* env, jclass cls, jlong trainingHandle) {
+    TrainingManager::finishTraining(env, cls, trainingHandle);
 }
 
 } // extern "C"

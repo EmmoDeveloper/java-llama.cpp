@@ -86,6 +86,7 @@ add_library(jllama SHARED
     src/main/cpp/utility_manager.cpp
     src/main/cpp/system_info_manager.cpp
     src/main/cpp/batch_manager.cpp
+    src/main/cpp/training_manager.cpp
 )
 
 set_target_properties(jllama PROPERTIES POSITION_INDEPENDENT_CODE ON)
