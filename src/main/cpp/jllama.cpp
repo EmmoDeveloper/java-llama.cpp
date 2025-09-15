@@ -609,16 +609,6 @@ JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaModel_isControlTokenNative
     return ModelInfoManager::isControlToken(env, obj, token);
 }
 
-// Quantization JNI bindings
-JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaQuantizer_getDefaultQuantizationParamsNative
-  (JNIEnv* env, jclass cls) {
-    return QuantizationManager::getDefaultQuantizationParams(env);
-}
-
-JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaQuantizer_quantizeModelNative
-  (JNIEnv* env, jclass cls, jstring inputPath, jstring outputPath, jobject params) {
-    return QuantizationManager::quantizeModel(env, inputPath, outputPath, params);
-}
 
 // Utility function JNI bindings
 JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaUtils_supportsGpuOffloadNative
@@ -1049,6 +1039,20 @@ JNIEXPORT jbyteArray JNICALL Java_de_kherud_llama_BatchProcessor_getBatchLogitFl
 JNIEXPORT jint JNICALL Java_de_kherud_llama_BatchProcessor_getBatchTokenCountNative
   (JNIEnv* env, jclass cls, jlong batchHandle) {
     return BatchManager::getBatchTokenCount(env, batchHandle);
+}
+
+// ========================================
+// Quantization Functions
+// ========================================
+
+JNIEXPORT jobject JNICALL Java_de_kherud_llama_LlamaQuantizer_getDefaultQuantizationParamsNative
+  (JNIEnv* env, jclass cls) {
+    return QuantizationManager::getDefaultQuantizationParams(env);
+}
+
+JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaQuantizer_quantizeModelNative
+  (JNIEnv* env, jclass cls, jstring inputPath, jstring outputPath, jobject params) {
+    return QuantizationManager::quantizeModel(env, inputPath, outputPath, params);
 }
 
 } // extern "C"
