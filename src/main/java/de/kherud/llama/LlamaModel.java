@@ -1,7 +1,6 @@
 package de.kherud.llama;
 
 import de.kherud.llama.args.LogFormat;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Native;
 import java.nio.charset.StandardCharsets;
@@ -48,7 +47,7 @@ public class LlamaModel implements AutoCloseable {
 		ModelParameters optimizedParams = SmartDefaults.apply(parameters);
 		loadModel(optimizedParams.toArray());
 	}
-	
+
 	/**
 	 * Create a model optimized for text completion and generation workloads.
 	 * This applies completion-specific optimizations including threading, batch sizes, and continuous batching.
@@ -61,12 +60,12 @@ public class LlamaModel implements AutoCloseable {
 		ModelParameters optimized = WorkloadOptimizer.optimizeForCompletion(parameters);
 		return new LlamaModel(optimized);
 	}
-	
+
 	/**
 	 * Create a model optimized for embedding generation workloads.
 	 * This applies embedding-specific optimizations including high-throughput threading and appropriate pooling.
 	 *
-	 * @param parameters the base model parameters  
+	 * @param parameters the base model parameters
 	 * @return LlamaModel optimized for embedding tasks
 	 * @throws LlamaException if no model could be loaded from the given file path
 	 */
@@ -74,7 +73,7 @@ public class LlamaModel implements AutoCloseable {
 		ModelParameters optimized = WorkloadOptimizer.optimizeForEmbedding(parameters);
 		return new LlamaModel(optimized);
 	}
-	
+
 	/**
 	 * Create a model optimized for document reranking workloads.
 	 * This applies reranking-specific optimizations including parallel processing and rank pooling.
@@ -1354,7 +1353,7 @@ public class LlamaModel implements AutoCloseable {
 	 * @param format the log format to use
 	 * @param callback a method to call for log messages
 	 */
-	public static native void setLogger(LogFormat format, @Nullable BiConsumer<LogLevel, String> callback);
+	public static native void setLogger(LogFormat format, BiConsumer<LogLevel, String> callback);
 
 	@Override
 	public void close() {
@@ -1561,7 +1560,7 @@ public class LlamaModel implements AutoCloseable {
 	/**
 	 * Set a callback to allow interruption of long-running operations.
 	 * Pass null to clear the callback.
-	 * 
+	 *
 	 * @param callback abort callback, or null to clear
 	 */
 	public void setAbortCallback(AbortCallback callback) {
@@ -1571,7 +1570,7 @@ public class LlamaModel implements AutoCloseable {
 	/**
 	 * Dynamically adjust the number of threads used for processing.
 	 * Allows runtime optimization of thread usage.
-	 * 
+	 *
 	 * @param threads number of threads to use (must be positive)
 	 */
 	public void setThreadCount(int threads) {
@@ -1592,7 +1591,7 @@ public class LlamaModel implements AutoCloseable {
 	/**
 	 * Enable or disable embedding output mode.
 	 * When enabled, the model will compute and output embeddings.
-	 * 
+	 *
 	 * @param enabled true to enable embedding mode, false to disable
 	 */
 	public void setEmbeddingMode(boolean enabled) {
@@ -1602,7 +1601,7 @@ public class LlamaModel implements AutoCloseable {
 	/**
 	 * Set the attention mechanism type (causal vs non-causal).
 	 * Causal attention prevents the model from seeing future tokens.
-	 * 
+	 *
 	 * @param causal true for causal attention, false for non-causal
 	 */
 	public void setCausalAttention(boolean causal) {
@@ -1672,7 +1671,7 @@ public class LlamaModel implements AutoCloseable {
 	/**
 	 * Attach custom thread pools to this model instance.
 	 * This allows for advanced threading control in enterprise deployments.
-	 * 
+	 *
 	 * @param threadpool handle to the thread pool for generation
 	 * @param threadpoolBatch handle to the thread pool for batch processing
 	 */
@@ -1962,7 +1961,7 @@ public class LlamaModel implements AutoCloseable {
 	private native void synchronizeOperationsNative();
 	private native void setEmbeddingModeNative(boolean embeddings);
 	private native void setCausalAttentionNative(boolean causal);
-	
+
 	// Tier 3: Advanced system management & performance native methods
 	private native long getContextSizeNative();
 	private native long getBatchSizeNative();
@@ -1972,7 +1971,7 @@ public class LlamaModel implements AutoCloseable {
 	private native long getCurrentThreadsBatchNative();
 	private native void attachThreadPoolNative(long threadpool, long threadpool_batch);
 	private native void detachThreadPoolNative();
-	
+
 	// Tier 4: Performance monitoring & model architecture native methods
 	private native String getPerformanceDataNative();
 	private native void printPerformanceDataNative();
@@ -1983,7 +1982,7 @@ public class LlamaModel implements AutoCloseable {
 	private native boolean hasDecoderNative();
 	private native int getRopeTypeNative();
 	private native float getRopeFrequencyScaleNative();
-	
+
 	// Tier 5: Advanced model introspection & resource control native methods
 	private native long getModelEmbeddingDimensionNative();
 	private native long getModelAttentionHeadsNative();
@@ -1992,7 +1991,7 @@ public class LlamaModel implements AutoCloseable {
 	private native boolean isDiffusionModelNative();
 	private native void setWarmupModeNative(boolean warmup);
 	private native String getFlashAttentionTypeNative();
-	
+
 	// Tier 6: Advanced debugging & production management native methods
 	private native String getModelDescriptionNative();
 	private native String getModelChatTemplateNative();
@@ -2012,7 +2011,7 @@ public class LlamaModel implements AutoCloseable {
 	public interface AbortCallback {
 		/**
 		 * Called periodically during long operations to check if they should be aborted.
-		 * 
+		 *
 		 * @return true to abort the operation, false to continue
 		 */
 		boolean shouldAbort();

@@ -1,15 +1,12 @@
 package de.kherud.llama;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 abstract class CliParameters {
-
-    final Map<String, @Nullable String> parameters = new HashMap<>();
+    final Map<String, String> parameters = new HashMap<>();
 
     @Override
     public String toString() {

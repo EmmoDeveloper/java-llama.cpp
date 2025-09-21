@@ -1,13 +1,13 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class StatePersistenceTest {
 	private static final System.Logger logger = System.getLogger(StatePersistenceTest.class.getName());

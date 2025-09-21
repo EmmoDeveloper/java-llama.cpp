@@ -1,7 +1,5 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -9,6 +7,8 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 /**
  * Comprehensive memory leak testing for java-llama.cpp
@@ -44,7 +44,6 @@ public class MemoryLeakTest {
 		}
 		// Force garbage collection and finalization
 		System.gc();
-		System.runFinalization();
 		Thread.yield();
 		System.gc();
 	}
@@ -80,7 +79,6 @@ public class MemoryLeakTest {
 
 		// Final memory check
 		System.gc();
-		System.runFinalization();
 		Thread.yield();
 		System.gc();
 
@@ -130,7 +128,6 @@ public class MemoryLeakTest {
 
 		// Final memory check
 		System.gc();
-		System.runFinalization();
 		Thread.yield();
 		System.gc();
 
@@ -193,7 +190,6 @@ public class MemoryLeakTest {
 
 		// Final memory check
 		System.gc();
-		System.runFinalization();
 		Thread.yield();
 		System.gc();
 
@@ -252,7 +248,6 @@ public class MemoryLeakTest {
 
 			// Force cleanup
 			System.gc();
-			System.runFinalization();
 			Thread.yield();
 			System.gc();
 		}
@@ -305,7 +300,6 @@ public class MemoryLeakTest {
 
 		// Final memory check
 		System.gc();
-		System.runFinalization();
 		Thread.yield();
 		System.gc();
 

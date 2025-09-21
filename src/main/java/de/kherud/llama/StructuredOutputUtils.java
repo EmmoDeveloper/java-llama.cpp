@@ -1,16 +1,15 @@
 package de.kherud.llama;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.regex.Pattern;
+import java.util.Map;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Static utility methods for structured output processing
@@ -199,7 +198,6 @@ public final class StructuredOutputUtils {
 			return getJsonSchema(name, required, properties, prop);
 		}
 
-		@NotNull
 		private StructuredOutputUtils.JsonSchema getJsonSchema(String name, boolean required, Map<String, Object> properties, Map<String, Object> prop) {
 			properties.put(name, prop);
 

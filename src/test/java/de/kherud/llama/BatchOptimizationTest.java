@@ -1,10 +1,14 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
-import org.junit.Test;
 import org.junit.Assert;
-import java.util.*;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class BatchOptimizationTest {
 	private static final System.Logger logger = System.getLogger(BatchOptimizationTest.class.getName());

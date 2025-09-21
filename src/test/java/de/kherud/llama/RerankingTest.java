@@ -1,13 +1,14 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.AfterClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import java.util.List;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class RerankingTest {
 	private static final System.Logger logger = System.getLogger(RerankingTest.class.getName());

@@ -1,11 +1,11 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
-import org.junit.Test;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.AfterClass;
+import org.junit.Test;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class LoRAAdapterTest {
 	private static final System.Logger logger = System.getLogger(LoRAAdapterTest.class.getName());

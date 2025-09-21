@@ -2,19 +2,35 @@
 
 #include <jni.h>
 #include "llama.h"
+#include "ggml-opt.h"
+#include "common.h"
 #include <string>
 #include <vector>
 
 struct TrainingSession {
-    llama_model* model;
+    const llama_model* model;
     llama_context* ctx;
-    void* optimizer_ctx;
+    ggml_opt_context_t opt_ctx;
+    ggml_opt_dataset_t dataset;
+    llama_opt_params opt_params;
+    lr_opt learning_rate_config;
     int current_epoch;
+    int total_epochs;
     float current_learning_rate;
     bool is_active;
+    std::vector<llama_token> tokens;
 
-    TrainingSession() : model(nullptr), ctx(nullptr), optimizer_ctx(nullptr),
-                       current_epoch(0), current_learning_rate(0.0f), is_active(false) {}
+    TrainingSession() : model(nullptr), ctx(nullptr), opt_ctx(nullptr), dataset(nullptr),
+                       current_epoch(0), total_epochs(1), current_learning_rate(0.0001f), is_active(false) {
+        // Initialize learning rate configuration
+        learning_rate_config.lr0 = 0.0001f;
+        learning_rate_config.lr_min = -1;
+        learning_rate_config.decay_epochs = -1;
+        learning_rate_config.scale_epoch = 0;
+        learning_rate_config.wd = 0.01f;
+        learning_rate_config.epochs = 1;
+        learning_rate_config.epoch = 0;
+    }
 };
 
 class TrainingManager {

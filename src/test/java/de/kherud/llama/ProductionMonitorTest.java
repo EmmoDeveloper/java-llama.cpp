@@ -1,10 +1,10 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
-import org.junit.Test;
-import org.junit.Before;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class ProductionMonitorTest {
 	private static final System.Logger logger = System.getLogger(ProductionMonitorTest.class.getName());

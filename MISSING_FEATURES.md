@@ -198,23 +198,28 @@ Complete system utilities with comprehensive functionality:
 - ✅ **Chat Templates**: (`getChatBuiltinTemplates()`) - Built-in conversation templates
 - ✅ **Test Coverage**: Comprehensive tests for all system utility functions
 
-### 5. **Training/Optimization Framework** - ✅ **FULLY IMPLEMENTED** (100%)
+### 5. **Training/Optimization Framework** - ❌ **DISABLED DUE TO UPSTREAM ISSUES** (0%)
 
-Complete training and optimization ecosystem with comprehensive functionality:
-- ✅ **Training Lifecycle**: (`prepareTraining()`, `trainEpoch()`, `finishTraining()`) - Full training session management
-- ✅ **Dataset Management**: (`validateDataset()`) - Training data validation and processing
-- ✅ **Parameter Configuration**: TrainingParams with 10 configurable parameters (epochs, learning rate, batch size, etc.)
-- ✅ **Progress Monitoring**: TrainingCallback interface with real-time progress, evaluation, and checkpoint notifications
-- ✅ **Model Evaluation**: (`evaluate()`) - Comprehensive model assessment with accuracy, loss, and perplexity metrics
-- ✅ **Checkpoint System**: (`saveCheckpoint()`, `loadCheckpoint()`) - Training state persistence and recovery
-- ✅ **Training Metrics**: Detailed metrics collection (loss, learning rate, steps, training time)
-- ✅ **Evaluation Metrics**: Complete evaluation results (loss, accuracy, perplexity, sample count)
-- ✅ **Java Integration**: LlamaTrainer class with builder patterns and comprehensive validation
-- ✅ **C++ Implementation**: TrainingManager with session management, dataset loading, and progress callbacks
-- ✅ **JNI Bindings**: Complete native integration with 7 JNI methods
-- ✅ **Test Coverage**: Comprehensive test suite with 19 passing tests covering all training functionality
-- ✅ **Error Handling**: Full validation, exception handling, and resource cleanup
-- ✅ **Resource Management**: RAII-style session management with automatic cleanup
+Training infrastructure implemented but disabled due to fundamental llama.cpp training bugs:
+- ✅ **Training Infrastructure**: Complete process isolation with JSON IPC protocol
+- ✅ **Parameter Configuration**: TrainingParams with learning rate, batch size, epochs, optimizer selection
+- ✅ **Dataset Management**: Text tokenization, validation, and optimization dataset creation
+- ✅ **Process Architecture**: Standalone training process to avoid JNI crashes
+- ❌ **Core Training**: `llama_opt_epoch()` crashes in `ggml_build_backward_expand()` with SIGABRT
+- ❌ **Model Training**: Training epoch operations fail in GGML optimization graph building
+- ❌ **Model Evaluation**: Cannot evaluate due to training process crashes
+- ❌ **Checkpoint System**: Cannot checkpoint due to training failures
+- ⚠️ **Java Integration**: TrainingProcessManager implemented but non-functional
+- ⚠️ **Test Coverage**: All training tests disabled with `@Ignore` annotation
+
+**Known Issues:**
+- Internal crash in `ggml_build_backward_expand()` during optimization graph construction
+- `llama_opt_epoch()` calls `ggml_abort()` due to internal assertion failures
+- Process crashes contaminate JSON responses with GDB debug output
+- Issue appears related to quantized model training (Q2_K models tested)
+- Root cause: Fundamental bug in llama.cpp training implementation
+
+**Status**: Training functionality completely non-functional due to upstream llama.cpp training bugs
 
 ---
 
@@ -271,7 +276,7 @@ UtilityManager       -> System utilities
 ### 3. **Advanced Features**
 - **Multi-Model**: Support for multiple models in single context
 - **Streaming Enhancements**: Advanced streaming capabilities
-- **Real Training Integration**: Connect training framework to actual llama.cpp training algorithms
+- **Training System**: Fix upstream llama.cpp training bugs or implement alternative training solution
 
 ### 4. **Quality Improvements**
 - **Error Handling**: Enhanced error reporting and recovery

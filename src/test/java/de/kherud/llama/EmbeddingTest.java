@@ -1,12 +1,12 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.AfterClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class EmbeddingTest {
 	private static final System.Logger logger = System.getLogger(EmbeddingTest.class.getName());

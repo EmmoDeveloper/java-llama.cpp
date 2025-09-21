@@ -1,6 +1,7 @@
 package de.kherud.llama;
 
 import de.kherud.llama.args.PoolingType;
+
 import static java.lang.System.Logger.Level.DEBUG;
 
 /**

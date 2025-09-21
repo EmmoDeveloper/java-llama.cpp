@@ -1,7 +1,8 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
 import org.junit.Test;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class DebugSequenceTest {
 	private static final System.Logger logger = System.getLogger(DebugSequenceTest.class.getName());

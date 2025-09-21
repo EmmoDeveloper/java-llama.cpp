@@ -1,7 +1,5 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -9,6 +7,7 @@ import org.junit.Test;
 
 import static de.kherud.llama.MemoryLeakTest.formatBytes;
 import static de.kherud.llama.MemoryLeakTest.getUsedMemory;
+import static java.lang.System.Logger.Level.DEBUG;
 
 /**
  * Comprehensive memory leak testing for java-llama.cpp

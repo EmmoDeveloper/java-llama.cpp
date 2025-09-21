@@ -1,12 +1,12 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.Assert;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 /**
  * Test comprehensive error handling in the JNI layer

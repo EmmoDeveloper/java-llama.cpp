@@ -1,9 +1,9 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
-import org.junit.Test;
 import org.junit.Ignore;
+import org.junit.Test;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 /**
  * Integration test demonstrating the usage of WorkloadOptimizer factory methods.

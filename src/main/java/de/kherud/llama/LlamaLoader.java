@@ -28,7 +28,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.jetbrains.annotations.Nullable;
 import static java.lang.System.Logger.Level.DEBUG;
 
 /**
@@ -139,7 +138,20 @@ class LlamaLoader {
 
 		// As a last resort try load the os-dependent library from the jar file
 		nativeLibPath = getNativeResourcePath();
-		if (hasNativeLib(nativeLibPath, nativeLibName)) {
+		// Try both the system-expected name and the actual built name
+		String osName = OSInfo.getOSName();
+		String actualLibName = name + (osName.equals("Windows") ? ".dll" : osName.equals("Mac") ? ".dylib" : ".so");
+		if (hasNativeLib(nativeLibPath, actualLibName)) {
+			// temporary library folder
+			String tempFolder = getTempDir().getAbsolutePath();
+			// Try extracting the library from jar with actual name, but save as system name
+			if (extractAndLoadLibraryFile(nativeLibPath, actualLibName, nativeLibName, tempFolder)) {
+				return;
+			}
+			else {
+				triedPaths.add(nativeLibPath);
+			}
+		} else if (hasNativeLib(nativeLibPath, nativeLibName)) {
 			// temporary library folder
 			String tempFolder = getTempDir().getAbsolutePath();
 			// Try extracting the library from jar
@@ -183,11 +195,14 @@ class LlamaLoader {
 		}
 	}
 
-	@Nullable
 	private static Path extractFile(String sourceDirectory, String fileName, String targetDirectory, boolean addUuid) {
-		String nativeLibraryFilePath = sourceDirectory + "/" + fileName;
+		return extractFileWithTargetName(sourceDirectory, fileName, fileName, targetDirectory, addUuid);
+	}
 
-		Path extractedFilePath = Paths.get(targetDirectory, fileName);
+	private static Path extractFileWithTargetName(String sourceDirectory, String sourceFileName, String targetFileName, String targetDirectory, boolean addUuid) {
+		String nativeLibraryFilePath = sourceDirectory + "/" + sourceFileName;
+
+		Path extractedFilePath = Paths.get(targetDirectory, targetFileName);
 
 		try {
 			// Extract a native library file into the target directory
@@ -215,7 +230,7 @@ class LlamaLoader {
 				}
 			}
 
-			logger.log(DEBUG, "Extracted '" + fileName + "' to '" + extractedFilePath + "'");
+			logger.log(DEBUG, "Extracted '" + sourceFileName + "' to '" + extractedFilePath + "'");
 			return extractedFilePath;
 		}
 		catch (IOException e) {
@@ -234,6 +249,23 @@ class LlamaLoader {
 	 */
 	private static boolean extractAndLoadLibraryFile(String libFolderForCurrentOS, String libraryFileName, String targetFolder) {
 		Path path = extractFile(libFolderForCurrentOS, libraryFileName, targetFolder, true);
+		if (path == null) {
+			return false;
+		}
+		return loadNativeLibrary(path);
+	}
+
+	/**
+	 * Extracts and loads the specified library file to the target folder with a different target name
+	 *
+	 * @param libFolderForCurrentOS Library path.
+	 * @param sourceLibraryFileName Source library name in JAR.
+	 * @param targetLibraryFileName Target library name on disk.
+	 * @param targetFolder          Target folder.
+	 * @return whether the library was successfully loaded
+	 */
+	private static boolean extractAndLoadLibraryFile(String libFolderForCurrentOS, String sourceLibraryFileName, String targetLibraryFileName, String targetFolder) {
+		Path path = extractFileWithTargetName(libFolderForCurrentOS, sourceLibraryFileName, targetLibraryFileName, targetFolder, true);
 		if (path == null) {
 			return false;
 		}

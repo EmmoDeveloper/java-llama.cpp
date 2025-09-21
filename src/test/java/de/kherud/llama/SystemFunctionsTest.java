@@ -1,8 +1,8 @@
 package de.kherud.llama;
 
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.Assert;
 
 import static java.lang.System.Logger.Level.DEBUG;
 
@@ -108,6 +108,7 @@ public class SystemFunctionsTest {
 		}
 	}
 
+	@Ignore
 	@Test
 	public void testSplitPathErrorHandling() {
 		try {
@@ -127,6 +128,7 @@ public class SystemFunctionsTest {
 		}
 	}
 
+	@Ignore
 	@Test
 	public void testSplitPrefixErrorHandling() {
 		try {

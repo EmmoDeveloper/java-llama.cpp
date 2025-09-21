@@ -1,13 +1,18 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-import org.junit.Test;
-import org.junit.Before;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class MultiAgentConversationSystemTest {
 	private static final System.Logger logger = System.getLogger(MultiAgentConversationSystemTest.class.getName());

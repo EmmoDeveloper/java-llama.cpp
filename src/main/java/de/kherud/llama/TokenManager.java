@@ -1,10 +1,10 @@
 package de.kherud.llama;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Utilities for token counting, budget management, and context window handling.

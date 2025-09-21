@@ -1,10 +1,11 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
 import org.junit.Assert;
 import org.junit.Test;
+
 import java.util.Map;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class ModelInformationTest {
 	private static final System.Logger logger = System.getLogger(ModelInformationTest.class.getName());

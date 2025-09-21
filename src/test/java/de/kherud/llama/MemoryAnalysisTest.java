@@ -1,15 +1,16 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
-import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Test;
+
+import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
-import java.lang.management.GarbageCollectorMXBean;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class MemoryAnalysisTest {
 	private static final System.Logger logger = System.getLogger(MemoryAnalysisTest.class.getName());

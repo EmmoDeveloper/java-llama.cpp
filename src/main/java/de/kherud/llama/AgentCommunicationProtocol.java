@@ -1,11 +1,25 @@
 package de.kherud.llama;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -14,12 +28,12 @@ import java.util.stream.Collectors;
  * Provides message passing, coordination, and conversation management.
  */
 public class AgentCommunicationProtocol {
-	
+
 	private final Map<String, AgentEndpoint> agents = new ConcurrentHashMap<>();
 	private final Map<String, Conversation> conversations = new ConcurrentHashMap<>();
 	private final ExecutorService messageExecutor = Executors.newCachedThreadPool();
 	private final ObjectMapper objectMapper = new ObjectMapper();
-	
+
 	/**
 	 * Message types for agent communication
 	 */
@@ -37,7 +51,7 @@ public class AgentCommunicationProtocol {
 		ERROR,        // Error message
 		HEARTBEAT     // Keep-alive signal
 	}
-	
+
 	/**
 	 * Message priority levels
 	 */
@@ -46,16 +60,16 @@ public class AgentCommunicationProtocol {
 		NORMAL(1),
 		HIGH(2),
 		CRITICAL(3);
-		
+
 		private final int level;
-		
+
 		Priority(int level) {
 			this.level = level;
 		}
-		
+
 		public int getLevel() { return level; }
 	}
-	
+
 	/**
 	 * Agent message
 	 */
@@ -70,12 +84,12 @@ public class AgentCommunicationProtocol {
 		private final Instant timestamp;
 		private final String inReplyTo;
 		private final Map<String, String> metadata;
-		
+
 		public Message(String senderId, String recipientId, MessageType type, Map<String, Object> content) {
-			this(UUID.randomUUID().toString(), null, senderId, recipientId, type, 
+			this(UUID.randomUUID().toString(), null, senderId, recipientId, type,
 				Priority.NORMAL, content, null, new HashMap<>());
 		}
-		
+
 		public Message(String id, String conversationId, String senderId, String recipientId,
 					   MessageType type, Priority priority, Map<String, Object> content,
 					   String inReplyTo, Map<String, String> metadata) {
@@ -90,7 +104,7 @@ public class AgentCommunicationProtocol {
 			this.inReplyTo = inReplyTo;
 			this.metadata = metadata != null ? metadata : new HashMap<>();
 		}
-		
+
 		// Builder pattern for message construction
 		public static class Builder {
 			private String id = UUID.randomUUID().toString();
@@ -102,61 +116,61 @@ public class AgentCommunicationProtocol {
 			private Map<String, Object> content = new HashMap<>();
 			private String inReplyTo;
 			private Map<String, String> metadata = new HashMap<>();
-			
+
 			public Builder from(String senderId) {
 				this.senderId = senderId;
 				return this;
 			}
-			
+
 			public Builder to(String recipientId) {
 				this.recipientId = recipientId;
 				return this;
 			}
-			
+
 			public Builder type(MessageType type) {
 				this.type = type;
 				return this;
 			}
-			
+
 			public Builder priority(Priority priority) {
 				this.priority = priority;
 				return this;
 			}
-			
+
 			public Builder content(Map<String, Object> content) {
 				this.content = content;
 				return this;
 			}
-			
+
 			public Builder addContent(String key, Object value) {
 				this.content.put(key, value);
 				return this;
 			}
-			
+
 			public Builder inConversation(String conversationId) {
 				this.conversationId = conversationId;
 				return this;
 			}
-			
+
 			public Builder replyTo(String messageId) {
 				this.inReplyTo = messageId;
 				return this;
 			}
-			
+
 			public Builder withMetadata(String key, String value) {
 				this.metadata.put(key, value);
 				return this;
 			}
-			
+
 			public Message build() {
 				if (senderId == null || recipientId == null) {
 					throw new IllegalStateException("Sender and recipient are required");
 				}
-				return new Message(id, conversationId, senderId, recipientId, type, 
+				return new Message(id, conversationId, senderId, recipientId, type,
 					priority, content, inReplyTo, metadata);
 			}
 		}
-		
+
 		// Getters
 		public String getId() { return id; }
 		public String getConversationId() { return conversationId; }
@@ -169,7 +183,7 @@ public class AgentCommunicationProtocol {
 		public String getInReplyTo() { return inReplyTo; }
 		public Map<String, String> getMetadata() { return metadata; }
 	}
-	
+
 	/**
 	 * Agent endpoint for communication
 	 */
@@ -181,23 +195,23 @@ public class AgentCommunicationProtocol {
 		private final Map<MessageType, Consumer<Message>> handlers;
 		private volatile boolean active;
 		private Instant lastHeartbeat;
-		
+
 		public AgentEndpoint(String agentId, String agentType, Set<String> capabilities) {
 			this.agentId = agentId;
 			this.agentType = agentType;
 			this.capabilities = capabilities != null ? capabilities : new HashSet<>();
-			this.inbox = new PriorityBlockingQueue<>(100, 
+			this.inbox = new PriorityBlockingQueue<>(100,
 				Comparator.comparing((Message m) -> m.getPriority().getLevel()).reversed()
 					.thenComparing(Message::getTimestamp));
 			this.handlers = new ConcurrentHashMap<>();
 			this.active = true;
 			this.lastHeartbeat = Instant.now();
 		}
-		
+
 		public void registerHandler(MessageType type, Consumer<Message> handler) {
 			handlers.put(type, handler);
 		}
-		
+
 		public void handleMessage(Message message) {
 			Consumer<Message> handler = handlers.get(message.getType());
 			if (handler != null) {
@@ -211,17 +225,17 @@ public class AgentCommunicationProtocol {
 				}
 			}
 		}
-		
+
 		public Message receiveMessage(long timeout, TimeUnit unit) throws InterruptedException {
 			return inbox.poll(timeout, unit);
 		}
-		
+
 		public List<Message> receiveAllMessages() {
 			List<Message> messages = new ArrayList<>();
 			inbox.drainTo(messages);
 			return messages;
 		}
-		
+
 		// Getters and setters
 		public String getAgentId() { return agentId; }
 		public String getAgentType() { return agentType; }
@@ -230,11 +244,11 @@ public class AgentCommunicationProtocol {
 		public void setActive(boolean active) { this.active = active; }
 		public Instant getLastHeartbeat() { return lastHeartbeat; }
 		public void updateHeartbeat() { this.lastHeartbeat = Instant.now(); }
-		
+
 		@JsonIgnore
 		public BlockingQueue<Message> getInbox() { return inbox; }
 	}
-	
+
 	/**
 	 * Conversation between agents
 	 */
@@ -246,14 +260,14 @@ public class AgentCommunicationProtocol {
 		private Instant lastActivity;
 		private ConversationState state;
 		private Map<String, Object> context;
-		
+
 		public enum ConversationState {
 			ACTIVE,
 			PAUSED,
 			COMPLETED,
 			FAILED
 		}
-		
+
 		public Conversation(String id, Set<String> participants) {
 			this.id = id;
 			this.participants = new HashSet<>(participants);
@@ -263,18 +277,18 @@ public class AgentCommunicationProtocol {
 			this.state = ConversationState.ACTIVE;
 			this.context = new ConcurrentHashMap<>();
 		}
-		
+
 		public void addMessage(Message message) {
 			messages.add(message);
 			lastActivity = Instant.now();
 		}
-		
+
 		public List<Message> getMessagesSince(Instant since) {
 			return messages.stream()
 				.filter(m -> m.getTimestamp().isAfter(since))
 				.collect(Collectors.toList());
 		}
-		
+
 		// Getters and setters
 		public String getId() { return id; }
 		public Set<String> getParticipants() { return participants; }
@@ -285,7 +299,7 @@ public class AgentCommunicationProtocol {
 		public void setState(ConversationState state) { this.state = state; }
 		public Map<String, Object> getContext() { return context; }
 	}
-	
+
 	/**
 	 * Register an agent endpoint
 	 */
@@ -293,7 +307,7 @@ public class AgentCommunicationProtocol {
 		AgentEndpoint endpoint = new AgentEndpoint(agentId, agentType, capabilities);
 		agents.put(agentId, endpoint);
 	}
-	
+
 	/**
 	 * Unregister an agent
 	 */
@@ -303,7 +317,7 @@ public class AgentCommunicationProtocol {
 			endpoint.setActive(false);
 		}
 	}
-	
+
 	/**
 	 * Send a message between agents
 	 */
@@ -316,26 +330,26 @@ public class AgentCommunicationProtocol {
 					conversation.addMessage(message);
 				}
 			}
-			
+
 			// Check and deliver to recipient
 			AgentEndpoint recipient = agents.get(message.getRecipientId());
 			if (recipient == null || !recipient.isActive()) {
 				return false;
 			}
-			
+
 			// Deliver message
 			recipient.handleMessage(message);
 			return true;
 		}, messageExecutor);
 	}
-	
+
 	/**
 	 * Broadcast a message to multiple agents
 	 */
-	public CompletableFuture<Map<String, Boolean>> broadcastMessage(String senderId, 
+	public CompletableFuture<Map<String, Boolean>> broadcastMessage(String senderId,
 			Set<String> recipientIds, MessageType type, Map<String, Object> content) {
 		Map<String, CompletableFuture<Boolean>> futures = new HashMap<>();
-		
+
 		for (String recipientId : recipientIds) {
 			Message message = new Message.Builder()
 				.from(senderId)
@@ -345,7 +359,7 @@ public class AgentCommunicationProtocol {
 				.build();
 			futures.put(recipientId, sendMessage(message));
 		}
-		
+
 		return CompletableFuture.allOf(futures.values().toArray(new CompletableFuture[0]))
 			.thenApply(v -> futures.entrySet().stream()
 				.collect(Collectors.toMap(
@@ -353,7 +367,7 @@ public class AgentCommunicationProtocol {
 					e -> e.getValue().join()
 				)));
 	}
-	
+
 	/**
 	 * Start a new conversation
 	 */
@@ -363,7 +377,7 @@ public class AgentCommunicationProtocol {
 		conversations.put(conversationId, conversation);
 		return conversation;
 	}
-	
+
 	/**
 	 * End a conversation
 	 */
@@ -373,7 +387,7 @@ public class AgentCommunicationProtocol {
 			conversation.setState(finalState);
 		}
 	}
-	
+
 	/**
 	 * Query agents by capability
 	 */
@@ -383,21 +397,21 @@ public class AgentCommunicationProtocol {
 			.map(AgentEndpoint::getAgentId)
 			.collect(Collectors.toSet());
 	}
-	
+
 	/**
 	 * Get agent endpoint
 	 */
 	public AgentEndpoint getAgent(String agentId) {
 		return agents.get(agentId);
 	}
-	
+
 	/**
 	 * Get conversation
 	 */
 	public Conversation getConversation(String conversationId) {
 		return conversations.get(conversationId);
 	}
-	
+
 	/**
 	 * Get all active agents
 	 */
@@ -407,7 +421,7 @@ public class AgentCommunicationProtocol {
 			.map(AgentEndpoint::getAgentId)
 			.collect(Collectors.toSet());
 	}
-	
+
 	/**
 	 * Send heartbeat for agent
 	 */
@@ -417,7 +431,7 @@ public class AgentCommunicationProtocol {
 			agent.updateHeartbeat();
 		}
 	}
-	
+
 	/**
 	 * Check agent health
 	 */
@@ -426,11 +440,11 @@ public class AgentCommunicationProtocol {
 		if (agent == null || !agent.isActive()) {
 			return false;
 		}
-		
+
 		Instant threshold = Instant.now().minusSeconds(maxInactivitySeconds);
 		return agent.getLastHeartbeat().isAfter(threshold);
 	}
-	
+
 	/**
 	 * Shutdown the protocol
 	 */

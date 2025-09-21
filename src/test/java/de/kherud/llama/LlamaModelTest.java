@@ -1,16 +1,22 @@
 package de.kherud.llama;
 
-import java.io.*;
-import java.util.*;
-import java.util.regex.Pattern;
-import static java.lang.System.Logger.Level.DEBUG;
-
 import de.kherud.llama.args.LogFormat;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.regex.Pattern;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 /**
  * To run this test download the model from here <a href="https://huggingface.co/mradermacher/jina-reranker-v1-tiny-en-GGUF/tree/main">...</a>

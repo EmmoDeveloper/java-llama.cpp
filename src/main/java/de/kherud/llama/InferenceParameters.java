@@ -1,11 +1,11 @@
 package de.kherud.llama;
 
+import de.kherud.llama.args.MiroStat;
+import de.kherud.llama.args.Sampler;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import de.kherud.llama.args.MiroStat;
-import de.kherud.llama.args.Sampler;
 
 /**
  * Parameters used throughout inference of a {@link LlamaModel}, e.g., {@link LlamaModel#generate(InferenceParameters)}

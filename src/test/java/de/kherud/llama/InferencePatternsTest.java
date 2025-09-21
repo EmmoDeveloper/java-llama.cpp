@@ -1,15 +1,19 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
-import org.junit.Test;
-import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class InferencePatternsTest {
 	private static final System.Logger logger = System.getLogger(InferencePatternsTest.class.getName());

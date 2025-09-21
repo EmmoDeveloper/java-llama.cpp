@@ -12,6 +12,9 @@ if(NOT EXISTS "${LLAMA_CPP_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "llama.cpp source not found at ${LLAMA_CPP_DIR}")
 endif()
 
+# Force common library to be built
+set(LLAMA_BUILD_COMMON ON CACHE BOOL "Build common library" FORCE)
+
 # Add llama.cpp as a subdirectory
 add_subdirectory(${LLAMA_CPP_DIR} ${CMAKE_BINARY_DIR}/llama.cpp)
 
@@ -59,7 +62,7 @@ if(NOT JNI_INCLUDE_DIRS)
 endif()
 
 # Create the jllama shared library
-add_library(jllama SHARED 
+add_library(jllama SHARED
     src/main/cpp/jllama.cpp
     src/main/cpp/jni_utils.cpp
     src/main/cpp/completion_task.cpp
@@ -87,22 +90,33 @@ add_library(jllama SHARED
     src/main/cpp/system_info_manager.cpp
     src/main/cpp/batch_manager.cpp
     src/main/cpp/training_manager.cpp
+    # Add common sources needed for training
+    ${LLAMA_CPP_DIR}/common/common.cpp
+    ${LLAMA_CPP_DIR}/common/sampling.cpp
+    ${LLAMA_CPP_DIR}/common/console.cpp
+    ${LLAMA_CPP_DIR}/common/json-schema-to-grammar.cpp
+    ${LLAMA_CPP_DIR}/common/log.cpp
 )
 
-set_target_properties(jllama PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(jllama PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    PREFIX ""  # Remove the "lib" prefix to get jllama.so instead of libjllama.so
+)
 
-target_include_directories(jllama PRIVATE 
-    src/main/cpp 
+target_include_directories(jllama PRIVATE
+    src/main/cpp
     ${JNI_INCLUDE_DIRS}
     ${LLAMA_CPP_DIR}/include
     ${LLAMA_CPP_DIR}/common
+    ${LLAMA_CPP_DIR}/ggml/include
     ${LLAMA_CPP_DIR}/vendor
 )
 
 # Link against the real llama.cpp libraries
-target_link_libraries(jllama PRIVATE 
+target_link_libraries(jllama PRIVATE
     llama
     ggml
+    build_info
 )
 
 target_compile_features(jllama PRIVATE cxx_std_17)
@@ -124,3 +138,17 @@ endif()
 if (LLAMA_METAL AND NOT LLAMA_METAL_EMBED_LIBRARY)
     configure_file(${LLAMA_CPP_DIR}/ggml-metal.metal ${JLLAMA_DIR}/ggml-metal.metal COPYONLY)
 endif()
+
+# Build training process executable
+add_executable(training_process src/main/cpp/training_process.cpp)
+target_include_directories(training_process PRIVATE
+	${LLAMA_CPP_DIR}/include
+	${LLAMA_CPP_DIR}/ggml/include
+	${LLAMA_CPP_DIR}/common
+	src/main/cpp  # For json.hpp
+)
+target_link_libraries(training_process PRIVATE llama common)
+target_compile_features(training_process PRIVATE cxx_std_17)
+set_target_properties(training_process PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${JLLAMA_DIR}
+)

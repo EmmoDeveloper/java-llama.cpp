@@ -1,9 +1,9 @@
 package de.kherud.llama;
 
-import static java.lang.System.Logger.Level.DEBUG;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import static java.lang.System.Logger.Level.DEBUG;
 
 public class SimpleStateTest {
 	private static final System.Logger logger = System.getLogger(SimpleStateTest.class.getName());
