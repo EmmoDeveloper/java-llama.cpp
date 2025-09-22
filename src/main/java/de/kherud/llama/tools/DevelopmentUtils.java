@@ -369,7 +369,7 @@ public class DevelopmentUtils {
 	}
 
 	public static class ThreadAnalyzer {
-		public static class ThreadInfo {
+		public static class CustomThreadInfo {
 			public final long id;
 			public final String name;
 			public final Thread.State state;
@@ -377,7 +377,7 @@ public class DevelopmentUtils {
 			public final long userTime;
 			public final boolean isDeadlocked;
 
-			public ThreadInfo(ThreadInfo threadInfo) {
+			public CustomThreadInfo(java.lang.management.ThreadInfo threadInfo) {
 				this.id = threadInfo.getThreadId();
 				this.name = threadInfo.getThreadName();
 				this.state = threadInfo.getThreadState();

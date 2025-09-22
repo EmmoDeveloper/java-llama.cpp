@@ -97,7 +97,6 @@ public class BatchProcessorTest {
 		}
 	}
 
-	@Ignore
 	@Test
 	public void testEncodeContext() {
 		try (BatchProcessor batch = new BatchProcessor(32, 0, 1)) {
@@ -118,7 +117,6 @@ public class BatchProcessorTest {
 		}
 	}
 
-	@Ignore
 	@Test
 	public void testDecodeTokens() {
 		try (BatchProcessor batch = new BatchProcessor(32, 0, 1)) {
@@ -139,7 +137,6 @@ public class BatchProcessorTest {
 		}
 	}
 
-	@Ignore
 	@Test
 	public void testMultipleSequences() {
 		try (BatchProcessor batch = new BatchProcessor(64, 0, 3)) {
