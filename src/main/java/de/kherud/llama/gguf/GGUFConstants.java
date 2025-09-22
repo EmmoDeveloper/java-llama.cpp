@@ -4,16 +4,14 @@ package de.kherud.llama.gguf;
  * GGUF format constants and metadata keys.
  * Port of llama.cpp/gguf-py/gguf/constants.py
  */
-public final class GGUFConstants {
+public enum GGUFConstants {
+	MAGIC(0x46554747), VERSION(3), DEFAULT_ALIGNMENT(32), QUANT_VERSION(2);
 
-	// Core GGUF constants
-	public static final int GGUF_MAGIC = 0x46554747;  // "GGUF"
-	public static final int GGUF_VERSION = 3;
-	public static final int GGUF_DEFAULT_ALIGNMENT = 32;
-	public static final int GGML_QUANT_VERSION = 2;
+	final int value;
 
-	// Prevent instantiation
-	private GGUFConstants() {}
+	GGUFConstants(int value) {
+		this.value = value;
+	}
 
 	/**
 	 * GGUF value types for metadata and tensor info

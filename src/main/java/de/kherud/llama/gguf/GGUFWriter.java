@@ -50,7 +50,7 @@ public class GGUFWriter implements AutoCloseable {
 		this.path = path;
 		this.arch = arch;
 		this.endianess = endianess;
-		this.dataAlignment = GGUFConstants.GGUF_DEFAULT_ALIGNMENT;
+		this.dataAlignment = GGUFConstants.DEFAULT_ALIGNMENT.value;
 		this.tensors = new LinkedHashMap<>();
 		this.kvData = new LinkedHashMap<>();
 		this.dryRun = dryRun;
@@ -222,10 +222,10 @@ public class GGUFWriter implements AutoCloseable {
 
 		if (!dryRun) {
 			// Write GGUF magic
-			fout.write(pack("I", GGUFConstants.GGUF_MAGIC));
+			fout.write(pack("I", GGUFConstants.MAGIC));
 
 			// Write version
-			fout.write(pack("I", GGUFConstants.GGUF_VERSION));
+			fout.write(pack("I", GGUFConstants.VERSION));
 
 			// Write tensor count
 			fout.write(pack("Q", (long) tensors.size()));
@@ -277,22 +277,22 @@ public class GGUFWriter implements AutoCloseable {
 				fout.write(packValue(name, GGUFConstants.GGUFValueType.STRING, false, null));
 
 				// Write number of dimensions
-				fout.write(pack("I", ti.getShape().length));
+				fout.write(pack("I", ti.shape().length));
 
 				// Write dimensions in REVERSE order (critical!)
-				long[] shape = ti.getShape();
+				long[] shape = ti.shape();
 				for (int j = shape.length - 1; j >= 0; j--) {
 					fout.write(pack("Q", shape[j]));
 				}
 
 				// Write data type
-				fout.write(pack("I", ti.getDtype().getValue()));
+				fout.write(pack("I", ti.dtype().getValue()));
 
 				// Write offset
 				fout.write(pack("Q", offsetTensor));
 
 				// Update offset for next tensor
-				offsetTensor += ggmlPad(ti.getNbytes(), dataAlignment);
+				offsetTensor += ggmlPad(ti.nbytes(), dataAlignment);
 			}
 
 			fout.flush();
@@ -413,7 +413,7 @@ public class GGUFWriter implements AutoCloseable {
 			for (Map.Entry<String, TensorInfo> entry : tensors.entrySet()) {
 				currentPos += 8 + entry.getKey().getBytes(StandardCharsets.UTF_8).length; // name length + name
 				currentPos += 4; // ndims
-				currentPos += entry.getValue().getShape().length * 8L; // dimensions
+				currentPos += entry.getValue().shape().length * 8L; // dimensions
 				currentPos += 4; // dtype
 				currentPos += 8; // offset
 			}

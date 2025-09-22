@@ -4,27 +4,16 @@ package de.kherud.llama.gguf;
  * Information about a tensor stored in a GGUF file.
  * Port of llama.cpp/gguf-py/gguf/gguf_writer.py TensorInfo
  */
-public class TensorInfo {
-	private final long[] shape;
-	private final GGUFConstants.GGMLQuantizationType dtype;
-	private final long nbytes;
-
+public record TensorInfo(long[] shape, GGUFConstants.GGMLQuantizationType dtype, long nbytes) {
 	public TensorInfo(long[] shape, GGUFConstants.GGMLQuantizationType dtype, long nbytes) {
 		this.shape = shape.clone();
 		this.dtype = dtype;
 		this.nbytes = nbytes;
 	}
 
-	public long[] getShape() {
+	@Override
+	public long[] shape() {
 		return shape.clone();
-	}
-
-	public GGUFConstants.GGMLQuantizationType getDtype() {
-		return dtype;
-	}
-
-	public long getNbytes() {
-		return nbytes;
 	}
 
 	/**

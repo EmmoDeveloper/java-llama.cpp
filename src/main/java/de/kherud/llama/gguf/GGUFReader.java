@@ -29,7 +29,7 @@ public class GGUFReader implements AutoCloseable {
 
 			// Check GGUF magic
 			int magic = readUInt32(offset, ByteOrder.LITTLE_ENDIAN);
-			if (magic != GGUFConstants.GGUF_MAGIC) {
+			if (magic != GGUFConstants.MAGIC.value) {
 				throw new IOException("Invalid GGUF magic number: 0x" + Integer.toHexString(magic));
 			}
 			offset += 4;
@@ -44,7 +44,7 @@ public class GGUFReader implements AutoCloseable {
 				this.byteOrder = ByteOrder.LITTLE_ENDIAN;
 			}
 
-			if (version != GGUFConstants.GGUF_VERSION) {
+			if (version != GGUFConstants.VERSION.value) {
 				throw new IOException("Unsupported GGUF version: " + version);
 			}
 			offset += 4;
@@ -66,7 +66,7 @@ public class GGUFReader implements AutoCloseable {
 			if (alignmentField != null && alignmentField.type == GGUFConstants.GGUFValueType.UINT32) {
 				this.alignment = (Integer) alignmentField.value;
 			} else {
-				this.alignment = GGUFConstants.GGUF_DEFAULT_ALIGNMENT;
+				this.alignment = GGUFConstants.DEFAULT_ALIGNMENT.value;
 			}
 
 			// Calculate data offset with alignment
