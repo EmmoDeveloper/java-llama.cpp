@@ -1,0 +1,367 @@
+{
+  "description": "Configuration examples for Java-llama.cpp utilities",
+  "version": "1.0.0",
+  "configs": {
+    "gguf_inspection": {
+      "description": "Standard GGUF file inspection configuration",
+      "config": {
+        "showMetadata": true,
+        "showTensors": true,
+        "showTensorData": false,
+        "showFileStructure": true,
+        "verbose": false,
+        "jsonOutput": false,
+        "maxStringLength": 60
+      },
+      "usage": "GGUFInspector.InspectionOptions options = new GGUFInspector.InspectionOptions().verbose(false).maxStringLength(60);"
+    },
+    "gguf_inspection_verbose": {
+      "description": "Verbose GGUF inspection for detailed analysis",
+      "config": {
+        "showMetadata": true,
+        "showTensors": true,
+        "showTensorData": true,
+        "showFileStructure": true,
+        "verbose": true,
+        "jsonOutput": false,
+        "maxStringLength": 200
+      }
+    },
+    "gguf_hashing_fast": {
+      "description": "Fast hashing configuration for quick verification",
+      "config": {
+        "algorithms": ["SHA256"],
+        "includeMetadata": false,
+        "includeTensors": false,
+        "bufferSize": 8192,
+        "parallel": true,
+        "maxConcurrency": 4,
+        "verbose": false
+      }
+    },
+    "gguf_hashing_comprehensive": {
+      "description": "Comprehensive hashing for security validation",
+      "config": {
+        "algorithms": ["SHA256", "SHA1", "MD5"],
+        "includeMetadata": true,
+        "includeTensors": true,
+        "bufferSize": 16384,
+        "parallel": true,
+        "maxConcurrency": 8,
+        "verbose": true
+      }
+    },
+    "model_validation_quick": {
+      "description": "Quick model validation for basic checks",
+      "config": {
+        "checkChecksum": true,
+        "checkStructure": true,
+        "checkTensors": false,
+        "checkLogits": false,
+        "verbose": false,
+        "tolerance": 1e-5,
+        "checksumAlgorithm": "SHA256",
+        "maxTensorsToCheck": 10
+      }
+    },
+    "model_validation_thorough": {
+      "description": "Thorough model validation for production use",
+      "config": {
+        "checkChecksum": true,
+        "checkStructure": true,
+        "checkTensors": true,
+        "checkLogits": true,
+        "verbose": true,
+        "tolerance": 1e-6,
+        "logitTolerance": 1e-4,
+        "checksumAlgorithm": "SHA256",
+        "maxTensorsToCheck": 1000
+      }
+    },
+    "server_testing_basic": {
+      "description": "Basic server testing configuration",
+      "config": {
+        "serverUrl": "http://localhost:8080",
+        "timeout": 30000,
+        "maxConcurrentRequests": 3,
+        "verbose": false,
+        "testSuites": ["basic"],
+        "testDataPath": "test_data"
+      }
+    },
+    "server_testing_load": {
+      "description": "Load testing configuration for performance validation",
+      "config": {
+        "serverUrl": "http://localhost:8080",
+        "timeout": 60000,
+        "maxConcurrentRequests": 10,
+        "verbose": true,
+        "testSuites": ["basic", "performance", "concurrency"],
+        "testDataPath": "test_data"
+      }
+    },
+    "image_processing_standard": {
+      "description": "Standard image processing for vision models",
+      "config": {
+        "targetWidth": 224,
+        "targetHeight": 224,
+        "maintainAspectRatio": true,
+        "centerCrop": true,
+        "meanNormalization": [0.485, 0.456, 0.406],
+        "stdNormalization": [0.229, 0.224, 0.225],
+        "normalizeToRange": false,
+        "interpolation": "bicubic",
+        "verbose": false
+      }
+    },
+    "image_processing_high_res": {
+      "description": "High resolution image processing",
+      "config": {
+        "targetWidth": 512,
+        "targetHeight": 512,
+        "maintainAspectRatio": true,
+        "centerCrop": true,
+        "meanNormalization": [0.485, 0.456, 0.406],
+        "stdNormalization": [0.229, 0.224, 0.225],
+        "normalizeToRange": false,
+        "interpolation": "bicubic",
+        "verbose": true
+      }
+    },
+    "hf_download_basic": {
+      "description": "Basic HuggingFace model downloading",
+      "config": {
+        "resumeDownload": true,
+        "maxConcurrentDownloads": 2,
+        "timeout": 300000,
+        "verbose": false,
+        "allowedFileExtensions": [".bin", ".safetensors", ".json", ".txt"],
+        "includeTokenizer": true,
+        "includeConfig": true,
+        "includeReadme": false
+      }
+    },
+    "hf_download_complete": {
+      "description": "Complete HuggingFace model downloading with all files",
+      "config": {
+        "resumeDownload": true,
+        "maxConcurrentDownloads": 4,
+        "timeout": 600000,
+        "verbose": true,
+        "allowedFileExtensions": [".bin", ".safetensors", ".json", ".txt", ".py", ".md"],
+        "includeTokenizer": true,
+        "includeConfig": true,
+        "includeReadme": true
+      }
+    },
+    "hf_conversion_standard": {
+      "description": "Standard HuggingFace to GGUF conversion",
+      "config": {
+        "quantization": "F16",
+        "verbose": false,
+        "dryRun": false,
+        "vocabType": "spm",
+        "skipTokenizer": false,
+        "skipEmbeddings": false,
+        "contextLength": 2048
+      }
+    },
+    "hf_conversion_optimized": {
+      "description": "Optimized HuggingFace conversion with quantization",
+      "config": {
+        "quantization": "Q4_0",
+        "verbose": true,
+        "dryRun": false,
+        "vocabType": "spm",
+        "skipTokenizer": false,
+        "skipEmbeddings": false,
+        "contextLength": 4096
+      }
+    },
+    "legacy_conversion_basic": {
+      "description": "Basic legacy model conversion",
+      "config": {
+        "outputFormat": "gguf",
+        "buildProfile": "release",
+        "verbose": false,
+        "dryRun": false,
+        "modelName": "converted_model",
+        "outputDirectory": "output",
+        "cleanBefore": false
+      }
+    },
+    "legacy_conversion_verbose": {
+      "description": "Verbose legacy conversion with debugging",
+      "config": {
+        "outputFormat": "gguf",
+        "buildProfile": "debug",
+        "verbose": true,
+        "dryRun": false,
+        "modelName": "converted_model_debug",
+        "outputDirectory": "output",
+        "cleanBefore": true
+      }
+    },
+    "performance_monitoring_basic": {
+      "description": "Basic performance monitoring",
+      "config": {
+        "collectSystemMetrics": true,
+        "metricsInterval": 1000,
+        "verbose": false,
+        "saveReports": false
+      }
+    },
+    "performance_monitoring_detailed": {
+      "description": "Detailed performance monitoring with reporting",
+      "config": {
+        "collectSystemMetrics": true,
+        "metricsInterval": 500,
+        "verbose": true,
+        "saveReports": true,
+        "reportDirectory": "performance_reports"
+      }
+    },
+    "memory_analysis_standard": {
+      "description": "Standard memory analysis configuration",
+      "config": {
+        "enableLeakDetection": true,
+        "snapshotInterval": 5000,
+        "enableGCMetrics": true,
+        "verbose": false
+      }
+    },
+    "memory_analysis_intensive": {
+      "description": "Intensive memory analysis for debugging",
+      "config": {
+        "enableLeakDetection": true,
+        "snapshotInterval": 1000,
+        "enableGCMetrics": true,
+        "enablePoolMetrics": true,
+        "verbose": true
+      }
+    },
+    "build_development": {
+      "description": "Development build configuration",
+      "config": {
+        "buildTarget": "jar",
+        "buildProfile": "debug",
+        "runTests": true,
+        "generateDocs": false,
+        "verbose": true,
+        "parallel": true,
+        "maxConcurrency": 4,
+        "cleanBefore": false
+      }
+    },
+    "build_production": {
+      "description": "Production build configuration",
+      "config": {
+        "buildTarget": "all",
+        "buildProfile": "release",
+        "runTests": true,
+        "generateDocs": true,
+        "verbose": false,
+        "parallel": true,
+        "maxConcurrency": 8,
+        "cleanBefore": true
+      }
+    },
+    "vision_language_basic": {
+      "description": "Basic vision-language model configuration",
+      "config": {
+        "visionEmbeddingDim": 768,
+        "textEmbeddingDim": 4096,
+        "projectionDim": 4096,
+        "useProjection": true,
+        "visionModelType": "clip",
+        "maxImageTokens": 256,
+        "enableBatchProcessing": true
+      }
+    },
+    "vision_language_advanced": {
+      "description": "Advanced vision-language model with optimization",
+      "config": {
+        "visionEmbeddingDim": 1024,
+        "textEmbeddingDim": 4096,
+        "projectionDim": 4096,
+        "useProjection": true,
+        "visionModelType": "clip",
+        "temperatureVision": 0.1,
+        "maxImageTokens": 512,
+        "enableBatchProcessing": true
+      }
+    }
+  },
+  "usage_examples": {
+    "loading_config": {
+      "description": "How to load configuration from this file",
+      "java_code": [
+        "// Load configuration from JSON",
+        "ObjectMapper mapper = new ObjectMapper();",
+        "JsonNode configs = mapper.readTree(new File(\"config/utility-configs.json\"));",
+        "JsonNode inspectionConfig = configs.get(\"configs\").get(\"gguf_inspection_verbose\").get(\"config\");",
+        "",
+        "// Apply to InspectionOptions",
+        "GGUFInspector.InspectionOptions options = new GGUFInspector.InspectionOptions()",
+        "    .verbose(inspectionConfig.get(\"verbose\").asBoolean())",
+        "    .maxStringLength(inspectionConfig.get(\"maxStringLength\").asInt());"
+      ]
+    },
+    "creating_custom_config": {
+      "description": "How to create and save custom configurations",
+      "java_code": [
+        "// Create custom configuration",
+        "Map<String, Object> customConfig = new HashMap<>();",
+        "customConfig.put(\"verbose\", true);",
+        "customConfig.put(\"timeout\", 60000);",
+        "",
+        "// Save to JSON",
+        "ObjectMapper mapper = new ObjectMapper();",
+        "mapper.writerWithDefaultPrettyPrinter().writeValue(new File(\"my-config.json\"), customConfig);"
+      ]
+    }
+  },
+  "environment_specific": {
+    "development": {
+      "description": "Recommended settings for development environment",
+      "settings": {
+        "verbose": true,
+        "dryRun": false,
+        "timeout": 60000,
+        "maxConcurrency": 4,
+        "enableProfiling": true
+      }
+    },
+    "testing": {
+      "description": "Recommended settings for testing environment",
+      "settings": {
+        "verbose": true,
+        "dryRun": false,
+        "timeout": 30000,
+        "maxConcurrency": 2,
+        "enableValidation": true
+      }
+    },
+    "production": {
+      "description": "Recommended settings for production environment",
+      "settings": {
+        "verbose": false,
+        "dryRun": false,
+        "timeout": 120000,
+        "maxConcurrency": 8,
+        "enableMonitoring": true
+      }
+    },
+    "ci_cd": {
+      "description": "Recommended settings for CI/CD pipelines",
+      "settings": {
+        "verbose": true,
+        "dryRun": false,
+        "timeout": 300000,
+        "maxConcurrency": 2,
+        "enableValidation": true,
+        "enableReporting": true
+      }
+    }
+  }
+}
