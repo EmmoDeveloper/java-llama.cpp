@@ -13,6 +13,8 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * HuggingFace model converter.
@@ -435,7 +437,7 @@ public class HuggingFaceModelConverter {
 
 		try (GGUFWriter writer = new GGUFWriter(outputPath, result.architecture.name)) {
 			// Write metadata
-			writeMetadata(writer, modelConfig, result.architecture);
+			writeMetadata(writer, modelConfig, result.architecture, config);
 
 			// Write tokenizer
 			if (tokenizer != null) {
@@ -466,27 +468,27 @@ public class HuggingFaceModelConverter {
 		}
 	}
 
-	private void writeMetadata(GGUFWriter writer, JsonNode config, ModelArchitecture architecture) {
+	private void writeMetadata(GGUFWriter writer, JsonNode modelConfig, ModelArchitecture architecture, ConversionConfig config) {
 		// Basic model information
 		writer.addString("general.architecture", architecture.name);
-		writer.addString("general.name", config.path("_name_or_path").asText("converted_model"));
+		writer.addString("general.name", modelConfig.path("_name_or_path").asText("converted_model"));
 
 		// Architecture-specific metadata
 		switch (architecture.name) {
 			case "llama":
-				writeLlamaMetadata(writer, config);
+				writeLlamaMetadata(writer, modelConfig, config);
 				break;
 			case "gpt2":
-				writeGPTMetadata(writer, config);
+				writeGPTMetadata(writer, modelConfig, config);
 				break;
 			case "bloom":
-				writeBloomMetadata(writer, config);
+				writeBloomMetadata(writer, modelConfig, config);
 				break;
 			case "falcon":
-				writeFalconMetadata(writer, config);
+				writeFalconMetadata(writer, modelConfig, config);
 				break;
 			default:
-				writeGenericMetadata(writer, config);
+				writeGenericMetadata(writer, modelConfig);
 		}
 
 		// Add user overrides
@@ -499,59 +501,59 @@ public class HuggingFaceModelConverter {
 		}
 	}
 
-	private void writeLlamaMetadata(GGUFWriter writer, JsonNode config) {
-		writer.addUInt32("llama.vocab_size", config.get("vocab_size").asInt());
-		writer.addUInt32("llama.context_length", config.path("max_position_embeddings").asInt(config.contextLength));
-		writer.addUInt32("llama.embedding_length", config.get("hidden_size").asInt());
-		writer.addUInt32("llama.block_count", config.get("num_hidden_layers").asInt());
-		writer.addUInt32("llama.attention.head_count", config.get("num_attention_heads").asInt());
+	private void writeLlamaMetadata(GGUFWriter writer, JsonNode modelConfig, ConversionConfig config) {
+		writer.addUInt32("llama.vocab_size", modelConfig.get("vocab_size").asInt());
+		writer.addUInt32("llama.context_length", modelConfig.path("max_position_embeddings").asInt(config.contextLength));
+		writer.addUInt32("llama.embedding_length", modelConfig.get("hidden_size").asInt());
+		writer.addUInt32("llama.block_count", modelConfig.get("num_hidden_layers").asInt());
+		writer.addUInt32("llama.attention.head_count", modelConfig.get("num_attention_heads").asInt());
 
-		if (config.has("num_key_value_heads")) {
-			writer.addUInt32("llama.attention.head_count_kv", config.get("num_key_value_heads").asInt());
+		if (modelConfig.has("num_key_value_heads")) {
+			writer.addUInt32("llama.attention.head_count_kv", modelConfig.get("num_key_value_heads").asInt());
 		}
 
-		writer.addUInt32("llama.feed_forward_length", config.get("intermediate_size").asInt());
+		writer.addUInt32("llama.feed_forward_length", modelConfig.get("intermediate_size").asInt());
 
 		// RoPE parameters
-		if (config.has("rope_theta")) {
-			writer.addFloat32("llama.rope.freq_base", (float) config.get("rope_theta").asDouble());
+		if (modelConfig.has("rope_theta")) {
+			writer.addFloat32("llama.rope.freq_base", (float) modelConfig.get("rope_theta").asDouble());
 		}
 
 		// Normalization
 		writer.addFloat32("llama.attention.layer_norm_rms_epsilon",
-			(float) config.path("rms_norm_eps").asDouble(1e-6));
+			(float) modelConfig.path("rms_norm_eps").asDouble(1e-6));
 	}
 
-	private void writeGPTMetadata(GGUFWriter writer, JsonNode config) {
-		writer.addUInt32("gpt2.vocab_size", config.get("vocab_size").asInt());
-		writer.addUInt32("gpt2.context_length", config.path("n_positions").asInt(config.contextLength));
-		writer.addUInt32("gpt2.embedding_length", config.get("n_embd").asInt());
-		writer.addUInt32("gpt2.block_count", config.get("n_layer").asInt());
-		writer.addUInt32("gpt2.attention.head_count", config.get("n_head").asInt());
+	private void writeGPTMetadata(GGUFWriter writer, JsonNode modelConfig, ConversionConfig config) {
+		writer.addUInt32("gpt2.vocab_size", modelConfig.get("vocab_size").asInt());
+		writer.addUInt32("gpt2.context_length", modelConfig.path("n_positions").asInt(config.contextLength));
+		writer.addUInt32("gpt2.embedding_length", modelConfig.get("n_embd").asInt());
+		writer.addUInt32("gpt2.block_count", modelConfig.get("n_layer").asInt());
+		writer.addUInt32("gpt2.attention.head_count", modelConfig.get("n_head").asInt());
 	}
 
-	private void writeBloomMetadata(GGUFWriter writer, JsonNode config) {
-		writer.addUInt32("bloom.vocab_size", config.get("vocab_size").asInt());
-		writer.addUInt32("bloom.context_length", config.path("seq_length").asInt(config.contextLength));
-		writer.addUInt32("bloom.embedding_length", config.get("hidden_size").asInt());
-		writer.addUInt32("bloom.block_count", config.get("n_layer").asInt());
-		writer.addUInt32("bloom.attention.head_count", config.get("n_head").asInt());
+	private void writeBloomMetadata(GGUFWriter writer, JsonNode modelConfig, ConversionConfig config) {
+		writer.addUInt32("bloom.vocab_size", modelConfig.get("vocab_size").asInt());
+		writer.addUInt32("bloom.context_length", modelConfig.path("seq_length").asInt(config.contextLength));
+		writer.addUInt32("bloom.embedding_length", modelConfig.get("hidden_size").asInt());
+		writer.addUInt32("bloom.block_count", modelConfig.get("n_layer").asInt());
+		writer.addUInt32("bloom.attention.head_count", modelConfig.get("n_head").asInt());
 	}
 
-	private void writeFalconMetadata(GGUFWriter writer, JsonNode config) {
-		writer.addUInt32("falcon.vocab_size", config.get("vocab_size").asInt());
-		writer.addUInt32("falcon.context_length", config.path("max_position_embeddings").asInt(config.contextLength));
-		writer.addUInt32("falcon.embedding_length", config.get("hidden_size").asInt());
-		writer.addUInt32("falcon.block_count", config.get("num_hidden_layers").asInt());
-		writer.addUInt32("falcon.attention.head_count", config.get("num_attention_heads").asInt());
+	private void writeFalconMetadata(GGUFWriter writer, JsonNode modelConfig, ConversionConfig config) {
+		writer.addUInt32("falcon.vocab_size", modelConfig.get("vocab_size").asInt());
+		writer.addUInt32("falcon.context_length", modelConfig.path("max_position_embeddings").asInt(config.contextLength));
+		writer.addUInt32("falcon.embedding_length", modelConfig.get("hidden_size").asInt());
+		writer.addUInt32("falcon.block_count", modelConfig.get("num_hidden_layers").asInt());
+		writer.addUInt32("falcon.attention.head_count", modelConfig.get("num_attention_heads").asInt());
 	}
 
-	private void writeGenericMetadata(GGUFWriter writer, JsonNode config) {
-		if (config.has("vocab_size")) {
-			writer.addUInt32("general.vocab_size", config.get("vocab_size").asInt());
+	private void writeGenericMetadata(GGUFWriter writer, JsonNode modelConfig) {
+		if (modelConfig.has("vocab_size")) {
+			writer.addUInt32("general.vocab_size", modelConfig.get("vocab_size").asInt());
 		}
-		if (config.has("hidden_size")) {
-			writer.addUInt32("general.embedding_length", config.get("hidden_size").asInt());
+		if (modelConfig.has("hidden_size")) {
+			writer.addUInt32("general.embedding_length", modelConfig.get("hidden_size").asInt());
 		}
 	}
 
@@ -569,9 +571,9 @@ public class HuggingFaceModelConverter {
 			types[i] = tokenizer.types.get(i);
 		}
 
-		writer.addArray("tokenizer.ggml.tokens", tokens);
-		writer.addArray("tokenizer.ggml.scores", scores);
-		writer.addArray("tokenizer.ggml.token_type", types);
+		writer.addArray("tokenizer.ggml.tokens", Arrays.asList(tokens));
+		writer.addArray("tokenizer.ggml.scores", IntStream.range(0, scores.length).mapToObj(i -> scores[i]).collect(Collectors.toList()));
+		writer.addArray("tokenizer.ggml.token_type", Arrays.stream(types).boxed().collect(Collectors.toList()));
 
 		// Special tokens
 		writer.addUInt32("tokenizer.ggml.bos_token_id",

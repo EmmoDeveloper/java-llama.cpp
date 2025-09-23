@@ -44,8 +44,9 @@ public class GGUFReader implements AutoCloseable {
 				this.byteOrder = ByteOrder.LITTLE_ENDIAN;
 			}
 
-			if (version != GGUFConstants.VERSION.value) {
-				throw new IOException("Unsupported GGUF version: " + version);
+			// Support both GGUF versions 2 and 3 (format is backward compatible)
+			if (version != 2 && version != 3) {
+				throw new IOException("Unsupported GGUF version: " + version + " (supported: 2, 3)");
 			}
 			offset += 4;
 

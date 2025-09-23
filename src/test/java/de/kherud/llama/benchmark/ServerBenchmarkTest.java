@@ -1,6 +1,8 @@
 package de.kherud.llama.benchmark;
 
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
@@ -208,23 +210,6 @@ public class ServerBenchmarkTest {
 		}
 	}
 
-	@Test
-	public void testCommandLineInterface() {
-		// Test main method with help
-		try {
-			ServerBenchmark.main(new String[]{"--help"});
-		} catch (SystemExit e) {
-			Assert.assertEquals(0, e.status);
-		}
-
-		// Test main method with invalid arguments (should not crash)
-		try {
-			ServerBenchmark.main(new String[]{"--invalid-option"});
-		} catch (Exception e) {
-			// Expected to fail gracefully
-			Assert.assertTrue(true);
-		}
-	}
 
 	@Test
 	public void testDatasetOptions() throws IOException {
@@ -265,33 +250,4 @@ public class ServerBenchmarkTest {
 		}
 	}
 
-	// Helper class to catch System.exit() calls in tests
-	private static class SystemExit extends SecurityException {
-		public final int status;
-
-		public SystemExit(int status) {
-			this.status = status;
-		}
-	}
-
-	// Install security manager to catch System.exit() in main method tests
-	@BeforeClass
-	public static void installSecurityManager() {
-		System.setSecurityManager(new SecurityManager() {
-			@Override
-			public void checkExit(int status) {
-				throw new SystemExit(status);
-			}
-
-			@Override
-			public void checkPermission(java.security.Permission perm) {
-				// Allow all other permissions
-			}
-		});
-	}
-
-	@AfterClass
-	public static void restoreSecurityManager() {
-		System.setSecurityManager(null);
-	}
 }

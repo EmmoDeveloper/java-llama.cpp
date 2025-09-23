@@ -41,6 +41,7 @@ public class GGUFWriter implements AutoCloseable {
 	private final Map<String, GGUFValue> kvData;
 	private WriterState state;
 	private final boolean dryRun;
+	private long currentPosition;
 
 	public GGUFWriter(Path path, String arch) {
 		this(path, arch, GGUFConstants.GGUFEndian.LITTLE, false);
@@ -55,6 +56,7 @@ public class GGUFWriter implements AutoCloseable {
 		this.kvData = new LinkedHashMap<>();
 		this.dryRun = dryRun;
 		this.state = WriterState.NO_FILE;
+		this.currentPosition = 0;
 
 		LOGGER.info("GGUF: This GGUF file is for " +
 			(endianess == GGUFConstants.GGUFEndian.BIG ? "Big" : "Little") + " Endian only");
@@ -222,10 +224,10 @@ public class GGUFWriter implements AutoCloseable {
 
 		if (!dryRun) {
 			// Write GGUF magic
-			fout.write(pack("I", GGUFConstants.MAGIC));
+			fout.write(pack("I", GGUFConstants.MAGIC.value));
 
 			// Write version
-			fout.write(pack("I", GGUFConstants.VERSION));
+			fout.write(pack("I", GGUFConstants.VERSION.value));
 
 			// Write tensor count
 			fout.write(pack("Q", (long) tensors.size()));
@@ -395,27 +397,46 @@ public class GGUFWriter implements AutoCloseable {
 		writeTensorInfoToFile();
 
 		if (!dryRun) {
-			// Calculate current position for padding
+			// Calculate exact current position for padding
 			long currentPos = 0;
 
 			// Header size
 			currentPos += 4 + 4 + 8 + 8; // magic + version + tensor_count + kv_count
 
-			// KV data size (approximate)
+			// KV data size (exact calculation)
 			for (Map.Entry<String, GGUFValue> entry : kvData.entrySet()) {
-				currentPos += 8 + entry.getKey().getBytes(StandardCharsets.UTF_8).length; // key length + key
-				currentPos += 4; // value type
-				// Approximate value size
-				currentPos += 32; // Conservative estimate
+				try {
+					// Calculate exact size of key
+					byte[] keyData = packValue(entry.getKey(), GGUFConstants.GGUFValueType.STRING, false, null);
+					currentPos += keyData.length;
+
+					// Calculate exact size of value with type
+					GGUFValue val = entry.getValue();
+					byte[] valueData = packValue(val.getValue(), val.getType(), true, val.getSubType());
+					currentPos += valueData.length;
+				} catch (IOException e) {
+					throw new RuntimeException("Failed to calculate KV data size", e);
+				}
 			}
 
-			// Tensor info size
+			// Tensor info size (exact calculation)
 			for (Map.Entry<String, TensorInfo> entry : tensors.entrySet()) {
-				currentPos += 8 + entry.getKey().getBytes(StandardCharsets.UTF_8).length; // name length + name
-				currentPos += 4; // ndims
-				currentPos += entry.getValue().shape().length * 8L; // dimensions
-				currentPos += 4; // dtype
-				currentPos += 8; // offset
+				try {
+					String name = entry.getKey();
+					TensorInfo ti = entry.getValue();
+
+					// Calculate exact size of tensor name
+					byte[] nameData = packValue(name, GGUFConstants.GGUFValueType.STRING, false, null);
+					currentPos += nameData.length;
+
+					// Add sizes for tensor info fields
+					currentPos += 4; // ndims
+					currentPos += ti.shape().length * 8L; // dimensions
+					currentPos += 4; // dtype
+					currentPos += 8; // offset
+				} catch (IOException e) {
+					throw new RuntimeException("Failed to calculate tensor info size", e);
+				}
 			}
 
 			// Write padding to align tensor data

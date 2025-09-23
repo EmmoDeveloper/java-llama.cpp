@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -318,7 +319,7 @@ public class LoRATrainer {
 		this.baseModel = baseModel;
 		this.loraConfig = loraConfig;
 		this.trainingConfig = trainingConfig;
-		this.loraModules = new HashMap<>();
+		this.loraModules = new TreeMap<>();
 
 		initializeLoRAModules();
 		createOutputDirectory();
@@ -336,20 +337,26 @@ public class LoRATrainer {
 
 		// Map common module names to actual model tensor names (without .weight suffix)
 		Map<String, String> moduleNameMapping = Map.of(
-			"q_proj", "blk.0.attn_q",
-			"k_proj", "blk.0.attn_k",
-			"v_proj", "blk.0.attn_v",
-			"o_proj", "blk.0.attn_output"
+			"q_proj", "attn_q",
+			"k_proj", "attn_k",
+			"v_proj", "attn_v",
+			"o_proj", "attn_output"
 		);
 
+		// Create LoRA modules for ALL layers
 		for (String moduleName : loraConfig.getTargetModules()) {
-			String actualTensorName = moduleNameMapping.getOrDefault(moduleName, moduleName);
-			// All attention projections have same dimensions in transformer
-			loraModules.put(actualTensorName, new LoRAModule(actualTensorName, modelDim, modelDim, loraConfig.getRank()));
+			String baseModuleName = moduleNameMapping.getOrDefault(moduleName, moduleName);
+
+			// Create LoRA module for each layer
+			for (int layer = 0; layer < layers; layer++) {
+				String actualTensorName = String.format("blk.%d.%s.weight", layer, baseModuleName);
+				// All attention projections have same dimensions in transformer
+				loraModules.put(actualTensorName, new LoRAModule(actualTensorName, modelDim, modelDim, loraConfig.getRank()));
+			}
 		}
 
-		LOGGER.info(String.format("Created %d LoRA modules with rank %d",
-		                         loraModules.size(), loraConfig.getRank()));
+		LOGGER.info(String.format("Created %d LoRA modules with rank %d across %d layers",
+		                         loraModules.size(), loraConfig.getRank(), layers));
 	}
 
 	private void createOutputDirectory() {
@@ -702,7 +709,7 @@ public class LoRATrainer {
 			// Use the official GGUF writer for guaranteed compatibility
 			try (GGUFWriter writer = new GGUFWriter(Paths.get(filepath), "llama")) {
 
-				// Set adapter metadata
+				// Set adapter metadata - match Python implementation exactly
 				writer.addType("adapter");
 				writer.addString(GGUFConstants.Keys.Adapter.TYPE, "lora");
 				writer.addLoRAAlpha(loraConfig.getAlpha());
@@ -731,12 +738,12 @@ public class LoRATrainer {
 				// Write the GGUF file structure
 				writer.writeToFile();
 
-				// Write tensor data
+				// Write tensor data in the EXACT same order as tensor info was declared
 				for (LoRAModule module : loraModules.values()) {
-					// Write A matrix data
+					// Write A matrix data first (matches .lora_a declaration order)
 					writer.writeTensorData(module.getMatrixA());
 
-					// Write B matrix data
+					// Write B matrix data second (matches .lora_b declaration order)
 					writer.writeTensorData(module.getMatrixB());
 				}
 

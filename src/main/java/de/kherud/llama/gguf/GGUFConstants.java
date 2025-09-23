@@ -5,7 +5,7 @@ package de.kherud.llama.gguf;
  * Port of llama.cpp/gguf-py/gguf/constants.py
  */
 public enum GGUFConstants {
-	MAGIC(0x46554747), VERSION(3), DEFAULT_ALIGNMENT(32), QUANT_VERSION(2);
+	MAGIC(0x46554747), VERSION(2), DEFAULT_ALIGNMENT(32), QUANT_VERSION(2);
 
 	final int value;
 

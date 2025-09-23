@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  * Equivalent to gguf_dump.py - provides detailed information about GGUF file contents
  * including metadata, tensors, and file structure.
  */
-public class GGUFInspector {
+public class GGUFInspector implements AutoCloseable {
 	private static final Logger LOGGER = Logger.getLogger(GGUFInspector.class.getName());
 
 	public static class InspectionOptions {
@@ -72,7 +72,7 @@ public class GGUFInspector {
 
 	public static class InspectionResult {
 		public final Map<String, Object> metadata = new LinkedHashMap<>();
-		public final Map<String, TensorInfo> tensors = new LinkedHashMap<>();
+		public final Map<String, GGUFReader.GGUFTensor> tensors = new LinkedHashMap<>();
 		public final FileInfo fileInfo = new FileInfo();
 
 		public static class FileInfo {
@@ -135,85 +135,41 @@ public class GGUFInspector {
 		fileInfo.endianness = reader.getByteOrder() == ByteOrder.LITTLE_ENDIAN ? "LITTLE" : "BIG";
 		fileInfo.hostEndianness = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? "LITTLE" : "BIG";
 		fileInfo.fileSize = filePath.toFile().length();
-		fileInfo.version = reader.getVersion();
-		fileInfo.tensorCount = reader.getTensorInfos().size();
-		fileInfo.metadataCount = reader.getMetadata().size();
+		fileInfo.version = 3; // GGUF version from GGUFConstants
+		fileInfo.tensorCount = reader.getTensors().size();
+		fileInfo.metadataCount = reader.getFields().size();
 		fileInfo.checksum = calculateChecksum();
 	}
 
 	private void populateMetadata(Map<String, Object> metadata, InspectionOptions options) {
-		Map<String, GGUFValue> rawMetadata = reader.getMetadata();
+		Map<String, GGUFReader.GGUFField> rawMetadata = reader.getFields();
 
-		for (Map.Entry<String, GGUFValue> entry : rawMetadata.entrySet()) {
+		for (Map.Entry<String, GGUFReader.GGUFField> entry : rawMetadata.entrySet()) {
 			String key = entry.getKey();
-			GGUFValue value = entry.getValue();
+			GGUFReader.GGUFField field = entry.getValue();
 
 			// Apply filter if specified
 			if (options.filterKey != null && !key.contains(options.filterKey)) {
 				continue;
 			}
 
-			Object processedValue = processMetadataValue(value, options);
-			metadata.put(key, processedValue);
+			metadata.put(key, field.value);
 		}
 	}
 
-	private Object processMetadataValue(GGUFValue value, InspectionOptions options) {
-		switch (value.getType()) {
-			case UINT8:
-			case INT8:
-			case UINT16:
-			case INT16:
-			case UINT32:
-			case INT32:
-			case UINT64:
-			case INT64:
-				return value.getValue();
 
-			case FLOAT32:
-			case FLOAT64:
-				return value.getValue();
+	private void populateTensors(Map<String, GGUFReader.GGUFTensor> tensors, InspectionOptions options) {
+		List<GGUFReader.GGUFTensor> rawTensors = reader.getTensors();
 
-			case BOOL:
-				return value.getValue();
-
-			case STRING:
-				String str = (String) value.getValue();
-				if (str.length() > options.maxStringLength && !options.verbose) {
-					return str.substring(0, options.maxStringLength) + "...";
-				}
-				return str;
-
-			case ARRAY:
-				Object[] array = (Object[]) value.getValue();
-				List<Object> processedArray = new ArrayList<>();
-				for (Object item : array) {
-					if (item instanceof GGUFValue) {
-						processedArray.add(processMetadataValue((GGUFValue) item, options));
-					} else {
-						processedArray.add(item);
-					}
-				}
-				return processedArray;
-
-			default:
-				return value.getValue() != null ? value.getValue().toString() : "null";
-		}
-	}
-
-	private void populateTensors(Map<String, TensorInfo> tensors, InspectionOptions options) {
-		Map<String, TensorInfo> rawTensors = reader.getTensorInfos();
-
-		for (Map.Entry<String, TensorInfo> entry : rawTensors.entrySet()) {
-			String name = entry.getKey();
-			TensorInfo tensorInfo = entry.getValue();
+		for (GGUFReader.GGUFTensor tensor : rawTensors) {
+			String name = tensor.name;
 
 			// Apply filter if specified
 			if (options.filterKey != null && !name.contains(options.filterKey)) {
 				continue;
 			}
 
-			tensors.put(name, tensorInfo);
+			tensors.put(name, tensor);
 		}
 	}
 
@@ -252,15 +208,15 @@ public class GGUFInspector {
 		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(output));
 	}
 
-	private Map<String, Object> convertTensorsForJson(Map<String, TensorInfo> tensors) {
+	private Map<String, Object> convertTensorsForJson(Map<String, GGUFReader.GGUFTensor> tensors) {
 		Map<String, Object> result = new LinkedHashMap<>();
-		for (Map.Entry<String, TensorInfo> entry : tensors.entrySet()) {
-			TensorInfo tensor = entry.getValue();
+		for (Map.Entry<String, GGUFReader.GGUFTensor> entry : tensors.entrySet()) {
+			GGUFReader.GGUFTensor tensor = entry.getValue();
 			Map<String, Object> tensorData = new LinkedHashMap<>();
-			tensorData.put("shape", tensor.getShape());
-			tensorData.put("type", tensor.getGgmlType().name());
-			tensorData.put("offset", tensor.getOffset());
-			tensorData.put("size", tensor.getSize());
+			tensorData.put("shape", tensor.shape);
+			tensorData.put("type", tensor.type.name());
+			tensorData.put("offset", tensor.dataOffset);
+			tensorData.put("size", tensor.nBytes);
 			result.put(entry.getKey(), tensorData);
 		}
 		return result;
@@ -319,7 +275,7 @@ public class GGUFInspector {
 		System.out.println();
 	}
 
-	private void printTensors(Map<String, TensorInfo> tensors, InspectionOptions options) {
+	private void printTensors(Map<String, GGUFReader.GGUFTensor> tensors, InspectionOptions options) {
 		System.out.println("=== TENSORS ===");
 		System.out.printf("Tensor count: %d%n", tensors.size());
 		System.out.printf("%-5s %-12s %-20s %-15s %-12s %s%n",
@@ -328,23 +284,23 @@ public class GGUFInspector {
 
 		int index = 1;
 		long totalSize = 0;
-		for (Map.Entry<String, TensorInfo> entry : tensors.entrySet()) {
+		for (Map.Entry<String, GGUFReader.GGUFTensor> entry : tensors.entrySet()) {
 			String name = entry.getKey();
-			TensorInfo tensor = entry.getValue();
+			GGUFReader.GGUFTensor tensor = entry.getValue();
 
-			String shapeStr = Arrays.toString(tensor.getShape());
-			String sizeStr = String.format("%,d", tensor.getSize());
-			String offsetStr = String.format("0x%08X", tensor.getOffset());
+			String shapeStr = Arrays.toString(tensor.shape);
+			String sizeStr = String.format("%,d", tensor.nBytes);
+			String offsetStr = String.format("0x%08X", tensor.dataOffset);
 
 			System.out.printf("%-5d %-12s %-20s %-15s %-12s %s%n",
 				index++,
-				tensor.getGgmlType().name(),
+				tensor.type.name(),
 				shapeStr,
 				sizeStr,
 				offsetStr,
 				name);
 
-			totalSize += tensor.getSize();
+			totalSize += tensor.nBytes;
 		}
 
 		System.out.println("─".repeat(80));

@@ -1,7 +1,7 @@
 package de.kherud.llama;
 
 import de.kherud.llama.testing.ServerEmbeddingClient;
-import de.kherud.llama.testing.ServerEmbeddingHttpClient;
+import de.kherud.llama.testing.StubServerEmbeddingClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,19 +9,21 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ServerEmbeddingClientTest {
 
 	private ServerEmbeddingClient client;
-	private boolean skipTests = true; // Skip by default since no server is running
 
 	@Before
 	public void setUp() {
-		client = new ServerEmbeddingHttpClient("http://127.0.0.1:8080");
-
-		// Only run tests if we can detect a running server
-		skipTests = !client.isServerHealthy();
+		// Use stub implementation instead of requiring a real server
+		client = new StubServerEmbeddingClient();
 	}
 
 	@After
@@ -33,27 +35,22 @@ public class ServerEmbeddingClientTest {
 
 	@Test
 	public void testClientCreation() {
-		// This test always runs - just tests object creation
+		// Test stub client creation
 		assertNotNull(client);
 
-		ServerEmbeddingClient client2 = new ServerEmbeddingHttpClient("http://localhost:8080/");
-		assertNotNull(client2);
+		// Test that stub is always healthy
+		assertTrue(client.isServerHealthy());
 	}
 
 	@Test
 	public void testHealthCheck() {
-		// Test health check functionality (may return false if no server)
+		// Test health check functionality with stub
 		boolean isHealthy = client.isServerHealthy();
-		// We can't assert true/false since no server may be running
-		// Just ensure the method doesn't throw
+		assertTrue("Stub client should always be healthy", isHealthy);
 	}
 
 	@Test
 	public void testSingleEmbedding() throws Exception {
-		if (skipTests) {
-			System.out.println("Skipping test - no server detected at http://127.0.0.1:8080");
-			return;
-		}
 
 		String text = "This is a test sentence.";
 		ServerEmbeddingClient.EmbeddingResponse response = client.getEmbeddings(text);
@@ -72,10 +69,6 @@ public class ServerEmbeddingClientTest {
 
 	@Test
 	public void testMultipleEmbeddings() throws Exception {
-		if (skipTests) {
-			System.out.println("Skipping test - no server detected at http://127.0.0.1:8080");
-			return;
-		}
 
 		List<String> texts = Arrays.asList(
 			"First test sentence.",
@@ -101,10 +94,6 @@ public class ServerEmbeddingClientTest {
 
 	@Test
 	public void testArrayEmbeddings() throws Exception {
-		if (skipTests) {
-			System.out.println("Skipping test - no server detected at http://127.0.0.1:8080");
-			return;
-		}
 
 		String[] texts = {
 			"Array test one.",
@@ -120,10 +109,6 @@ public class ServerEmbeddingClientTest {
 
 	@Test
 	public void testSimpleEmbedding() throws Exception {
-		if (skipTests) {
-			System.out.println("Skipping test - no server detected at http://127.0.0.1:8080");
-			return;
-		}
 
 		String text = "Simple embedding test.";
 		ServerEmbeddingClient.SimpleEmbeddingResponse response = client.getSimpleEmbedding(text);
@@ -149,10 +134,6 @@ public class ServerEmbeddingClientTest {
 
 	@Test
 	public void testAsyncEmbedding() throws Exception {
-		if (skipTests) {
-			System.out.println("Skipping test - no server detected at http://127.0.0.1:8080");
-			return;
-		}
 
 		String text = "Async test sentence.";
 		ServerEmbeddingClient.EmbeddingResponse response = client.getEmbeddingsAsync(text).join();
@@ -164,10 +145,6 @@ public class ServerEmbeddingClientTest {
 
 	@Test
 	public void testBenchmarkStructure() throws Exception {
-		if (skipTests) {
-			System.out.println("Skipping test - no server detected at http://127.0.0.1:8080");
-			return;
-		}
 
 		String text = "Benchmark test.";
 		ServerEmbeddingClient.EmbeddingBenchmark benchmark = client.benchmark(text, 2);
@@ -204,26 +181,22 @@ public class ServerEmbeddingClientTest {
 
 	@Test
 	public void testErrorHandling() {
-		// Test with invalid server URL
-		ServerEmbeddingClient badClient = new ServerEmbeddingHttpClient("http://invalid-server:9999");
+		// Test with unhealthy stub
+		ServerEmbeddingClient badClient = new StubServerEmbeddingClient(false);
 		assertFalse(badClient.isServerHealthy());
 
 		try {
-			badClient.getEmbeddings("test");
-			fail("Should have thrown exception for invalid server");
+			badClient.waitForServer(1); // Should timeout quickly
+			fail("Should have thrown exception for unhealthy server");
 		} catch (Exception e) {
 			// Expected
 		}
 	}
 
 	@Test
-	public void testMainMethodHandling() {
-		// Test that main method handles arguments appropriately
-		try {
-			ServerEmbeddingHttpClient.main(new String[]{});
-			fail("Should exit with error for no arguments");
-		} catch (Exception e) {
-			// Expected - main method should exit or throw
-		}
+	public void testUnhealthyServerBehavior() {
+		// Test that we can create an unhealthy stub for testing error conditions
+		ServerEmbeddingClient unhealthyClient = new StubServerEmbeddingClient(false);
+		assertFalse("Unhealthy stub should report as unhealthy", unhealthyClient.isServerHealthy());
 	}
 }

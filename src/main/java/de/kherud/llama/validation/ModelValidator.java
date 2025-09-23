@@ -2,6 +2,7 @@ package de.kherud.llama.validation;
 
 import de.kherud.llama.LlamaModel;
 import de.kherud.llama.ModelParameters;
+import de.kherud.llama.InferenceParameters;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -220,8 +221,10 @@ public class ModelValidator {
 				for (String prompt : testPrompts) {
 					try {
 						// Get logits from both models
-						String output1 = model1.complete(prompt, 50);
-						String output2 = model2.complete(prompt, 50);
+						InferenceParameters inferParams1 = new InferenceParameters(prompt).setNPredict(50);
+						InferenceParameters inferParams2 = new InferenceParameters(prompt).setNPredict(50);
+						String output1 = model1.complete(inferParams1);
+						String output2 = model2.complete(inferParams2);
 
 						// Compare outputs
 						double similarity = calculateTextSimilarity(output1, output2);
@@ -355,7 +358,8 @@ public class ModelValidator {
 			try (LlamaModel model = new LlamaModel(params)) {
 				// Basic functionality tests
 				String testPrompt = "Hello, how are you?";
-				String response = model.complete(testPrompt, 10);
+				InferenceParameters testParams = new InferenceParameters(testPrompt).setNPredict(10);
+				String response = model.complete(testParams);
 
 				result.addMetric("Test Prompt", testPrompt);
 				result.addMetric("Response Length", response.length());

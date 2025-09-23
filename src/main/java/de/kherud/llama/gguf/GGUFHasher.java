@@ -298,32 +298,30 @@ public class GGUFHasher {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
 			// Hash tensor data only (skip metadata)
-			Map<String, TensorInfo> tensors = reader.getTensorInfos();
-			List<String> sortedNames = new ArrayList<>(tensors.keySet());
-			Collections.sort(sortedNames); // Ensure consistent ordering
+			List<GGUFReader.GGUFTensor> tensors = reader.getTensors();
+			// Sort by name for consistent ordering
+			tensors.sort((a, b) -> a.name.compareTo(b.name));
 
 			try (RandomAccessFile raf = new RandomAccessFile(filePath.toFile(), "r")) {
-				for (String tensorName : sortedNames) {
-					TensorInfo tensor = tensors.get(tensorName);
+				for (GGUFReader.GGUFTensor tensor : tensors) {
 
 					// Hash tensor name first
-					digest.update(tensorName.getBytes());
+					digest.update(tensor.name.getBytes());
 
 					// Hash tensor metadata
-					digest.update(longToBytes(tensor.getOffset()));
-					digest.update(longToBytes(tensor.getSize()));
-					digest.update(tensor.getGgmlType().name().getBytes());
+					digest.update(longToBytes(tensor.dataOffset));
+					digest.update(longToBytes(tensor.nBytes));
+					digest.update(tensor.type.name().getBytes());
 
 					// Hash shape
-					long[] shape = tensor.getShape();
-					for (long dim : shape) {
+					for (long dim : tensor.shape) {
 						digest.update(longToBytes(dim));
 					}
 
 					// Hash actual tensor data
-					raf.seek(tensor.getOffset());
-					byte[] buffer = new byte[Math.min(options.bufferSize, (int) tensor.getSize())];
-					long remaining = tensor.getSize();
+					raf.seek(tensor.dataOffset);
+					byte[] buffer = new byte[Math.min(options.bufferSize, (int) tensor.nBytes)];
+					long remaining = tensor.nBytes;
 
 					while (remaining > 0) {
 						int toRead = (int) Math.min(buffer.length, remaining);
@@ -348,21 +346,21 @@ public class GGUFHasher {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
 			// Hash metadata only
-			Map<String, GGUFValue> metadata = reader.getMetadata();
-			List<String> sortedKeys = new ArrayList<>(metadata.keySet());
+			Map<String, GGUFReader.GGUFField> fields = reader.getFields();
+			List<String> sortedKeys = new ArrayList<>(fields.keySet());
 			Collections.sort(sortedKeys); // Ensure consistent ordering
 
 			for (String key : sortedKeys) {
-				GGUFValue value = metadata.get(key);
+				GGUFReader.GGUFField field = fields.get(key);
 
 				// Hash key
 				digest.update(key.getBytes());
 
 				// Hash value type
-				digest.update(value.getType().name().getBytes());
+				digest.update(field.type.name().getBytes());
 
 				// Hash value content
-				hashGGUFValue(digest, value);
+				hashGGUFField(digest, field);
 			}
 
 			return bytesToHex(digest.digest());
@@ -372,14 +370,14 @@ public class GGUFHasher {
 		}
 	}
 
-	private void hashGGUFValue(MessageDigest digest, GGUFValue value) {
-		Object val = value.getValue();
+	private void hashGGUFField(MessageDigest digest, GGUFReader.GGUFField field) {
+		Object val = field.value;
 		if (val == null) {
 			digest.update("null".getBytes());
 			return;
 		}
 
-		switch (value.getType()) {
+		switch (field.type) {
 			case STRING:
 				digest.update(((String) val).getBytes());
 				break;
@@ -420,8 +418,8 @@ public class GGUFHasher {
 				Object[] array = (Object[]) val;
 				digest.update(intToBytes(array.length));
 				for (Object item : array) {
-					if (item instanceof GGUFValue) {
-						hashGGUFValue(digest, (GGUFValue) item);
+					if (item instanceof GGUFReader.GGUFField) {
+						hashGGUFField(digest, (GGUFReader.GGUFField) item);
 					} else {
 						digest.update(item.toString().getBytes());
 					}

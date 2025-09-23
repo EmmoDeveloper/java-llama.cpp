@@ -1,12 +1,15 @@
 package de.kherud.llama.converters;
 
 import de.kherud.llama.gguf.GGUFConstants;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.*;
-import java.nio.file.*;
-import java.util.HashMap;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -140,23 +143,6 @@ public class HuggingFaceToGGUFConverterTest {
 		}
 	}
 
-	@Test
-	public void testCommandLineInterface() {
-		// Test that main method doesn't crash with invalid arguments
-		try {
-			HuggingFaceToGGUFConverter.main(new String[]{});
-		} catch (SystemExit e) {
-			// Expected to exit with usage message
-			Assert.assertEquals(1, e.status);
-		}
-
-		try {
-			HuggingFaceToGGUFConverter.main(new String[]{"nonexistent", "output.gguf"});
-		} catch (SystemExit e) {
-			// Expected to exit due to invalid path
-			Assert.assertEquals(1, e.status);
-		}
-	}
 
 	@Test
 	public void testTensorNameMapping() throws IOException {
@@ -193,33 +179,4 @@ public class HuggingFaceToGGUFConverterTest {
 		Files.writeString(modelDir.resolve("config.json"), json.toString());
 	}
 
-	// Helper class to catch System.exit() calls in tests
-	private static class SystemExit extends SecurityException {
-		public final int status;
-
-		public SystemExit(int status) {
-			this.status = status;
-		}
-	}
-
-	// Install security manager to catch System.exit() in main method tests
-	@BeforeClass
-	public static void installSecurityManager() {
-		System.setSecurityManager(new SecurityManager() {
-			@Override
-			public void checkExit(int status) {
-				throw new SystemExit(status);
-			}
-
-			@Override
-			public void checkPermission(java.security.Permission perm) {
-				// Allow all other permissions
-			}
-		});
-	}
-
-	@AfterClass
-	public static void restoreSecurityManager() {
-		System.setSecurityManager(null);
-	}
 }

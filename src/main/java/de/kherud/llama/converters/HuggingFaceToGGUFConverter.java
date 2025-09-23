@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -359,9 +360,9 @@ public class HuggingFaceToGGUFConverter {
 		}
 
 		// Write vocabulary to GGUF
-		writer.addArray("tokenizer.ggml.tokens", tokens);
-		writer.addArray("tokenizer.ggml.scores", scores);
-		writer.addArray("tokenizer.ggml.token_type", types);
+		writer.addArray("tokenizer.ggml.tokens", Arrays.asList(tokens));
+		writer.addArray("tokenizer.ggml.scores", IntStream.range(0, scores.length).mapToObj(i -> scores[i]).collect(Collectors.toList()));
+		writer.addArray("tokenizer.ggml.token_type", Arrays.stream(types).boxed().collect(Collectors.toList()));
 
 		// Special tokens
 		JsonNode specialTokens = tokenizer.path("added_tokens");

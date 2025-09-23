@@ -3,6 +3,7 @@ package de.kherud.llama.multimodal;
 import de.kherud.llama.LlamaModel;
 import de.kherud.llama.ModelParameters;
 import de.kherud.llama.InferenceParameters;
+import de.kherud.llama.multimodal.ImageProcessor.ProcessedImage;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -288,7 +289,8 @@ public class VisionLanguageModel implements AutoCloseable {
 
 		// Initialize language model
 		ModelParameters params = new ModelParameters();
-		this.languageModel = new LlamaModel(modelPath, params);
+		params.setModel(modelPath.toString());
+		this.languageModel = new LlamaModel(params);
 
 		// Initialize vision components
 		this.visionEncoder = new VisionEncoder(config);
@@ -412,7 +414,13 @@ public class VisionLanguageModel implements AutoCloseable {
 		try {
 			// For now, use the basic language model generation
 			// In practice, we would need to modify the model to accept image embeddings
-			String response = languageModel.generate(text, params);
+			InferenceParameters inferenceParams = new InferenceParameters(text);
+			// Copy parameters if provided
+			if (params != null) {
+				// Just use the provided parameters directly instead of copying
+				return languageModel.complete(params);
+			}
+			String response = languageModel.complete(inferenceParams);
 			return response;
 		} catch (Exception e) {
 			throw new RuntimeException("Language model generation failed", e);
@@ -575,7 +583,7 @@ public class VisionLanguageModel implements AutoCloseable {
 		MultimodalInput input = MultimodalUtils.createCaptionInput(image, null);
 
 		// Generate caption
-		InferenceParameters params = new InferenceParameters();
+		InferenceParameters params = new InferenceParameters("Generate caption");
 		MultimodalOutput output = model.generate(input, params);
 
 		System.out.println("=== IMAGE CAPTION ===");

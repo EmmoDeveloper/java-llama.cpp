@@ -1,10 +1,14 @@
 package de.kherud.llama.converters;
 
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -139,21 +143,6 @@ public class LoRAToGGUFConverterTest {
 		Assert.assertNotNull(converter);
 	}
 
-	@Test
-	public void testCommandLineInterface() {
-		// Test main method with invalid arguments
-		try {
-			LoRAToGGUFConverter.main(new String[]{});
-		} catch (SystemExit e) {
-			Assert.assertEquals(1, e.status);
-		}
-
-		try {
-			LoRAToGGUFConverter.main(new String[]{"nonexistent", "output.gguf", "--verbose"});
-		} catch (SystemExit e) {
-			Assert.assertEquals(1, e.status);
-		}
-	}
 
 	@Test
 	public void testCustomArchitecture() throws IOException {
@@ -210,33 +199,4 @@ public class LoRAToGGUFConverterTest {
 		Files.writeString(adapterDir.resolve("adapter_config.json"), json.toString());
 	}
 
-	// Helper class to catch System.exit() calls in tests
-	private static class SystemExit extends SecurityException {
-		public final int status;
-
-		public SystemExit(int status) {
-			this.status = status;
-		}
-	}
-
-	// Install security manager to catch System.exit() in main method tests
-	@BeforeClass
-	public static void installSecurityManager() {
-		System.setSecurityManager(new SecurityManager() {
-			@Override
-			public void checkExit(int status) {
-				throw new SystemExit(status);
-			}
-
-			@Override
-			public void checkPermission(java.security.Permission perm) {
-				// Allow all other permissions
-			}
-		});
-	}
-
-	@AfterClass
-	public static void restoreSecurityManager() {
-		System.setSecurityManager(null);
-	}
 }

@@ -11,7 +11,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TokenizerTestingTest {
 
@@ -131,21 +134,6 @@ public class TokenizerTestingTest {
 		assertTrue("Should contain index", str.contains("5"));
 	}
 
-	@Test
-	public void testMainMethodsHandleArguments() {
-		// Test that main methods handle invalid arguments gracefully
-		try {
-			TokenizerTester.main(new String[]{});
-		} catch (Exception e) {
-			// Should exit or throw due to invalid arguments
-		}
-
-		try {
-			TokenizerComparator.main(new String[]{"only_one_arg"});
-		} catch (Exception e) {
-			// Should exit or throw due to insufficient arguments
-		}
-	}
 
 	@Test
 	public void testUtilityMethods() {

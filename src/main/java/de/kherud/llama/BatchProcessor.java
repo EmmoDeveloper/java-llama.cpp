@@ -15,29 +15,32 @@ public class BatchProcessor implements AutoCloseable {
 	private boolean closed = false;
 
 	public BatchProcessor(int maxTokenCount, int embeddingDimension, int maxSequenceCount) {
+		long tempBatchHandle = 0;
+		SafeBatchProcessor tempSafeFallback = null;
+		boolean tempUsingSafeFallback = true;
+
 		if (USE_SAFE_FALLBACK) {
 			// Use safe Java-level implementation
-			this.batchHandle = 0;
-			this.safeFallback = new SafeBatchProcessor(maxTokenCount, embeddingDimension, maxSequenceCount);
-			this.usingSafeFallback = true;
+			tempSafeFallback = new SafeBatchProcessor(maxTokenCount, embeddingDimension, maxSequenceCount);
 			LOGGER.info("Using SafeBatchProcessor fallback implementation");
 		} else {
 			// Try native implementation
 			try {
-				this.batchHandle = initializeBatchNative(maxTokenCount, embeddingDimension, maxSequenceCount);
-				if (this.batchHandle == 0) {
+				tempBatchHandle = initializeBatchNative(maxTokenCount, embeddingDimension, maxSequenceCount);
+				if (tempBatchHandle == 0) {
 					throw new LlamaException("Failed to initialize native batch processor");
 				}
-				this.safeFallback = null;
-				this.usingSafeFallback = false;
+				tempUsingSafeFallback = false;
 				LOGGER.info("Using native BatchProcessor implementation");
 			} catch (Exception e) {
 				LOGGER.warning("Native batch processing failed, falling back to safe implementation: " + e.getMessage());
-				this.batchHandle = 0;
-				this.safeFallback = new SafeBatchProcessor(maxTokenCount, embeddingDimension, maxSequenceCount);
-				this.usingSafeFallback = true;
+				tempSafeFallback = new SafeBatchProcessor(maxTokenCount, embeddingDimension, maxSequenceCount);
 			}
 		}
+
+		this.batchHandle = tempBatchHandle;
+		this.safeFallback = tempSafeFallback;
+		this.usingSafeFallback = tempUsingSafeFallback;
 	}
 
 	public int encodeContext(LlamaModel model) {

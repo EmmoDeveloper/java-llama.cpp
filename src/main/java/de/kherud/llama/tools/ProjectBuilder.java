@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  * Equivalent to build scripts and development utilities - provides project building,
  * testing, packaging, and development workflow automation.
  */
-public class ProjectBuilder {
+public class ProjectBuilder implements AutoCloseable {
 	private static final Logger LOGGER = Logger.getLogger(ProjectBuilder.class.getName());
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 

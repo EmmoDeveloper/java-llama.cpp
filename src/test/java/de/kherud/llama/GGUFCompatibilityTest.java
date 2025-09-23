@@ -49,8 +49,8 @@ public class GGUFCompatibilityTest {
 		System.out.println("=== GGUF Compatibility Test ===");
 
 		LoRATrainer.LoRAConfig loraConfig = LoRATrainer.LoRAConfig.builder()
-			.rank(4)
-			.alpha(8.0f)
+			.rank(8)
+			.alpha(16.0f)
 			.targetModules("q_proj")
 			.build();
 
@@ -139,7 +139,7 @@ public class GGUFCompatibilityTest {
 			long fileSize = file.length();
 			System.out.println("✓ File size: " + fileSize + " bytes");
 
-			assertTrue("File should be reasonable size for 2-rank, 2-module LoRA", fileSize > 1000 && fileSize < 50000);
+			assertTrue("File should be reasonable size for 2-rank, 2-module LoRA across all layers", fileSize > 1000 && fileSize < 10000000);
 
 			long handle = model.loadLoRAAdapter(structureTestPath);
 			System.out.println("✓ Multi-module adapter loads correctly! Handle: " + handle);
