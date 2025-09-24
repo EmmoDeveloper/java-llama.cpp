@@ -41,7 +41,7 @@ public class LlamaModelTest {
 				.setModel("models/codellama-7b.Q2_K.gguf")
 				//.setModelUrl("https://huggingface.co/TheBloke/CodeLlama-7B-GGUF/resolve/main/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(43)
-				.enableEmbedding().enableLogTimestamps().enableLogPrefix()
+				.enableEmbedding()
 		);
 	}
 
@@ -232,7 +232,6 @@ public class LlamaModelTest {
 		}
 	}
 
-	@Ignore
 	@Test
 	public void testLogStdout() {
 		// Unfortunately, `printf` can't be easily re-directed to Java. This test only works manually, thus.

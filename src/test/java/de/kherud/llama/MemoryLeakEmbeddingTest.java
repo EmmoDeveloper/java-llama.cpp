@@ -32,8 +32,6 @@ public class MemoryLeakEmbeddingTest {
 				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(43)
 				.enableEmbedding()
-				.enableLogTimestamps()
-				.enableLogPrefix()
 		);
 	}
 
@@ -44,7 +42,6 @@ public class MemoryLeakEmbeddingTest {
 		}
 		// Force garbage collection and finalization
 		System.gc();
-		System.runFinalization();
 		Thread.yield();
 		System.gc();
 	}
@@ -93,7 +90,6 @@ public class MemoryLeakEmbeddingTest {
 
 		// Final memory check
 		System.gc();
-		System.runFinalization();
 		Thread.yield();
 		System.gc();
 

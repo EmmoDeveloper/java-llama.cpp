@@ -11,7 +11,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
 
 public class ServerEmbeddingHttpClient extends ServerEmbeddingClient {
 

@@ -32,8 +32,6 @@ public class MemoryLeakTest {
 				.setCtxSize(512)
 				.setModel("models/codellama-7b.Q2_K.gguf")
 				.setGpuLayers(43)
-				.enableLogTimestamps()
-				.enableLogPrefix()
 		);
 	}
 

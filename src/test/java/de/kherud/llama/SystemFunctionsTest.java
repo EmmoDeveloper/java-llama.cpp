@@ -108,7 +108,6 @@ public class SystemFunctionsTest {
 		}
 	}
 
-	@Ignore
 	@Test
 	public void testSplitPathErrorHandling() {
 		try {
@@ -128,7 +127,6 @@ public class SystemFunctionsTest {
 		}
 	}
 
-	@Ignore
 	@Test
 	public void testSplitPrefixErrorHandling() {
 		try {
