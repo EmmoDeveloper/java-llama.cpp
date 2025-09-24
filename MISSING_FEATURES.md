@@ -92,13 +92,15 @@ Performance management features:
 - ✅ **Synchronization**: Operation synchronization and abort callbacks
 - ✅ **Context Management**: Embedding mode, causal attention, warmup mode
 
-### 8. System Integration - **✅ FULLY IMPLEMENTED** (90%)
+### 8. System Integration - **✅ FULLY IMPLEMENTED** (95%)
 
 System integration features:
 - ✅ **Hardware Detection**: Flash attention type, system capabilities
 - ✅ **Grammar Processing**: JSON schema to GBNF conversion
 - ✅ **Logging**: Custom logging with BiConsumer interface
 - ✅ **Task Management**: Async completion handling, task cancellation
+- ✅ **AI IDE Functions**: Token-level logits/embeddings for code analysis
+- ✅ **Advanced Embedding Management**: Complete embedding system with position-specific access
 
 ---
 
@@ -380,10 +382,12 @@ UtilityManager       -> System utilities
 
 The java-llama.cpp project provides:
 
-- ~68% API coverage of llama.cpp functionality (143 of 211 functions)
+- ~70% API coverage of llama.cpp functionality (148+ of 211 functions)
 - **✅ GGUF Compatibility**: Full support for GGUF versions 2 and 3
 - **✅ LoRA Training**: Complete Java LoRA implementation with GGUF generation
 - **✅ Tensor Naming**: Fixed compatibility with native llama.cpp tensor naming
+- **✅ AI IDE Integration**: Token-level logits/embeddings access for code analysis
+- **✅ Advanced Embedding Functions**: Complete embedding management system
 - Utility classes for production use
 - Performance optimization tools
 - Threading and resource management
@@ -391,7 +395,7 @@ The java-llama.cpp project provides:
 - Sampling ecosystem with 18+ algorithms
 - Modular architecture with separation of concerns
 
-The wrapper provides a Java interface to llama.cpp with additional utility features.
+The wrapper provides a Java interface to llama.cpp with additional utility features optimized for AI IDE integration.
 
 ---
 

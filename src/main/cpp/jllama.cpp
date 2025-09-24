@@ -94,6 +94,16 @@ JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_setEmbeddingMode
     EmbeddingManager::setEmbeddingMode(env, obj, embeddings);
 }
 
+JNIEXPORT jfloatArray JNICALL Java_de_kherud_llama_LlamaModel_getLogitsIthNative
+  (JNIEnv* env, jobject obj, jint i) {
+    return EmbeddingManager::getLogitsIth(env, obj, i);
+}
+
+JNIEXPORT jfloatArray JNICALL Java_de_kherud_llama_LlamaModel_getEmbeddingsIthNative
+  (JNIEnv* env, jobject obj, jint i) {
+    return EmbeddingManager::getEmbeddingsIth(env, obj, i);
+}
+
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_delete
   (JNIEnv* env, jobject obj) {
     ModelManager::deleteModel(env, obj);

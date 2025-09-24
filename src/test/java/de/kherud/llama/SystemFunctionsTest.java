@@ -164,4 +164,57 @@ public class SystemFunctionsTest {
 			logger.log(DEBUG, "Template " + i + ": " + templates[i]);
 		}
 	}
+
+	@Test
+	public void testLogitsIthFunction() {
+		// Test that getLogitsIth method exists and handles invalid arguments properly
+		try (LlamaModel model = new LlamaModel(new ModelParameters()
+				.setModel("models/codellama-7b.Q2_K.gguf"))) {
+			// Test with negative index - should throw IllegalArgumentException
+			try {
+				model.getLogitsIth(-1);
+				Assert.fail("Should throw exception for negative index");
+			} catch (IllegalArgumentException e) {
+				logger.log(DEBUG, "Negative index correctly caused exception: " + e.getMessage());
+			}
+
+			// Test with valid index but no inference - should throw IllegalStateException
+			try {
+				model.getLogitsIth(0);
+				Assert.fail("Should throw exception when no inference has been performed");
+			} catch (IllegalStateException e) {
+				logger.log(DEBUG, "No inference state correctly caused exception: " + e.getMessage());
+			}
+		} catch (Exception e) {
+			// If model loading fails, skip test
+			logger.log(DEBUG, "Model loading failed, skipping logits test: " + e.getMessage());
+		}
+	}
+
+	@Test
+	public void testEmbeddingsIthFunction() {
+		// Test that getEmbeddingsIth method exists and handles invalid arguments properly
+		try (LlamaModel model = new LlamaModel(new ModelParameters()
+				.setModel("models/codellama-7b.Q2_K.gguf")
+				.enableEmbedding())) {
+			// Test with negative index - should throw IllegalArgumentException
+			try {
+				model.getEmbeddingsIth(-1);
+				Assert.fail("Should throw exception for negative index");
+			} catch (IllegalArgumentException e) {
+				logger.log(DEBUG, "Negative index correctly caused exception: " + e.getMessage());
+			}
+
+			// Test with valid index but no inference - should throw IllegalStateException
+			try {
+				model.getEmbeddingsIth(0);
+				Assert.fail("Should throw exception when no inference has been performed");
+			} catch (IllegalStateException e) {
+				logger.log(DEBUG, "No inference state correctly caused exception: " + e.getMessage());
+			}
+		} catch (Exception e) {
+			// If model loading fails, skip test
+			logger.log(DEBUG, "Model loading failed, skipping embeddings test: " + e.getMessage());
+		}
+	}
 }

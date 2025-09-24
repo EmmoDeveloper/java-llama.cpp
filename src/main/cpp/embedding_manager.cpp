@@ -167,13 +167,86 @@ jfloatArray EmbeddingManager::getAllEmbeddings(JNIEnv* env, jobject obj) {
 void EmbeddingManager::setEmbeddingMode(JNIEnv* env, jobject obj, jboolean embeddings) {
 	JNI_TRY(env)
 
-	jlong handle = env->GetLongField(obj, 
+	jlong handle = env->GetLongField(obj,
 		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
 	LlamaServer* server = get_embedding_server(handle);
 	if (!server) return;
-	
+
 	// Set embedding mode using llama_set_embeddings
 	llama_set_embeddings(server->ctx, embeddings == JNI_TRUE);
 
 	JNI_CATCH_RET(env, /* void */)
+}
+
+jfloatArray EmbeddingManager::getLogitsIth(JNIEnv* env, jobject obj, jint i) {
+	JNI_TRY(env)
+
+	jlong handle = env->GetLongField(obj,
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_embedding_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model context is null");
+		return nullptr;
+	}
+
+	// Get logits for specific position using llama_get_logits_ith
+	const float* logits = llama_get_logits_ith(server->ctx, i);
+	if (!logits) {
+		JNIErrorHandler::throw_illegal_state(env,
+			"No logits available at position " + std::to_string(i) + ". Ensure inference has been performed.");
+		return nullptr;
+	}
+
+	// Get vocabulary size for array dimension
+	const llama_vocab* vocab = llama_model_get_vocab(server->model);
+	int n_vocab = llama_vocab_n_tokens(vocab);
+
+	// Create Java float array and copy logits
+	jfloatArray result = env->NewFloatArray(n_vocab);
+	if (!result) {
+		JNIErrorHandler::throw_out_of_memory(env, "Could not allocate logits array");
+		return nullptr;
+	}
+
+	env->SetFloatArrayRegion(result, 0, n_vocab, logits);
+
+	return result;
+
+	JNI_CATCH_RET(env, nullptr)
+}
+
+jfloatArray EmbeddingManager::getEmbeddingsIth(JNIEnv* env, jobject obj, jint i) {
+	JNI_TRY(env)
+
+	jlong handle = env->GetLongField(obj,
+		env->GetFieldID(env->GetObjectClass(obj), "ctx", "J"));
+	LlamaServer* server = get_embedding_server(handle);
+	if (!server) {
+		JNIErrorHandler::throw_illegal_state(env, "Model context is null");
+		return nullptr;
+	}
+
+	// Get embeddings for specific position using llama_get_embeddings_ith
+	const float* embd = llama_get_embeddings_ith(server->ctx, i);
+	if (!embd) {
+		JNIErrorHandler::throw_illegal_state(env,
+			"No embeddings available at position " + std::to_string(i) + ". Ensure context has been processed and embeddings are enabled.");
+		return nullptr;
+	}
+
+	// Get embedding dimension
+	int n_embd = llama_model_n_embd(server->model);
+
+	// Create Java float array and copy embeddings
+	jfloatArray result = env->NewFloatArray(n_embd);
+	if (!result) {
+		JNIErrorHandler::throw_out_of_memory(env, "Could not allocate embedding array");
+		return nullptr;
+	}
+
+	env->SetFloatArrayRegion(result, 0, n_embd, embd);
+
+	return result;
+
+	JNI_CATCH_RET(env, nullptr)
 }

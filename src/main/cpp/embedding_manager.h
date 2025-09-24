@@ -14,6 +14,12 @@ public:
 	// Set whether context outputs embeddings (llama_set_embeddings)
 	static void setEmbeddingMode(JNIEnv* env, jobject obj, jboolean embeddings);
 
+	// Get logits for specific position (llama_get_logits_ith)
+	static jfloatArray getLogitsIth(JNIEnv* env, jobject obj, jint i);
+
+	// Get embeddings for specific position (llama_get_embeddings_ith)
+	static jfloatArray getEmbeddingsIth(JNIEnv* env, jobject obj, jint i);
+
 private:
 	static struct llama_context* getContext(JNIEnv* env, jobject obj);
 	static struct llama_model* getModel(JNIEnv* env, jobject obj);

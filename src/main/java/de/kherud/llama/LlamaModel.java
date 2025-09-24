@@ -157,6 +157,46 @@ public class LlamaModel implements AutoCloseable {
 	}
 
 	/**
+	 * Get the logits (raw model outputs before softmax) for a specific token position.
+	 * Essential for AI IDE features like token-level confidence scoring and alternative suggestions.
+	 *
+	 * @param i the token position index (0-based)
+	 * @return array of logit values for all vocabulary tokens at position i
+	 * @throws IllegalArgumentException if position index is invalid
+	 * @throws IllegalStateException if no inference has been performed yet
+	 */
+	public float[] getLogitsIth(int i) {
+		if (i < 0) {
+			throw new IllegalArgumentException("Position index must be non-negative");
+		}
+		float[] logits = getLogitsIthNative(i);
+		if (logits == null) {
+			throw new IllegalStateException("No logits available at position " + i + ". Ensure inference has been performed.");
+		}
+		return logits;
+	}
+
+	/**
+	 * Get the embeddings for a specific sequence position.
+	 * Critical for token-level semantic analysis and code understanding in AI IDE features.
+	 *
+	 * @param i the sequence position index (0-based)
+	 * @return embedding vector for the token at position i
+	 * @throws IllegalArgumentException if position index is invalid
+	 * @throws IllegalStateException if embedding mode is not enabled or no inference performed
+	 */
+	public float[] getEmbeddingsIth(int i) {
+		if (i < 0) {
+			throw new IllegalArgumentException("Position index must be non-negative");
+		}
+		float[] embeddings = getEmbeddingsIthNative(i);
+		if (embeddings == null) {
+			throw new IllegalStateException("No embeddings available at position " + i + ". Ensure embedding mode is enabled and inference has been performed.");
+		}
+		return embeddings;
+	}
+
+	/**
 	 * Get the size in bytes needed to store the complete model state.
 	 * This includes the KV cache, logits, and embeddings.
 	 *
@@ -2004,6 +2044,10 @@ public class LlamaModel implements AutoCloseable {
 	private native int getVocabFimPreTokenNative();
 	private native int getVocabFimSufTokenNative();
 	private native int getVocabFimMidTokenNative();
+
+	// Advanced inference functions for AI IDE integration
+	private native float[] getLogitsIthNative(int i);
+	private native float[] getEmbeddingsIthNative(int i);
 
 	/**
 	 * Interface for abort callbacks.
