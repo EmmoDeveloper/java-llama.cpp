@@ -255,6 +255,12 @@ Batch processing infrastructure now fully functional with SafeBatchProcessor fal
 - Tests `testEncodeContext`, `testDecodeTokens`, and `testMultipleSequences` re-enabled
 - Sequential processing ensures stability
 
+**Why Native Batch API Not Used:**
+- Research revealed llama.cpp batch API is not mature for external use
+- No successful Python bindings found using the batch API
+- Community recommends "GGML Direct Batching" for future implementations
+- SafeBatchProcessor is the correct approach until batch API stabilizes
+
 ### 3. **Model Quantization** - ✅ **FULLY IMPLEMENTED** (100%)
 
 Model quantization functionality:
