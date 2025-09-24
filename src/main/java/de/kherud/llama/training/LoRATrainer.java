@@ -9,13 +9,10 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.TreeMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Native Java LoRA (Low-Rank Adaptation) training implementation.
@@ -25,7 +22,7 @@ import java.util.logging.Logger;
  * W' = W + α * (B * A) where rank(B*A) << rank(W)
  */
 public class LoRATrainer {
-	private static final Logger LOGGER = Logger.getLogger(LoRATrainer.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(LoRATrainer.class.getName());
 
 	public static class LoRAConfig {
 		private final int rank;                    // LoRA rank (r) - controls adapter expressiveness
@@ -333,7 +330,7 @@ public class LoRATrainer {
 		int modelDim = 4096;  // Standard model dimension (should be configurable)
 		int layers = 32;      // Standard layer count (should be configurable)
 
-		LOGGER.info(String.format("Initializing LoRA modules: %d layers, %d model dimensions", layers, modelDim));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Initializing LoRA modules: %d layers, %d model dimensions", layers, modelDim));
 
 		// Map common module names to actual model tensor names (without .weight suffix)
 		Map<String, String> moduleNameMapping = Map.of(
@@ -355,7 +352,7 @@ public class LoRATrainer {
 			}
 		}
 
-		LOGGER.info(String.format("Created %d LoRA modules with rank %d across %d layers",
+		LOGGER.log(System.Logger.Level.INFO,String.format("Created %d LoRA modules with rank %d across %d layers",
 		                         loraModules.size(), loraConfig.getRank(), layers));
 	}
 
@@ -367,12 +364,12 @@ public class LoRATrainer {
 	 * Main training method
 	 */
 	public void train(List<TrainingApplication> dataset) {
-		LOGGER.info("Starting LoRA training...");
-		LOGGER.info(String.format("Dataset size: %d examples", dataset.size()));
-		LOGGER.info(String.format("Training config: %d epochs, batch size %d, LR %.6f",
+		LOGGER.log(System.Logger.Level.INFO,"Starting LoRA training...");
+		LOGGER.log(System.Logger.Level.INFO,String.format("Dataset size: %d examples", dataset.size()));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Training config: %d epochs, batch size %d, LR %.6f",
 		                         trainingConfig.getEpochs(), trainingConfig.getBatchSize(),
 		                         trainingConfig.getLearningRate()));
-		LOGGER.info(String.format("LoRA config: rank %d, alpha %.2f, dropout %.2f",
+		LOGGER.log(System.Logger.Level.INFO,String.format("LoRA config: rank %d, alpha %.2f, dropout %.2f",
 		                         loraConfig.getRank(), loraConfig.getAlpha(), loraConfig.getDropout()));
 
 		createOutputDirectory();
@@ -385,14 +382,14 @@ public class LoRATrainer {
 		for (int epoch = 0; epoch < trainingConfig.getEpochs(); epoch++) {
 			long epochStartTime = System.currentTimeMillis();
 
-			LOGGER.info(String.format("=== Training epoch %d/%d ===", epoch + 1, trainingConfig.getEpochs()));
+			LOGGER.log(System.Logger.Level.INFO,String.format("=== Training epoch %d/%d ===", epoch + 1, trainingConfig.getEpochs()));
 
 			float epochLoss = trainEpoch(dataset, epoch);
 
 			long epochTime = System.currentTimeMillis() - epochStartTime;
 			totalTrainingTime += epochTime;
 
-			LOGGER.info(String.format("Epoch %d completed: loss %.6f, time %d ms",
+			LOGGER.log(System.Logger.Level.INFO,String.format("Epoch %d completed: loss %.6f, time %d ms",
 			                         epoch + 1, epochLoss, epochTime));
 
 			// Save checkpoint if loss improved
@@ -400,7 +397,7 @@ public class LoRATrainer {
 				bestLoss = epochLoss;
 				saveLoRAAdapter(String.format("%s/best_adapter_epoch_%d.gguf",
 				                             trainingConfig.getOutputDir(), epoch + 1));
-				LOGGER.info(String.format("New best loss: %.6f - saved checkpoint", bestLoss));
+				LOGGER.log(System.Logger.Level.INFO,String.format("New best loss: %.6f - saved checkpoint", bestLoss));
 			}
 
 			// Save periodic checkpoint
@@ -414,12 +411,12 @@ public class LoRATrainer {
 		saveLoRAAdapter(String.format("%s/final_adapter.gguf", trainingConfig.getOutputDir()));
 
 		// Training summary
-		LOGGER.info("=== Training Summary ===");
-		LOGGER.info(String.format("Total training time: %.2f seconds", totalTrainingTime / 1000.0f));
-		LOGGER.info(String.format("Final loss: %.6f", bestLoss));
-		LOGGER.info(String.format("Total steps: %d", globalStep));
-		LOGGER.info(String.format("Average time per step: %.2f ms", (float) totalTrainingTime / globalStep));
-		LOGGER.info("Training completed successfully!");
+		LOGGER.log(System.Logger.Level.INFO,"=== Training Summary ===");
+		LOGGER.log(System.Logger.Level.INFO,String.format("Total training time: %.2f seconds", totalTrainingTime / 1000.0f));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Final loss: %.6f", bestLoss));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Total steps: %d", globalStep));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Average time per step: %.2f ms", (float) totalTrainingTime / globalStep));
+		LOGGER.log(System.Logger.Level.INFO,"Training completed successfully!");
 	}
 
 	private float trainEpoch(List<TrainingApplication> dataset, int epoch) {
@@ -440,7 +437,7 @@ public class LoRATrainer {
 			globalStep++;
 
 			if (globalStep % 100 == 0) {
-				LOGGER.info(String.format("Step %d: loss %.6f", globalStep, batchLoss));
+				LOGGER.log(System.Logger.Level.INFO,String.format("Step %d: loss %.6f", globalStep, batchLoss));
 			}
 
 			if (globalStep % trainingConfig.getSaveSteps() == 0) {
@@ -704,7 +701,7 @@ public class LoRATrainer {
 	 */
 	public void saveLoRAAdapter(String filepath) {
 		try {
-			LOGGER.info("Saving LoRA adapter to: " + filepath);
+			LOGGER.log(System.Logger.Level.INFO,"Saving LoRA adapter to: " + filepath);
 
 			// Use the official GGUF writer for guaranteed compatibility
 			try (GGUFWriter writer = new GGUFWriter(Paths.get(filepath), "llama")) {
@@ -747,11 +744,11 @@ public class LoRATrainer {
 					writer.writeTensorData(module.getMatrixB());
 				}
 
-				LOGGER.info("LoRA adapter saved successfully using native GGUF writer");
+				LOGGER.log(System.Logger.Level.INFO,"LoRA adapter saved successfully using native GGUF writer");
 			}
 
 		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, "Failed to save LoRA adapter", e);
+			LOGGER.log(System.Logger.Level.ERROR, "Failed to save LoRA adapter", e);
 			throw new RuntimeException("Failed to save LoRA adapter", e);
 		}
 	}

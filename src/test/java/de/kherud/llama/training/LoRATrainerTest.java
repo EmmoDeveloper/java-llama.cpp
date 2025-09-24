@@ -169,13 +169,18 @@ public class LoRATrainerTest {
 		Assert.assertEquals("Should have correct training config", testTrainingConfig, trainer.getTrainingConfig());
 
 		Map<String, LoRATrainer.LoRAModule> modules = trainer.getLoRAModules();
-		Assert.assertEquals("Should have 2 modules", 2, modules.size());
-		Assert.assertTrue("Should have q_proj module", modules.containsKey("q_proj"));
-		Assert.assertTrue("Should have v_proj module", modules.containsKey("v_proj"));
+		// With 2 target modules (q_proj, v_proj) and 32 layers = 64 total modules
+		Assert.assertEquals("Should have 64 modules (2 modules × 32 layers)", 64, modules.size());
+		// Check that we have modules for each layer
+		Assert.assertTrue("Should have layer 0 q_proj module", modules.containsKey("blk.0.attn_q.weight"));
+		Assert.assertTrue("Should have layer 0 v_proj module", modules.containsKey("blk.0.attn_v.weight"));
+		Assert.assertTrue("Should have layer 31 q_proj module", modules.containsKey("blk.31.attn_q.weight"));
+		Assert.assertTrue("Should have layer 31 v_proj module", modules.containsKey("blk.31.attn_v.weight"));
 
-		// Test module properties
-		LoRATrainer.LoRAModule qModule = modules.get("q_proj");
-		Assert.assertEquals("Module name should match", "q_proj", qModule.getName());
+		// Test module properties - pick the first q_proj module
+		LoRATrainer.LoRAModule qModule = modules.get("blk.0.attn_q.weight");
+		Assert.assertNotNull("Should have q_proj module", qModule);
+		Assert.assertEquals("Module name should match", "blk.0.attn_q.weight", qModule.getName());
 		Assert.assertEquals("Rank should match config", testLoRAConfig.getRank(), qModule.getRank());
 		Assert.assertTrue("Input dim should be positive", qModule.getInputDim() > 0);
 		Assert.assertTrue("Output dim should be positive", qModule.getOutputDim() > 0);
@@ -312,7 +317,7 @@ public class LoRATrainerTest {
 
 			// Verify initialization doesn't leak memory (basic check)
 			Map<String, LoRATrainer.LoRAModule> modules = trainer.getLoRAModules();
-			Assert.assertEquals("Should have expected number of modules", 2, modules.size());
+			Assert.assertEquals("Should have expected number of modules", 64, modules.size());
 		}
 
 		// Force garbage collection to test for obvious memory leaks

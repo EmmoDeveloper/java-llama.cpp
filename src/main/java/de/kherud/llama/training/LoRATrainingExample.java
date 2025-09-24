@@ -5,7 +5,6 @@ import de.kherud.llama.ModelParameters;
 
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Example demonstrating how to use the native Java LoRA training system.
@@ -14,7 +13,7 @@ import java.util.logging.Logger;
  * that creates adapters compatible with the existing loadLoRAAdapter() system.
  */
 public class LoRATrainingExample {
-	private static final Logger LOGGER = Logger.getLogger(LoRATrainingExample.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(LoRATrainingExample.class.getName());
 
 	public static void main(String[] args) {
 		try {
@@ -28,8 +27,7 @@ public class LoRATrainingExample {
 			trainCompletionModel();
 
 		} catch (Exception e) {
-			LOGGER.severe("Training failed: " + e.getMessage());
-			e.printStackTrace();
+			LOGGER.log(System.Logger.Level.ERROR, "Training failed", e);
 		}
 	}
 
@@ -37,7 +35,7 @@ public class LoRATrainingExample {
 	 * Example 1: Fine-tune for instruction following
 	 */
 	public static void trainInstructionModel() throws Exception {
-		LOGGER.info("=== Training Instruction-Following Model ===");
+		LOGGER.log(System.Logger.Level.INFO,"=== Training Instruction-Following Model ===");
 
 		// Load base model
 		ModelParameters params = new ModelParameters()
@@ -77,9 +75,9 @@ public class LoRATrainingExample {
 			LoRATrainer trainer = new LoRATrainer(model, loraConfig, trainingConfig);
 			trainer.train(split.get("train"));
 
-			LOGGER.info("Instruction model training completed!");
-			LOGGER.info("LoRA adapter saved to: ./output/instruction_lora/final-adapter.gguf");
-			LOGGER.info("Load with: model.loadLoRAAdapter(\"./output/instruction_lora/final-adapter.gguf\")");
+			LOGGER.log(System.Logger.Level.INFO,"Instruction model training completed!");
+			LOGGER.log(System.Logger.Level.INFO,"LoRA adapter saved to: ./output/instruction_lora/final-adapter.gguf");
+			LOGGER.log(System.Logger.Level.INFO,"Load with: model.loadLoRAAdapter(\"./output/instruction_lora/final-adapter.gguf\")");
 		}
 	}
 
@@ -87,7 +85,7 @@ public class LoRATrainingExample {
 	 * Example 2: Fine-tune for chat conversations
 	 */
 	public static void trainChatModel() throws Exception {
-		LOGGER.info("=== Training Chat Model ===");
+		LOGGER.log(System.Logger.Level.INFO,"=== Training Chat Model ===");
 
 		ModelParameters params = new ModelParameters()
 			.setModel("models/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf")
@@ -122,7 +120,7 @@ public class LoRATrainingExample {
 			LoRATrainer trainer = new LoRATrainer(model, loraConfig, trainingConfig);
 			trainer.train(split.get("train"));
 
-			LOGGER.info("Chat model training completed!");
+			LOGGER.log(System.Logger.Level.INFO,"Chat model training completed!");
 		}
 	}
 
@@ -130,7 +128,7 @@ public class LoRATrainingExample {
 	 * Example 3: Fine-tune for code completion
 	 */
 	public static void trainCompletionModel() throws Exception {
-		LOGGER.info("=== Training Code Completion Model ===");
+		LOGGER.log(System.Logger.Level.INFO,"=== Training Code Completion Model ===");
 
 		ModelParameters params = new ModelParameters()
 			.setModel("models/codellama-7b.Q2_K.gguf")
@@ -164,7 +162,7 @@ public class LoRATrainingExample {
 			LoRATrainer trainer = new LoRATrainer(model, loraConfig, trainingConfig);
 			trainer.train(dataset);
 
-			LOGGER.info("Code completion model training completed!");
+			LOGGER.log(System.Logger.Level.INFO,"Code completion model training completed!");
 		}
 	}
 
@@ -172,7 +170,7 @@ public class LoRATrainingExample {
 	 * Example 4: Load and test trained LoRA adapter
 	 */
 	public static void testTrainedAdapter() throws Exception {
-		LOGGER.info("=== Testing Trained LoRA Adapter ===");
+		LOGGER.log(System.Logger.Level.INFO,"=== Testing Trained LoRA Adapter ===");
 
 		ModelParameters params = new ModelParameters()
 			.setModel("models/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf")
@@ -191,7 +189,7 @@ public class LoRATrainingExample {
 				"### Instruction:\nExplain quantum computing in simple terms.\n\n" +
 				"### Response:\n";
 
-			LOGGER.info("Testing with prompt: " + testPrompt);
+			LOGGER.log(System.Logger.Level.INFO,"Testing with prompt: " + testPrompt);
 
 			// Generate response using the LoRA-adapted model
 			de.kherud.llama.InferenceParameters inferParams = new de.kherud.llama.InferenceParameters(testPrompt)
@@ -199,7 +197,7 @@ public class LoRATrainingExample {
 				.setTemperature(0.7f);
 
 			String response = model.complete(inferParams);
-			LOGGER.info("LoRA-adapted response: " + response);
+			LOGGER.log(System.Logger.Level.INFO,"LoRA-adapted response: " + response);
 
 			// Clean up
 			model.removeLoRAAdapter(adapterHandle);
@@ -211,7 +209,7 @@ public class LoRATrainingExample {
 	 * Example 5: Create training data from existing conversations
 	 */
 	public static void createTrainingDataset() {
-		LOGGER.info("=== Creating Training Dataset ===");
+		LOGGER.log(System.Logger.Level.INFO,"=== Creating Training Dataset ===");
 
 		// Example of creating structured training data
 		List<TrainingApplication> examples = List.of(
@@ -234,9 +232,9 @@ public class LoRATrainingExample {
 
 		try {
 			DatasetProcessor.saveAsJsonl(examples, "datasets/custom_training.jsonl");
-			LOGGER.info("Training dataset saved to datasets/custom_training.jsonl");
+			LOGGER.log(System.Logger.Level.INFO,"Training dataset saved to datasets/custom_training.jsonl");
 		} catch (Exception e) {
-			LOGGER.severe("Failed to save dataset: " + e.getMessage());
+			LOGGER.log(System.Logger.Level.ERROR, "Failed to save dataset: " + e.getMessage());
 		}
 	}
 }

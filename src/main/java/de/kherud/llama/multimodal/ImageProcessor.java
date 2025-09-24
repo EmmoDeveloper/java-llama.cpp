@@ -3,13 +3,13 @@ package de.kherud.llama.multimodal;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.io.*;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.Map;
 
 /**
  * Image processing utilities for multimodal models.
@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  * encoding, and feature extraction for vision-language models like LLaVA.
  */
 public class ImageProcessor {
-	private static final Logger LOGGER = Logger.getLogger(ImageProcessor.class.getName());
+	private static final System.Logger logger = System.getLogger(ImageProcessor.class.getName());
 
 	public static class ImageConfig {
 		private int targetWidth = 224;
@@ -134,7 +134,7 @@ public class ImageProcessor {
 	 */
 	public ProcessedImage processImage(Path imagePath) throws IOException {
 		if (config.verbose) {
-			LOGGER.info("Processing image: " + imagePath);
+			logger.log(System.Logger.Level.INFO, "Processing image: " + imagePath);
 		}
 
 		BufferedImage image = ImageIO.read(imagePath.toFile());
@@ -156,7 +156,7 @@ public class ImageProcessor {
 		processed.channels = 3;
 
 		if (config.verbose) {
-			LOGGER.info(String.format("Original image size: %dx%d",
+			logger.log(System.Logger.Level.INFO, String.format("Original image size: %dx%d",
 				processed.originalWidth, processed.originalHeight));
 		}
 
@@ -169,7 +169,7 @@ public class ImageProcessor {
 		processed.processedHeight = resizedImage.getHeight();
 
 		if (config.verbose) {
-			LOGGER.info(String.format("Processed image size: %dx%d",
+			logger.log(System.Logger.Level.INFO, String.format("Processed image size: %dx%d",
 				processed.processedWidth, processed.processedHeight));
 		}
 
@@ -227,7 +227,7 @@ public class ImageProcessor {
 		}
 
 		if (config.verbose) {
-			LOGGER.info("Generated " + patches.size() + " patches of size " + patchSize + "x" + patchSize);
+			logger.log(System.Logger.Level.INFO, "Generated " + patches.size() + " patches of size " + patchSize + "x" + patchSize);
 		}
 
 		return patches;
@@ -244,7 +244,7 @@ public class ImageProcessor {
 				ProcessedImage result = processImage(imagePath);
 				processed.add(result);
 			} catch (IOException e) {
-				LOGGER.warning("Failed to process image: " + imagePath + " - " + e.getMessage());
+				logger.log(System.Logger.Level.WARNING, "Failed to process image: " + imagePath + " - " + e.getMessage());
 			}
 		}
 
@@ -493,9 +493,16 @@ public class ImageProcessor {
 	 * Command-line interface for testing
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(ImageProcessor::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length < 1) {
 			printUsage();
-			System.exit(1);
+			throw new IllegalArgumentException("No command specified");
 		}
 
 		try {
@@ -534,8 +541,7 @@ public class ImageProcessor {
 					case "--help":
 					case "-h":
 						printUsage();
-						System.exit(0);
-						break;
+						return; // Exit normally after showing help
 				}
 				argIndex++;
 			}
@@ -553,22 +559,20 @@ public class ImageProcessor {
 					handleStatsCommand(args, argIndex, processor);
 					break;
 				default:
-					System.err.println("Unknown command: " + command);
 					printUsage();
-					System.exit(1);
+					throw new IllegalArgumentException("Unknown command: " + command);
 			}
 
+		} catch (IOException e) {
+			throw e; // Re-throw IO exceptions
 		} catch (Exception e) {
-			LOGGER.severe("Command failed: " + e.getMessage());
-			e.printStackTrace();
-			System.exit(1);
+			throw new RuntimeException("Command failed", e);
 		}
 	}
 
 	private static void handleProcessCommand(String[] args, int startIndex, ImageProcessor processor) throws IOException {
 		if (startIndex >= args.length) {
-			System.err.println("Image path required for process command");
-			System.exit(1);
+			throw new IllegalArgumentException("Image path required for process command");
 		}
 
 		Path imagePath = Path.of(args[startIndex]);
@@ -589,8 +593,7 @@ public class ImageProcessor {
 
 	private static void handlePatchesCommand(String[] args, int startIndex, ImageProcessor processor) throws IOException {
 		if (startIndex + 1 >= args.length) {
-			System.err.println("Image path and patch size required for patches command");
-			System.exit(1);
+			throw new IllegalArgumentException("Image path and patch size required for patches command");
 		}
 
 		Path imagePath = Path.of(args[startIndex]);
@@ -616,8 +619,7 @@ public class ImageProcessor {
 
 	private static void handleStatsCommand(String[] args, int startIndex, ImageProcessor processor) throws IOException {
 		if (startIndex >= args.length) {
-			System.err.println("Image path required for stats command");
-			System.exit(1);
+			throw new IllegalArgumentException("Image path required for stats command");
 		}
 
 		Path imagePath = Path.of(args[startIndex]);

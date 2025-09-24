@@ -1,15 +1,19 @@
 package de.kherud.llama.multimodal;
 
+import de.kherud.llama.InferenceParameters;
 import de.kherud.llama.LlamaModel;
 import de.kherud.llama.ModelParameters;
-import de.kherud.llama.InferenceParameters;
 import de.kherud.llama.multimodal.ImageProcessor.ProcessedImage;
 
+import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.awt.image.BufferedImage;
 
 /**
  * Vision-Language model interface.
@@ -18,7 +22,7 @@ import java.awt.image.BufferedImage;
  * and language models for multimodal inference like image captioning, VQA, etc.
  */
 public class VisionLanguageModel implements AutoCloseable {
-	private static final Logger LOGGER = Logger.getLogger(VisionLanguageModel.class.getName());
+	private static final System.Logger logger = System.getLogger(VisionLanguageModel.class.getName());
 
 	public static class VisionConfig {
 		private int visionEmbeddingDim = 768;
@@ -207,7 +211,7 @@ public class VisionLanguageModel implements AutoCloseable {
 			// Initialize vision encoder
 			// In a real implementation, this would load the vision model weights
 			this.initialized = true;
-			LOGGER.info("Vision encoder initialized with type: " + config.visionModelType);
+			logger.log(System.Logger.Level.INFO, "Vision encoder initialized with type: " + config.visionModelType);
 		}
 
 		public void close() {
@@ -268,7 +272,7 @@ public class VisionLanguageModel implements AutoCloseable {
 			Arrays.fill(bias, 0.0f);
 
 			this.initialized = true;
-			LOGGER.info("Projection layer initialized: " +
+			logger.log(System.Logger.Level.INFO, "Projection layer initialized: " +
 				config.visionEmbeddingDim + " -> " + config.projectionDim);
 		}
 
@@ -305,7 +309,7 @@ public class VisionLanguageModel implements AutoCloseable {
 		if (projectionLayer != null) {
 			projectionLayer.initialize();
 		}
-		LOGGER.info("Vision-Language model initialized");
+		logger.log(System.Logger.Level.INFO, "Vision-Language model initialized");
 	}
 
 	/**
@@ -344,7 +348,7 @@ public class VisionLanguageModel implements AutoCloseable {
 
 		} catch (Exception e) {
 			output.fail("Generation failed: " + e.getMessage());
-			LOGGER.severe("Multimodal generation failed: " + e.getMessage());
+			logger.log(System.Logger.Level.ERROR, "Multimodal generation failed: " + e.getMessage());
 		}
 
 		return output;
@@ -498,16 +502,23 @@ public class VisionLanguageModel implements AutoCloseable {
 		if (projectionLayer != null) {
 			projectionLayer.close();
 		}
-		LOGGER.info("Vision-Language model closed");
+		logger.log(System.Logger.Level.INFO, "Vision-Language model closed");
 	}
 
 	/**
 	 * Example usage and testing
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(VisionLanguageModel::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length < 2) {
 			printUsage();
-			System.exit(1);
+			throw new IllegalArgumentException("Insufficient arguments");
 		}
 
 		try {
@@ -553,16 +564,15 @@ public class VisionLanguageModel implements AutoCloseable {
 						}
 						break;
 					default:
-						System.err.println("Unknown command: " + command);
 						printUsage();
-						System.exit(1);
+						throw new IllegalArgumentException("Unknown command: " + command);
 				}
 			}
 
+		} catch (IOException e) {
+			throw e; // Re-throw IO exceptions
 		} catch (Exception e) {
-			LOGGER.severe("Command failed: " + e.getMessage());
-			e.printStackTrace();
-			System.exit(1);
+			throw new RuntimeException("Command failed", e);
 		}
 	}
 

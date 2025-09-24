@@ -2,13 +2,17 @@ package de.kherud.llama.gguf;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
-import java.util.*;
-import java.util.logging.Logger;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * GGUF file inspection utility.
@@ -17,7 +21,7 @@ import java.util.logging.Logger;
  * including metadata, tensors, and file structure.
  */
 public class GGUFInspector implements AutoCloseable {
-	private static final Logger LOGGER = Logger.getLogger(GGUFInspector.class.getName());
+	private static final System.Logger logger = System.getLogger(GGUFInspector.class.getName());
 
 	public static class InspectionOptions {
 		private boolean showMetadata = true;
@@ -348,74 +352,71 @@ public class GGUFInspector implements AutoCloseable {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(GGUFInspector::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length == 0) {
 			printUsage();
-			System.exit(1);
+			throw new IllegalArgumentException("No input file specified");
 		}
 
-		try {
-			InspectionOptions options = new InspectionOptions();
-			String filePath = null;
+		InspectionOptions options = new InspectionOptions();
+		String filePath = null;
 
-			// Parse arguments
-			for (int i = 0; i < args.length; i++) {
-				switch (args[i]) {
-					case "--no-metadata":
-						options.metadata(false);
-						break;
-					case "--no-tensors":
-						options.tensors(false);
-						break;
-					case "--no-file-info":
-						options.fileStructure(false);
-						break;
-					case "--tensor-data":
-						options.tensorData(true);
-						break;
-					case "--verbose":
-					case "-v":
-						options.verbose(true);
-						break;
-					case "--json":
-						options.jsonOutput(true);
-						break;
-					case "--filter":
-						if (i + 1 < args.length) {
-							options.filterKey(args[++i]);
-						}
-						break;
-					case "--max-string":
-						if (i + 1 < args.length) {
-							options.maxStringLength(Integer.parseInt(args[++i]));
-						}
-						break;
-					case "--help":
-					case "-h":
-						printUsage();
-						System.exit(0);
-						break;
-					default:
-						if (!args[i].startsWith("-")) {
-							filePath = args[i];
-						}
-				}
+		// Parse arguments
+		for (int i = 0; i < args.length; i++) {
+			switch (args[i]) {
+				case "--no-metadata":
+					options.metadata(false);
+					break;
+				case "--no-tensors":
+					options.tensors(false);
+					break;
+				case "--no-file-info":
+					options.fileStructure(false);
+					break;
+				case "--tensor-data":
+					options.tensorData(true);
+					break;
+				case "--verbose":
+				case "-v":
+					options.verbose(true);
+					break;
+				case "--json":
+					options.jsonOutput(true);
+					break;
+				case "--filter":
+					if (i + 1 < args.length) {
+						options.filterKey(args[++i]);
+					}
+					break;
+				case "--max-string":
+					if (i + 1 < args.length) {
+						options.maxStringLength(Integer.parseInt(args[++i]));
+					}
+					break;
+				case "--help":
+				case "-h":
+					printUsage();
+					return;
+				default:
+					if (!args[i].startsWith("-")) {
+						filePath = args[i];
+					}
 			}
+		}
 
-			if (filePath == null) {
-				System.err.println("Error: No input file specified");
-				printUsage();
-				System.exit(1);
-			}
+		if (filePath == null) {
+			printUsage();
+			throw new IllegalArgumentException("No input file specified");
+		}
 
-			GGUFInspector inspector = new GGUFInspector(Paths.get(filePath));
+		try (GGUFInspector inspector = new GGUFInspector(Paths.get(filePath))) {
 			inspector.printInspection(options);
-
-		} catch (Exception e) {
-			System.err.println("Error: " + e.getMessage());
-			if (args.length > 0 && (Arrays.asList(args).contains("--verbose") || Arrays.asList(args).contains("-v"))) {
-				e.printStackTrace();
-			}
-			System.exit(1);
 		}
 	}
 

@@ -1,18 +1,28 @@
 package de.kherud.llama.validation;
 
+import de.kherud.llama.InferenceParameters;
 import de.kherud.llama.LlamaModel;
 import de.kherud.llama.ModelParameters;
-import de.kherud.llama.InferenceParameters;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Model validation utilities.
@@ -478,9 +488,16 @@ public class ModelValidator {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(ModelValidator::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length == 0) {
 			printUsage();
-			System.exit(1);
+			throw new IllegalArgumentException("No arguments provided");
 		}
 
 		try {
@@ -536,8 +553,7 @@ public class ModelValidator {
 					case "--help":
 					case "-h":
 						printUsage();
-						System.exit(0);
-						break;
+						return; // Exit normally after showing help
 					default:
 						if (!args[i].startsWith("-")) {
 							modelPaths.add(args[i]);
@@ -564,8 +580,7 @@ public class ModelValidator {
 			} else {
 				// Comparison mode
 				if (modelPaths.size() != 1 || compareModel == null) {
-					System.err.println("Error: Comparison mode requires exactly one model and --compare argument");
-					System.exit(1);
+					throw new IllegalArgumentException("Comparison mode requires exactly one model and --compare argument");
 				}
 
 				ValidationResult result = validator.compareModels(Paths.get(modelPaths.get(0)), Paths.get(compareModel));
@@ -577,7 +592,7 @@ public class ModelValidator {
 			if (Arrays.asList(args).contains("--verbose") || Arrays.asList(args).contains("-v")) {
 				e.printStackTrace();
 			}
-			System.exit(1);
+			throw new RuntimeException("Validation failed", e);
 		}
 	}
 

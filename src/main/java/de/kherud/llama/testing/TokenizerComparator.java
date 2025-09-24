@@ -3,7 +3,10 @@ package de.kherud.llama.testing;
 import de.kherud.llama.LlamaModel;
 import de.kherud.llama.ModelParameters;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 import java.util.logging.Logger;
 
 public class TokenizerComparator {
@@ -20,6 +23,10 @@ public class TokenizerComparator {
 	}
 
 	public TokenizerComparator(String model1Path, String model2Path, String model1Name, String model2Name) {
+		// Validate model paths
+		validateModelPath(model1Path, model1Name);
+		validateModelPath(model2Path, model2Name);
+
 		ModelParameters params1 = new ModelParameters()
 			.setModel(model1Path)
 			.setCtxSize(4096);
@@ -31,6 +38,23 @@ public class TokenizerComparator {
 		this.model2 = new LlamaModel(params2);
 		this.model1Name = model1Name;
 		this.model2Name = model2Name;
+	}
+
+	private void validateModelPath(String modelPath, String modelName) {
+		if (modelPath == null || modelPath.isEmpty()) {
+			throw new IllegalArgumentException(modelName + " path cannot be null or empty");
+		}
+
+		java.io.File modelFile = new java.io.File(modelPath);
+		if (!modelFile.exists()) {
+			throw new IllegalArgumentException(modelName + " file does not exist: " + modelPath);
+		}
+		if (!modelFile.isFile()) {
+			throw new IllegalArgumentException(modelName + " path is not a file: " + modelPath);
+		}
+		if (modelFile.length() < 1024) { // GGUF files are at least several KB
+			throw new IllegalArgumentException(modelName + " file is too small to be valid: " + modelFile.length() + " bytes");
+		}
 	}
 
 	public static class ComparisonResult {
@@ -250,9 +274,16 @@ public class TokenizerComparator {
 	}
 
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(TokenizerComparator::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length < 2 || args.length > 4) {
 			System.err.println("Usage: TokenizerComparator <model1_path> <model2_path> [model1_name] [model2_name]");
-			System.exit(1);
+			throw new IllegalArgumentException("Invalid number of arguments");
 		}
 
 		String model1Path = args[0];

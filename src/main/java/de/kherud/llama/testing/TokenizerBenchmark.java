@@ -3,8 +3,10 @@ package de.kherud.llama.testing;
 import de.kherud.llama.LlamaModel;
 import de.kherud.llama.ModelParameters;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 import java.util.logging.Logger;
 
 public class TokenizerBenchmark {
@@ -263,9 +265,15 @@ public class TokenizerBenchmark {
 	}
 
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(TokenizerBenchmark::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length < 1) {
-			System.err.println("Usage: TokenizerBenchmark <model_path> [model_name]");
-			System.exit(1);
+			throw new IllegalArgumentException("Usage: TokenizerBenchmark <model_path> [model_name]");
 		}
 
 		String modelPath = args[0];

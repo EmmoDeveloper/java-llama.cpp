@@ -1,21 +1,33 @@
 package de.kherud.llama.benchmark;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
-import java.net.http.*;
-import java.nio.file.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Server benchmarking tool for llama.cpp server.
@@ -30,7 +42,7 @@ import java.util.stream.IntStream;
  * Supports various workload patterns and dataset sources.
  */
 public class ServerBenchmark {
-	private static final Logger LOGGER = Logger.getLogger(ServerBenchmark.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(ServerBenchmark.class.getName());
 
 	private final BenchmarkConfig config;
 	private final HttpClient httpClient;
@@ -312,23 +324,12 @@ public class ServerBenchmark {
 
 		switch (config.dataset.toLowerCase()) {
 			case "random":
-				LOGGER.info("Generating random prompts");
+				LOGGER.log(System.Logger.Level.INFO,"Generating random prompts");
 				Random random = new Random();
 				for (int i = 0; i < config.numRequests; i++) {
 					int length = config.promptMinLength +
 						random.nextInt(config.promptMaxLength - config.promptMinLength + 1);
 					promptList.add(generateRandomPrompt(length));
-				}
-				break;
-
-			case "file":
-				// Load prompts from file (one per line)
-				Path promptFile = Paths.get(config.dataset);
-				if (Files.exists(promptFile)) {
-					promptList = Files.readAllLines(promptFile);
-					LOGGER.info("Loaded " + promptList.size() + " prompts from file");
-				} else {
-					throw new IOException("Prompt file not found: " + config.dataset);
 				}
 				break;
 
@@ -344,7 +345,15 @@ public class ServerBenchmark {
 				break;
 
 			default:
-				throw new IllegalArgumentException("Unknown dataset: " + config.dataset);
+				// If it's not a predefined dataset, try to load it as a file
+				Path promptFile = Paths.get(config.dataset);
+				if (Files.exists(promptFile)) {
+					promptList = Files.readAllLines(promptFile);
+					LOGGER.log(System.Logger.Level.INFO,"Loaded " + promptList.size() + " prompts from file: " + config.dataset);
+				} else {
+					throw new IOException("Prompt file not found: " + config.dataset);
+				}
+				break;
 		}
 
 		// Ensure we have enough prompts
@@ -374,7 +383,7 @@ public class ServerBenchmark {
 	}
 
 	public BenchmarkResults run() throws Exception {
-		LOGGER.info("Starting benchmark with " + config.numRequests +
+		LOGGER.log(System.Logger.Level.INFO,"Starting benchmark with " + config.numRequests +
 			" requests and " + config.concurrentClients + " concurrent clients");
 
 		// Check server health
@@ -409,7 +418,7 @@ public class ServerBenchmark {
 				completed++;
 
 				if (config.verbose || completed % 10 == 0) {
-					LOGGER.info("Progress: " + completed + "/" + config.numRequests + " requests completed");
+					LOGGER.log(System.Logger.Level.INFO,"Progress: " + completed + "/" + config.numRequests + " requests completed");
 				}
 			} catch (TimeoutException e) {
 				String requestId = "req-" + futures.indexOf(future);
@@ -436,7 +445,7 @@ public class ServerBenchmark {
 		// Save to file if specified
 		if (config.outputFile != null) {
 			results.saveToFile(config.outputFile);
-			LOGGER.info("Results saved to: " + config.outputFile);
+			LOGGER.log(System.Logger.Level.INFO,"Results saved to: " + config.outputFile);
 		}
 
 		return results;
@@ -452,7 +461,7 @@ public class ServerBenchmark {
 		try {
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() == 200) {
-				LOGGER.info("Server health check passed");
+				LOGGER.log(System.Logger.Level.INFO,"Server health check passed");
 			} else {
 				throw new IOException("Server health check failed with status: " + response.statusCode());
 			}
@@ -501,7 +510,7 @@ public class ServerBenchmark {
 
 				if (config.verbose) {
 					String content = responseJson.path("content").asText();
-					LOGGER.info("Request " + reqId + " completed: " +
+					LOGGER.log(System.Logger.Level.INFO,"Request " + reqId + " completed: " +
 						content.substring(0, Math.min(50, content.length())) + "...");
 				}
 
@@ -522,70 +531,71 @@ public class ServerBenchmark {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(ServerBenchmark::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length == 0 || args[0].equals("--help")) {
 			printUsage();
-			System.exit(0);
+			return;
 		}
 
-		try {
-			BenchmarkConfig config = new BenchmarkConfig();
+		BenchmarkConfig config = new BenchmarkConfig();
 
-			// Parse arguments
-			for (int i = 0; i < args.length; i++) {
-				switch (args[i]) {
-					case "--server":
-						config.serverUrl(args[++i]);
-						break;
-					case "--requests":
-						config.requests(Integer.parseInt(args[++i]));
-						break;
-					case "--concurrency":
-						config.concurrency(Integer.parseInt(args[++i]));
-						break;
-					case "--dataset":
-						config.dataset(args[++i]);
-						break;
-					case "--prompt-min":
-						int min = Integer.parseInt(args[++i]);
-						int max = config.promptMaxLength;
-						config.promptLength(min, max);
-						break;
-					case "--prompt-max":
-						min = config.promptMinLength;
-						max = Integer.parseInt(args[++i]);
-						config.promptLength(min, max);
-						break;
-					case "--max-tokens":
-						config.maxTokens(Integer.parseInt(args[++i]));
-						break;
-					case "--timeout":
-						config.timeout(Duration.ofSeconds(Integer.parseInt(args[++i])));
-						break;
-					case "--output":
-						config.outputFile(args[++i]);
-						break;
-					case "--verbose":
-						config.verbose(true);
-						break;
-					case "--temperature":
-						config.addGenerationParam("temperature", Float.parseFloat(args[++i]));
-						break;
-					case "--top-p":
-						config.addGenerationParam("top_p", Float.parseFloat(args[++i]));
-						break;
-					case "--top-k":
-						config.addGenerationParam("top_k", Integer.parseInt(args[++i]));
-						break;
-				}
+		// Parse arguments
+		for (int i = 0; i < args.length; i++) {
+			switch (args[i]) {
+				case "--server":
+					config.serverUrl(args[++i]);
+					break;
+				case "--requests":
+					config.requests(Integer.parseInt(args[++i]));
+					break;
+				case "--concurrency":
+					config.concurrency(Integer.parseInt(args[++i]));
+					break;
+				case "--dataset":
+					config.dataset(args[++i]);
+					break;
+				case "--prompt-min":
+					int min = Integer.parseInt(args[++i]);
+					int max = config.promptMaxLength;
+					config.promptLength(min, max);
+					break;
+				case "--prompt-max":
+					min = config.promptMinLength;
+					max = Integer.parseInt(args[++i]);
+					config.promptLength(min, max);
+					break;
+				case "--max-tokens":
+					config.maxTokens(Integer.parseInt(args[++i]));
+					break;
+				case "--timeout":
+					config.timeout(Duration.ofSeconds(Integer.parseInt(args[++i])));
+					break;
+				case "--output":
+					config.outputFile(args[++i]);
+					break;
+				case "--verbose":
+					config.verbose(true);
+					break;
+				case "--temperature":
+					config.addGenerationParam("temperature", Float.parseFloat(args[++i]));
+					break;
+				case "--top-p":
+					config.addGenerationParam("top_p", Float.parseFloat(args[++i]));
+					break;
+				case "--top-k":
+					config.addGenerationParam("top_k", Integer.parseInt(args[++i]));
+					break;
 			}
-
-			ServerBenchmark benchmark = new ServerBenchmark(config);
-			BenchmarkResults results = benchmark.run();
-
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Benchmark failed", e);
-			System.exit(1);
 		}
+
+		ServerBenchmark benchmark = new ServerBenchmark(config);
+		BenchmarkResults results = benchmark.run();
 	}
 
 	private static void printUsage() {

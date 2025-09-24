@@ -15,14 +15,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Processes various dataset formats for LoRA training.
  * Supports JSON, JSONL, CSV, and plain text formats.
  */
 public class DatasetProcessor {
-	private static final Logger LOGGER = Logger.getLogger(DatasetProcessor.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(DatasetProcessor.class.getName());
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	/**
@@ -30,7 +29,7 @@ public class DatasetProcessor {
 	 * Expected format: [{"instruction": "...", "input": "...", "output": "..."}]
 	 */
 	public static List<TrainingApplication> loadAlpacaDataset(String filepath) throws IOException {
-		LOGGER.info("Loading Alpaca dataset from: " + filepath);
+		LOGGER.log(System.Logger.Level.INFO,"Loading Alpaca dataset from: " + filepath);
 		List<TrainingApplication> examples = new ArrayList<>();
 
 		JsonNode root = objectMapper.readTree(new File(filepath));
@@ -44,14 +43,14 @@ public class DatasetProcessor {
 			String output = item.path("output").asText();
 
 			if (instruction.isEmpty() || output.isEmpty()) {
-				LOGGER.warning("Skipping invalid example: missing instruction or output");
+				LOGGER.log(System.Logger.Level.WARNING,"Skipping invalid example: missing instruction or output");
 				continue;
 			}
 
 			examples.add(TrainingApplication.instructionFormat(instruction, input, output));
 		}
 
-		LOGGER.info(String.format("Loaded %d examples from Alpaca dataset", examples.size()));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Loaded %d examples from Alpaca dataset", examples.size()));
 		return examples;
 	}
 
@@ -60,7 +59,7 @@ public class DatasetProcessor {
 	 * Expected format: {"prompt": "...", "completion": "..."}
 	 */
 	public static List<TrainingApplication> loadJsonlDataset(String filepath) throws IOException {
-		LOGGER.info("Loading JSONL dataset from: " + filepath);
+		LOGGER.log(System.Logger.Level.INFO,"Loading JSONL dataset from: " + filepath);
 		List<TrainingApplication> examples = new ArrayList<>();
 
 		try (BufferedReader reader = Files.newBufferedReader(Paths.get(filepath))) {
@@ -77,19 +76,19 @@ public class DatasetProcessor {
 					String completion = json.path("completion").asText();
 
 					if (prompt.isEmpty() || completion.isEmpty()) {
-						LOGGER.warning(String.format("Line %d: missing prompt or completion", lineNum));
+						LOGGER.log(System.Logger.Level.WARNING,String.format("Line %d: missing prompt or completion", lineNum));
 						continue;
 					}
 
 					examples.add(TrainingApplication.completionFormat(prompt, completion));
 
 				} catch (Exception e) {
-					LOGGER.warning(String.format("Line %d: failed to parse JSON: %s", lineNum, e.getMessage()));
+					LOGGER.log(System.Logger.Level.WARNING,String.format("Line %d: failed to parse JSON: %s", lineNum, e.getMessage()));
 				}
 			}
 		}
 
-		LOGGER.info(String.format("Loaded %d examples from JSONL dataset", examples.size()));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Loaded %d examples from JSONL dataset", examples.size()));
 		return examples;
 	}
 
@@ -98,7 +97,7 @@ public class DatasetProcessor {
 	 * Expected columns: prompt, completion
 	 */
 	public static List<TrainingApplication> loadCsvDataset(String filepath) throws IOException {
-		LOGGER.info("Loading CSV dataset from: " + filepath);
+		LOGGER.log(System.Logger.Level.INFO,"Loading CSV dataset from: " + filepath);
 		List<TrainingApplication> examples = new ArrayList<>();
 
 		try (BufferedReader reader = Files.newBufferedReader(Paths.get(filepath))) {
@@ -131,7 +130,7 @@ public class DatasetProcessor {
 				String[] fields = parseCsvLine(line);
 
 				if (fields.length <= Math.max(promptCol, completionCol)) {
-					LOGGER.warning(String.format("Line %d: insufficient columns", lineNum));
+					LOGGER.log(System.Logger.Level.WARNING,String.format("Line %d: insufficient columns", lineNum));
 					continue;
 				}
 
@@ -144,7 +143,7 @@ public class DatasetProcessor {
 			}
 		}
 
-		LOGGER.info(String.format("Loaded %d examples from CSV dataset", examples.size()));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Loaded %d examples from CSV dataset", examples.size()));
 		return examples;
 	}
 
@@ -153,7 +152,7 @@ public class DatasetProcessor {
 	 * Expected format: [{"conversations": [{"from": "human", "value": "..."}, {"from": "gpt", "value": "..."}]}]
 	 */
 	public static List<TrainingApplication> loadConversationDataset(String filepath) throws IOException {
-		LOGGER.info("Loading conversation dataset from: " + filepath);
+		LOGGER.log(System.Logger.Level.INFO,"Loading conversation dataset from: " + filepath);
 		List<TrainingApplication> examples = new ArrayList<>();
 
 		JsonNode root = objectMapper.readTree(new File(filepath));
@@ -185,7 +184,7 @@ public class DatasetProcessor {
 			}
 		}
 
-		LOGGER.info(String.format("Loaded %d examples from conversation dataset", examples.size()));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Loaded %d examples from conversation dataset", examples.size()));
 		return examples;
 	}
 
@@ -194,7 +193,7 @@ public class DatasetProcessor {
 	 * Splits the text into chunks for training
 	 */
 	public static List<TrainingApplication> loadTextDataset(String filepath, int chunkSize, int overlap) throws IOException {
-		LOGGER.info("Loading text dataset from: " + filepath);
+		LOGGER.log(System.Logger.Level.INFO,"Loading text dataset from: " + filepath);
 		List<TrainingApplication> examples = new ArrayList<>();
 
 		String content = Files.readString(Paths.get(filepath));
@@ -238,7 +237,7 @@ public class DatasetProcessor {
 			examples.add(TrainingApplication.completionFormat(input, target));
 		}
 
-		LOGGER.info(String.format("Created %d examples from text dataset", examples.size()));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Created %d examples from text dataset", examples.size()));
 		return examples;
 	}
 
@@ -256,7 +255,7 @@ public class DatasetProcessor {
 			}
 		}
 
-		LOGGER.info(String.format("Filtered dataset: %d/%d examples within %d token limit",
+		LOGGER.log(System.Logger.Level.INFO,String.format("Filtered dataset: %d/%d examples within %d token limit",
 		                         filtered.size(), examples.size(), maxTokens));
 		return filtered;
 	}
@@ -275,7 +274,7 @@ public class DatasetProcessor {
 		split.put("train", new ArrayList<>(mutableExamples.subList(0, splitIndex)));
 		split.put("validation", new ArrayList<>(mutableExamples.subList(splitIndex, mutableExamples.size())));
 
-		LOGGER.info(String.format("Dataset split: %d train, %d validation",
+		LOGGER.log(System.Logger.Level.INFO,String.format("Dataset split: %d train, %d validation",
 		                         split.get("train").size(), split.get("validation").size()));
 		return split;
 	}
@@ -318,6 +317,6 @@ public class DatasetProcessor {
 				writer.println(objectMapper.writeValueAsString(json));
 			}
 		}
-		LOGGER.info(String.format("Saved %d examples to %s", examples.size(), filepath));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Saved %d examples to %s", examples.size(), filepath));
 	}
 }

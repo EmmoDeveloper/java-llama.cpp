@@ -1,9 +1,9 @@
 package de.kherud.llama.testing;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public abstract class ServerEmbeddingClient {
 

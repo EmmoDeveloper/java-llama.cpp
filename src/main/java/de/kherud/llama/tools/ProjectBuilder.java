@@ -1,15 +1,25 @@
 package de.kherud.llama.tools;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Logger;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Development and build tools.
@@ -18,7 +28,7 @@ import java.util.regex.Pattern;
  * testing, packaging, and development workflow automation.
  */
 public class ProjectBuilder implements AutoCloseable {
-	private static final Logger LOGGER = Logger.getLogger(ProjectBuilder.class.getName());
+	private static final System.Logger logger = System.getLogger(ProjectBuilder.class.getName());
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	public static class BuildConfig {
@@ -174,9 +184,9 @@ public class ProjectBuilder implements AutoCloseable {
 	 * Build the entire project
 	 */
 	public BuildResult build() {
-		LOGGER.info("Starting project build");
-		LOGGER.info("Target: " + config.buildTarget);
-		LOGGER.info("Profile: " + config.buildProfile);
+		logger.log(System.Logger.Level.INFO,"Starting project build");
+		logger.log(System.Logger.Level.INFO,"Target: " + config.buildTarget);
+		logger.log(System.Logger.Level.INFO,"Profile: " + config.buildProfile);
 
 		BuildResult result = new BuildResult();
 		long startTime = System.currentTimeMillis();
@@ -189,7 +199,7 @@ public class ProjectBuilder implements AutoCloseable {
 
 			// Discover modules
 			List<ModuleInfo> modules = discoverModules();
-			LOGGER.info("Found " + modules.size() + " modules");
+			logger.log(System.Logger.Level.INFO,"Found " + modules.size() + " modules");
 
 			// Determine build order
 			List<ModuleInfo> buildOrder = determineBuildOrder(modules);
@@ -217,12 +227,12 @@ public class ProjectBuilder implements AutoCloseable {
 			result.buildTime = System.currentTimeMillis() - startTime;
 			result.success();
 
-			LOGGER.info("Build completed successfully in " + result.buildTime + "ms");
+			logger.log(System.Logger.Level.INFO,"Build completed successfully in " + result.buildTime + "ms");
 
 		} catch (Exception e) {
 			result.buildTime = System.currentTimeMillis() - startTime;
 			result.fail(e.getMessage());
-			LOGGER.log(Level.SEVERE, "Build failed", e);
+			logger.log(System.Logger.Level.ERROR, "Build failed: " + e.getMessage(), e);
 		}
 
 		return result;
@@ -232,7 +242,7 @@ public class ProjectBuilder implements AutoCloseable {
 	 * Clean build artifacts
 	 */
 	public void clean() throws IOException {
-		LOGGER.info("Cleaning build artifacts");
+		logger.log(System.Logger.Level.INFO,"Cleaning build artifacts");
 
 		Path outputDir = projectRoot.resolve(config.outputDirectory);
 		if (Files.exists(outputDir)) {
@@ -248,7 +258,7 @@ public class ProjectBuilder implements AutoCloseable {
 			}
 		}
 
-		LOGGER.info("Clean completed");
+		logger.log(System.Logger.Level.INFO,"Clean completed");
 	}
 
 	private void deleteDirectory(Path dir) throws IOException {
@@ -259,7 +269,7 @@ public class ProjectBuilder implements AutoCloseable {
 					try {
 						Files.delete(path);
 					} catch (IOException e) {
-						LOGGER.warning("Failed to delete: " + path);
+						logger.log(System.Logger.Level.WARNING,"Failed to delete: " + path);
 					}
 				});
 		}
@@ -288,7 +298,7 @@ public class ProjectBuilder implements AutoCloseable {
 						modules.add(module);
 					}
 				} catch (Exception e) {
-					LOGGER.warning("Failed to parse Maven module: " + pomPath);
+					logger.log(System.Logger.Level.WARNING,"Failed to parse Maven module: " + pomPath);
 				}
 			});
 
@@ -302,7 +312,7 @@ public class ProjectBuilder implements AutoCloseable {
 						modules.add(module);
 					}
 				} catch (Exception e) {
-					LOGGER.warning("Failed to parse Gradle module: " + gradlePath);
+					logger.log(System.Logger.Level.WARNING,"Failed to parse Gradle module: " + gradlePath);
 				}
 			});
 	}
@@ -318,7 +328,7 @@ public class ProjectBuilder implements AutoCloseable {
 						modules.add(module);
 					}
 				} catch (Exception e) {
-					LOGGER.warning("Failed to parse CMake module: " + cmakePath);
+					logger.log(System.Logger.Level.WARNING,"Failed to parse CMake module: " + cmakePath);
 				}
 			});
 
@@ -332,7 +342,7 @@ public class ProjectBuilder implements AutoCloseable {
 						modules.add(module);
 					}
 				} catch (Exception e) {
-					LOGGER.warning("Failed to parse Makefile module: " + makefilePath);
+					logger.log(System.Logger.Level.WARNING,"Failed to parse Makefile module: " + makefilePath);
 				}
 			});
 	}
@@ -469,7 +479,7 @@ public class ProjectBuilder implements AutoCloseable {
 
 	private void buildModule(ModuleInfo module, BuildResult result) throws Exception {
 		if (config.verbose) {
-			LOGGER.info("Building module: " + module.name);
+			logger.log(System.Logger.Level.INFO,"Building module: " + module.name);
 		}
 
 		String buildTool = (String) module.properties.get("build_tool");
@@ -487,7 +497,7 @@ public class ProjectBuilder implements AutoCloseable {
 				buildMakefileModule(module, result);
 				break;
 			default:
-				LOGGER.warning("Unknown build tool for module: " + module.name);
+				logger.log(System.Logger.Level.WARNING,"Unknown build tool for module: " + module.name);
 		}
 
 		result.modulesBuilt++;
@@ -570,7 +580,7 @@ public class ProjectBuilder implements AutoCloseable {
 		pb.redirectErrorStream(true);
 
 		if (config.verbose) {
-			LOGGER.info("Executing: " + String.join(" ", command) + " in " + workingDir);
+			logger.log(System.Logger.Level.INFO,"Executing: " + String.join(" ", command) + " in " + workingDir);
 		}
 
 		Process process = pb.start();
@@ -595,7 +605,7 @@ public class ProjectBuilder implements AutoCloseable {
 	}
 
 	private void runTests(BuildResult result) throws Exception {
-		LOGGER.info("Running tests");
+		logger.log(System.Logger.Level.INFO,"Running tests");
 
 		// Find test classes and run them
 		List<TestResult> testResults = discoverAndRunTests();
@@ -608,7 +618,7 @@ public class ProjectBuilder implements AutoCloseable {
 			throw new Exception(result.testsFailed + " tests failed");
 		}
 
-		LOGGER.info("All " + result.testsRun + " tests passed");
+		logger.log(System.Logger.Level.INFO,"All " + result.testsRun + " tests passed");
 	}
 
 	private List<TestResult> discoverAndRunTests() throws Exception {
@@ -646,7 +656,7 @@ public class ProjectBuilder implements AutoCloseable {
 	}
 
 	private void generateDocumentation(BuildResult result) throws Exception {
-		LOGGER.info("Generating documentation");
+		logger.log(System.Logger.Level.INFO,"Generating documentation");
 
 		// Generate Javadoc
 		generateJavadoc();
@@ -654,7 +664,7 @@ public class ProjectBuilder implements AutoCloseable {
 		// Generate other documentation formats
 		generateMarkdownDocs();
 
-		LOGGER.info("Documentation generation completed");
+		logger.log(System.Logger.Level.INFO,"Documentation generation completed");
 	}
 
 	private void generateJavadoc() throws Exception {
@@ -682,7 +692,7 @@ public class ProjectBuilder implements AutoCloseable {
 	}
 
 	private void packageArtifacts(BuildResult result) throws IOException {
-		LOGGER.info("Packaging artifacts");
+		logger.log(System.Logger.Level.INFO,"Packaging artifacts");
 
 		Path outputDir = projectRoot.resolve(config.outputDirectory);
 		Files.createDirectories(outputDir);
@@ -697,7 +707,7 @@ public class ProjectBuilder implements AutoCloseable {
 			packageNativeArtifacts(outputDir, result);
 		}
 
-		LOGGER.info("Packaged " + result.artifacts.size() + " artifacts");
+		logger.log(System.Logger.Level.INFO,"Packaged " + result.artifacts.size() + " artifacts");
 	}
 
 	private void packageJarArtifacts(Path outputDir, BuildResult result) throws IOException {
@@ -711,7 +721,7 @@ public class ProjectBuilder implements AutoCloseable {
 					Files.copy(jarPath, target, StandardCopyOption.REPLACE_EXISTING);
 					result.addArtifact(target);
 				} catch (IOException e) {
-					LOGGER.warning("Failed to copy JAR: " + jarPath);
+					logger.log(System.Logger.Level.WARNING,"Failed to copy JAR: " + jarPath);
 				}
 			});
 	}
@@ -730,7 +740,7 @@ public class ProjectBuilder implements AutoCloseable {
 						Files.copy(libPath, target, StandardCopyOption.REPLACE_EXISTING);
 						result.addArtifact(target);
 					} catch (IOException e) {
-						LOGGER.warning("Failed to copy library: " + libPath);
+						logger.log(System.Logger.Level.WARNING,"Failed to copy library: " + libPath);
 					}
 				});
 		}
@@ -754,89 +764,88 @@ public class ProjectBuilder implements AutoCloseable {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(ProjectBuilder::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length < 1) {
 			printUsage();
-			System.exit(1);
+			throw new IllegalArgumentException("No command specified");
 		}
 
-		try {
-			String command = args[0];
-			BuildConfig config = new BuildConfig();
-			Path projectRoot = Paths.get(".");
+		String command = args[0];
+		BuildConfig config = new BuildConfig();
+		Path projectRoot = Paths.get(".");
 
-			// Parse options
-			for (int i = 1; i < args.length; i++) {
-				switch (args[i]) {
-					case "--target":
-						if (i + 1 < args.length) {
-							config.buildTarget(args[++i]);
-						}
-						break;
-					case "--profile":
-						if (i + 1 < args.length) {
-							config.buildProfile(args[++i]);
-						}
-						break;
-					case "--no-tests":
-						config.runTests(false);
-						break;
-					case "--docs":
-						config.generateDocs(true);
-						break;
-					case "--verbose":
-					case "-v":
-						config.verbose(true);
-						break;
-					case "--no-parallel":
-						config.parallel(false);
-						break;
-					case "--clean":
-						config.cleanBefore(true);
-						break;
-					case "--output":
-						if (i + 1 < args.length) {
-							config.outputDirectory(args[++i]);
-						}
-						break;
-					case "--skip":
-						if (i + 1 < args.length) {
-							config.skipModule(args[++i]);
-						}
-						break;
-					case "--project":
-						if (i + 1 < args.length) {
-							projectRoot = Paths.get(args[++i]);
-						}
-						break;
-					case "--help":
-					case "-h":
-						printUsage();
-						System.exit(0);
-						break;
-				}
+		// Parse options
+		for (int i = 1; i < args.length; i++) {
+			switch (args[i]) {
+				case "--target":
+					if (i + 1 < args.length) {
+						config.buildTarget(args[++i]);
+					}
+					break;
+				case "--profile":
+					if (i + 1 < args.length) {
+						config.buildProfile(args[++i]);
+					}
+					break;
+				case "--no-tests":
+					config.runTests(false);
+					break;
+				case "--docs":
+					config.generateDocs(true);
+					break;
+				case "--verbose":
+				case "-v":
+					config.verbose(true);
+					break;
+				case "--no-parallel":
+					config.parallel(false);
+					break;
+				case "--clean":
+					config.cleanBefore(true);
+					break;
+				case "--output":
+					if (i + 1 < args.length) {
+						config.outputDirectory(args[++i]);
+					}
+					break;
+				case "--skip":
+					if (i + 1 < args.length) {
+						config.skipModule(args[++i]);
+					}
+					break;
+				case "--project":
+					if (i + 1 < args.length) {
+						projectRoot = Paths.get(args[++i]);
+					}
+					break;
+				case "--help":
+				case "-h":
+					printUsage();
+					return;
 			}
+		}
 
-			try (ProjectBuilder builder = new ProjectBuilder(projectRoot, config)) {
-				switch (command) {
-					case "build":
-						handleBuildCommand(builder);
-						break;
-					case "clean":
-						handleCleanCommand(builder);
-						break;
-					case "test":
-						handleTestCommand(builder, config);
-						break;
-					default:
-						System.err.println("Unknown command: " + command);
-						printUsage();
-						System.exit(1);
-				}
+		try (ProjectBuilder builder = new ProjectBuilder(projectRoot, config)) {
+			switch (command) {
+				case "build":
+					handleBuildCommand(builder);
+					break;
+				case "clean":
+					handleCleanCommand(builder);
+					break;
+				case "test":
+					handleTestCommand(builder, config);
+					break;
+				default:
+					printUsage();
+					throw new IllegalArgumentException("Unknown command: " + command);
 			}
-
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Build failed", e);
-			System.exit(1);
 		}
 	}
 
@@ -855,8 +864,7 @@ public class ProjectBuilder implements AutoCloseable {
 				result.warnings.forEach(warning -> System.out.println("  " + warning));
 			}
 		} else {
-			System.err.println("Build failed: " + result.error);
-			System.exit(1);
+			throw new RuntimeException("Build failed: " + result.error);
 		}
 	}
 
@@ -876,7 +884,7 @@ public class ProjectBuilder implements AutoCloseable {
 		System.out.println("Failed: " + result.testsFailed);
 
 		if (result.testsFailed > 0) {
-			System.exit(1);
+			throw new RuntimeException(result.testsFailed + " tests failed");
 		}
 	}
 

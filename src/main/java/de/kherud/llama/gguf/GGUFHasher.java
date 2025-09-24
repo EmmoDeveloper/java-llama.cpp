@@ -1,14 +1,28 @@
 package de.kherud.llama.gguf;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * GGUF file hashing utility.
@@ -17,7 +31,7 @@ import java.util.logging.Logger;
  * including SHA-256, MD5, and custom GGUF-specific hashes.
  */
 public class GGUFHasher {
-	private static final Logger LOGGER = Logger.getLogger(GGUFHasher.class.getName());
+	private static final System.Logger logger = System.getLogger(GGUFHasher.class.getName());
 
 	public enum HashAlgorithm {
 		SHA256("SHA-256"),
@@ -184,7 +198,7 @@ public class GGUFHasher {
 			hashes.forEach(result::addHash);
 
 			if (options.verbose) {
-				LOGGER.info(String.format("Hashed %s in %d ms", filePath.getFileName(), hashTime));
+				logger.log(System.Logger.Level.INFO, String.format("Hashed %s in %d ms", filePath.getFileName(), hashTime));
 			}
 
 			return result;
@@ -226,7 +240,7 @@ public class GGUFHasher {
 			try {
 				results.add(future.get());
 			} catch (InterruptedException | ExecutionException e) {
-				LOGGER.warning("Failed to get hash result: " + e.getMessage());
+				logger.log(System.Logger.Level.WARNING, "Failed to get hash result: " + e.getMessage());
 			}
 		}
 
@@ -489,101 +503,97 @@ public class GGUFHasher {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(GGUFHasher::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length == 0) {
 			printUsage();
-			System.exit(1);
+			throw new IllegalArgumentException("No input files specified");
 		}
 
-		try {
-			HashOptions options = new HashOptions();
-			List<String> inputPaths = new ArrayList<>();
+		HashOptions options = new HashOptions();
+		List<String> inputPaths = new ArrayList<>();
 
-			// Parse arguments
-			for (int i = 0; i < args.length; i++) {
-				switch (args[i]) {
-					case "--algorithm":
-					case "-a":
-						if (i + 1 < args.length) {
-							String[] algos = args[++i].split(",");
-							HashAlgorithm[] algorithms = new HashAlgorithm[algos.length];
-							for (int j = 0; j < algos.length; j++) {
-								algorithms[j] = HashAlgorithm.valueOf(algos[j].toUpperCase());
-							}
-							options.algorithms(algorithms);
+		// Parse arguments
+		for (int i = 0; i < args.length; i++) {
+			switch (args[i]) {
+				case "--algorithm":
+				case "-a":
+					if (i + 1 < args.length) {
+						String[] algos = args[++i].split(",");
+						HashAlgorithm[] algorithms = new HashAlgorithm[algos.length];
+						for (int j = 0; j < algos.length; j++) {
+							algorithms[j] = HashAlgorithm.valueOf(algos[j].toUpperCase());
 						}
-						break;
-					case "--recursive":
-					case "-r":
-						options.recursive(true);
-						break;
-					case "--verbose":
-					case "-v":
-						options.verbose(true);
-						break;
-					case "--output":
-					case "-o":
-						if (i + 1 < args.length) {
-							options.outputFile(args[++i]);
-						}
-						break;
-					case "--threads":
-					case "-t":
-						if (i + 1 < args.length) {
-							options.threads(Integer.parseInt(args[++i]));
-						}
-						break;
-					case "--buffer-size":
-						if (i + 1 < args.length) {
-							options.bufferSize(Integer.parseInt(args[++i]) * 1024 * 1024);
-						}
-						break;
-					case "--help":
-					case "-h":
-						printUsage();
-						System.exit(0);
-						break;
-					default:
-						if (!args[i].startsWith("-")) {
-							inputPaths.add(args[i]);
-						}
-				}
+						options.algorithms(algorithms);
+					}
+					break;
+				case "--recursive":
+				case "-r":
+					options.recursive(true);
+					break;
+				case "--verbose":
+				case "-v":
+					options.verbose(true);
+					break;
+				case "--output":
+				case "-o":
+					if (i + 1 < args.length) {
+						options.outputFile(args[++i]);
+					}
+					break;
+				case "--threads":
+				case "-t":
+					if (i + 1 < args.length) {
+						options.threads(Integer.parseInt(args[++i]));
+					}
+					break;
+				case "--buffer-size":
+					if (i + 1 < args.length) {
+						options.bufferSize(Integer.parseInt(args[++i]) * 1024 * 1024);
+					}
+					break;
+				case "--help":
+				case "-h":
+					printUsage();
+					return;
+				default:
+					if (!args[i].startsWith("-")) {
+						inputPaths.add(args[i]);
+					}
 			}
+		}
 
-			if (inputPaths.isEmpty()) {
-				System.err.println("Error: No input files specified");
-				printUsage();
-				System.exit(1);
+		if (inputPaths.isEmpty()) {
+			printUsage();
+			throw new IllegalArgumentException("No input files specified");
+		}
+
+		GGUFHasher hasher = new GGUFHasher(options);
+		List<HashResult> allResults = new ArrayList<>();
+
+		for (String inputPath : inputPaths) {
+			Path path = Paths.get(inputPath);
+			if (Files.isDirectory(path)) {
+				allResults.addAll(hasher.hashDirectory(path));
+			} else {
+				allResults.add(hasher.hashFile(path));
 			}
+		}
 
-			GGUFHasher hasher = new GGUFHasher(options);
-			List<HashResult> allResults = new ArrayList<>();
+		// Print results
+		for (HashResult result : allResults) {
+			System.out.println(result);
+		}
 
-			for (String inputPath : inputPaths) {
-				Path path = Paths.get(inputPath);
-				if (Files.isDirectory(path)) {
-					allResults.addAll(hasher.hashDirectory(path));
-				} else {
-					allResults.add(hasher.hashFile(path));
-				}
-			}
-
-			// Print results
-			for (HashResult result : allResults) {
-				System.out.println(result);
-			}
-
-			// Save to file if requested
-			if (options.outputFile) {
-				hasher.saveResults(allResults, options.outputPath);
-				System.out.println("Results saved to: " + options.outputPath);
-			}
-
-		} catch (Exception e) {
-			System.err.println("Error: " + e.getMessage());
-			if (Arrays.asList(args).contains("--verbose") || Arrays.asList(args).contains("-v")) {
-				e.printStackTrace();
-			}
-			System.exit(1);
+		// Save to file if requested
+		if (options.outputFile) {
+			hasher.saveResults(allResults, options.outputPath);
+			System.out.println("Results saved to: " + options.outputPath);
 		}
 	}
 

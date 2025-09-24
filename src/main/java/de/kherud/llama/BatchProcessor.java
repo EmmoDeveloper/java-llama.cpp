@@ -1,9 +1,8 @@
 package de.kherud.llama;
 
-import java.util.logging.Logger;
 
 public class BatchProcessor implements AutoCloseable {
-	private static final Logger LOGGER = Logger.getLogger(BatchProcessor.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(BatchProcessor.class.getName());
 	private static final boolean USE_SAFE_FALLBACK = Boolean.parseBoolean(
 		System.getProperty("llama.batch.safe_fallback", "true"));
 
@@ -22,7 +21,7 @@ public class BatchProcessor implements AutoCloseable {
 		if (USE_SAFE_FALLBACK) {
 			// Use safe Java-level implementation
 			tempSafeFallback = new SafeBatchProcessor(maxTokenCount, embeddingDimension, maxSequenceCount);
-			LOGGER.info("Using SafeBatchProcessor fallback implementation");
+			LOGGER.log(System.Logger.Level.INFO,"Using SafeBatchProcessor fallback implementation");
 		} else {
 			// Try native implementation
 			try {
@@ -31,9 +30,9 @@ public class BatchProcessor implements AutoCloseable {
 					throw new LlamaException("Failed to initialize native batch processor");
 				}
 				tempUsingSafeFallback = false;
-				LOGGER.info("Using native BatchProcessor implementation");
+				LOGGER.log(System.Logger.Level.INFO,"Using native BatchProcessor implementation");
 			} catch (Exception e) {
-				LOGGER.warning("Native batch processing failed, falling back to safe implementation: " + e.getMessage());
+				LOGGER.log(System.Logger.Level.WARNING,"Native batch processing failed, falling back to safe implementation: " + e.getMessage());
 				tempSafeFallback = new SafeBatchProcessor(maxTokenCount, embeddingDimension, maxSequenceCount);
 			}
 		}

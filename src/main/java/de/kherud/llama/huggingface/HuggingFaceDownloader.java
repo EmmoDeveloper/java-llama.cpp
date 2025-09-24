@@ -3,14 +3,32 @@ package de.kherud.llama.huggingface;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.*;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -21,7 +39,7 @@ import java.util.regex.Pattern;
  * authentication, and metadata handling.
  */
 public class HuggingFaceDownloader {
-	private static final Logger LOGGER = Logger.getLogger(HuggingFaceDownloader.class.getName());
+	private static final System.Logger logger = System.getLogger(HuggingFaceDownloader.class.getName());
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 	private static final String HF_HUB_URL = "https://huggingface.co";
 	private static final String HF_API_URL = "https://api.huggingface.co";
@@ -146,7 +164,7 @@ public class HuggingFaceDownloader {
 	 * Download a model from HuggingFace Hub
 	 */
 	public DownloadResult downloadModel(String modelId, Path outputDir) throws IOException {
-		LOGGER.info("Starting download for model: " + modelId);
+		logger.log(System.Logger.Level.INFO, "Starting download for model: " + modelId);
 		DownloadResult result = new DownloadResult();
 		result.modelId = modelId;
 		result.downloadPath = outputDir;
@@ -167,7 +185,7 @@ public class HuggingFaceDownloader {
 				throw new IOException("No files to download after filtering");
 			}
 
-			LOGGER.info("Found " + filesToDownload.size() + " files to download");
+			logger.log(System.Logger.Level.INFO, "Found " + filesToDownload.size() + " files to download");
 
 			// Download files
 			downloadFiles(filesToDownload, outputDir, result);
@@ -175,13 +193,13 @@ public class HuggingFaceDownloader {
 			result.downloadTime = System.currentTimeMillis() - startTime;
 			result.success = true;
 
-			LOGGER.info("Download completed successfully in " + result.downloadTime + "ms");
-			LOGGER.info("Downloaded " + result.downloadedFiles.size() + " files");
+			logger.log(System.Logger.Level.INFO, "Download completed successfully in " + result.downloadTime + "ms");
+			logger.log(System.Logger.Level.INFO, "Downloaded " + result.downloadedFiles.size() + " files");
 
 		} catch (Exception e) {
 			result.success = false;
 			result.error = e.getMessage();
-			LOGGER.log(Level.SEVERE, "Download failed for model: " + modelId, e);
+			logger.log(System.Logger.Level.ERROR, "Download failed for model: " + modelId, e);
 		}
 
 		return result;
@@ -331,7 +349,7 @@ public class HuggingFaceDownloader {
 					result.downloadedFiles.add(downloadedFile);
 				}
 			} catch (ExecutionException e) {
-				LOGGER.log(Level.WARNING, "File download failed", e.getCause());
+				logger.log(System.Logger.Level.WARNING, "File download failed", e.getCause());
 			}
 		}
 	}
@@ -341,7 +359,7 @@ public class HuggingFaceDownloader {
 		Files.createDirectories(outputFile.getParent());
 
 		if (config.verbose) {
-			LOGGER.info("Downloading: " + file.filename + " (" + formatSize(file.size) + ")");
+			logger.log(System.Logger.Level.INFO, "Downloading: " + file.filename + " (" + formatSize(file.size) + ")");
 		}
 
 		// Check if file already exists and resume is enabled
@@ -350,7 +368,7 @@ public class HuggingFaceDownloader {
 			existingSize = Files.size(outputFile);
 			if (existingSize == file.size) {
 				if (config.verbose) {
-					LOGGER.info("File already exists and is complete: " + file.filename);
+					logger.log(System.Logger.Level.INFO, "File already exists and is complete: " + file.filename);
 				}
 				return outputFile;
 			}
@@ -362,7 +380,7 @@ public class HuggingFaceDownloader {
 		if (existingSize > 0) {
 			conn.setRequestProperty("Range", "bytes=" + existingSize + "-");
 			if (config.verbose) {
-				LOGGER.info("Resuming download from byte " + existingSize);
+				logger.log(System.Logger.Level.INFO, "Resuming download from byte " + existingSize);
 			}
 		}
 
@@ -386,13 +404,13 @@ public class HuggingFaceDownloader {
 
 				if (config.verbose && totalBytes % (1024 * 1024) == 0) {
 					double progress = (double) totalBytes / file.size * 100;
-					LOGGER.info(String.format("Progress for %s: %.1f%%", file.filename, progress));
+					logger.log(System.Logger.Level.INFO, String.format("Progress for %s: %.1f%%", file.filename, progress));
 				}
 			}
 		}
 
 		if (config.verbose) {
-			LOGGER.info("Completed: " + file.filename);
+			logger.log(System.Logger.Level.INFO, "Completed: " + file.filename);
 		}
 
 		return outputFile;
@@ -507,9 +525,16 @@ public class HuggingFaceDownloader {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(HuggingFaceDownloader::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length < 2) {
 			printUsage();
-			System.exit(1);
+			throw new IllegalArgumentException("Insufficient arguments");
 		}
 
 		try {
@@ -563,8 +588,7 @@ public class HuggingFaceDownloader {
 					case "--help":
 					case "-h":
 						printUsage();
-						System.exit(0);
-						break;
+						return; // Exit normally after showing help
 				}
 				argIndex++;
 			}
@@ -586,25 +610,24 @@ public class HuggingFaceDownloader {
 						handleListCacheCommand(downloader);
 						break;
 					default:
-						System.err.println("Unknown command: " + command);
 						printUsage();
-						System.exit(1);
+						throw new IllegalArgumentException("Unknown command: " + command);
 				}
 			} finally {
 				downloader.close();
 			}
 
+		} catch (IOException e) {
+			throw e; // Re-throw IO exceptions
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Command failed", e);
-			System.exit(1);
+			throw new RuntimeException("Command failed", e);
 		}
 	}
 
 	private static void handleDownloadCommand(String[] args, int startIndex,
 											 HuggingFaceDownloader downloader, DownloadConfig config) throws IOException {
 		if (startIndex >= args.length) {
-			System.err.println("Model ID required for download command");
-			System.exit(1);
+			throw new IllegalArgumentException("Model ID required for download command");
 		}
 
 		String modelId = args[startIndex];
@@ -628,15 +651,13 @@ public class HuggingFaceDownloader {
 			System.out.println("Size: " + downloader.formatSize(result.totalSize));
 			System.out.println("Time: " + result.downloadTime + "ms");
 		} else {
-			System.err.println("Download failed: " + result.error);
-			System.exit(1);
+			throw new RuntimeException("Download failed: " + result.error);
 		}
 	}
 
 	private static void handleInfoCommand(String[] args, int startIndex, HuggingFaceDownloader downloader) throws IOException {
 		if (startIndex >= args.length) {
-			System.err.println("Model ID required for info command");
-			System.exit(1);
+			throw new IllegalArgumentException("Model ID required for info command");
 		}
 
 		String modelId = args[startIndex];
@@ -658,8 +679,7 @@ public class HuggingFaceDownloader {
 
 	private static void handleSearchCommand(String[] args, int startIndex, HuggingFaceDownloader downloader) throws IOException {
 		if (startIndex >= args.length) {
-			System.err.println("Search query required for search command");
-			System.exit(1);
+			throw new IllegalArgumentException("Search query required for search command");
 		}
 
 		String query = args[startIndex];

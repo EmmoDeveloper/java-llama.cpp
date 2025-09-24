@@ -5,13 +5,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.kherud.llama.gguf.GGUFConstants;
 import de.kherud.llama.gguf.GGUFWriter;
 
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.file.*;
-import java.util.*;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -23,7 +31,7 @@ import java.util.stream.IntStream;
  * with support for various model architectures, tokenizers, and configurations.
  */
 public class HuggingFaceModelConverter {
-	private static final Logger LOGGER = Logger.getLogger(HuggingFaceModelConverter.class.getName());
+	private static final System.Logger logger = System.getLogger(HuggingFaceModelConverter.class.getName());
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	public static class ConversionConfig {
@@ -219,8 +227,8 @@ public class HuggingFaceModelConverter {
 	 * Convert HuggingFace model to GGUF format
 	 */
 	public ConversionResult convert() throws IOException {
-		LOGGER.info("Starting HuggingFace to GGUF conversion");
-		LOGGER.info("Model directory: " + modelDir);
+		logger.log(System.Logger.Level.INFO, "Starting HuggingFace to GGUF conversion");
+		logger.log(System.Logger.Level.INFO, "Model directory: " + modelDir);
 
 		ConversionResult result = new ConversionResult();
 		long startTime = System.currentTimeMillis();
@@ -231,8 +239,8 @@ public class HuggingFaceModelConverter {
 			result.architecture = ModelArchitecture.detectArchitecture(modelConfig);
 
 			if (config.verbose) {
-				LOGGER.info("Detected architecture: " + result.architecture.name);
-				LOGGER.info("Architecture family: " + result.architecture.family);
+				logger.log(System.Logger.Level.INFO, "Detected architecture: " + result.architecture.name);
+				logger.log(System.Logger.Level.INFO, "Architecture family: " + result.architecture.family);
 			}
 
 			// Load tokenizer
@@ -247,12 +255,12 @@ public class HuggingFaceModelConverter {
 				throw new IOException("No model files found");
 			}
 
-			LOGGER.info("Found " + modelFiles.size() + " model files");
+			logger.log(System.Logger.Level.INFO, "Found " + modelFiles.size() + " model files");
 			result.originalSize = calculateTotalSize(modelFiles);
 
 			if (config.dryRun) {
 				result.success = true;
-				LOGGER.info("Dry run completed - no output file created");
+				logger.log(System.Logger.Level.INFO, "Dry run completed - no output file created");
 				return result;
 			}
 
@@ -263,16 +271,16 @@ public class HuggingFaceModelConverter {
 			result.conversionTime = System.currentTimeMillis() - startTime;
 			result.success = true;
 
-			LOGGER.info("Conversion completed successfully");
-			LOGGER.info("Output: " + result.outputPath);
-			LOGGER.info("Original size: " + formatSize(result.originalSize));
-			LOGGER.info("Converted size: " + formatSize(result.convertedSize));
-			LOGGER.info("Conversion time: " + result.conversionTime + "ms");
+			logger.log(System.Logger.Level.INFO, "Conversion completed successfully");
+			logger.log(System.Logger.Level.INFO, "Output: " + result.outputPath);
+			logger.log(System.Logger.Level.INFO, "Original size: " + formatSize(result.originalSize));
+			logger.log(System.Logger.Level.INFO, "Converted size: " + formatSize(result.convertedSize));
+			logger.log(System.Logger.Level.INFO, "Conversion time: " + result.conversionTime + "ms");
 
 		} catch (Exception e) {
 			result.success = false;
 			result.error = e.getMessage();
-			LOGGER.log(Level.SEVERE, "Conversion failed", e);
+			logger.log(System.Logger.Level.ERROR, "Conversion failed: " + e.getMessage(), e);
 		}
 
 		return result;
@@ -305,7 +313,7 @@ public class HuggingFaceModelConverter {
 		} else if (Files.exists(vocabFile)) {
 			loadVocabFileTokenizer(vocabFile, tokenizer);
 		} else {
-			LOGGER.warning("No tokenizer files found - proceeding without tokenizer");
+			logger.log(System.Logger.Level.WARNING, "No tokenizer files found - proceeding without tokenizer");
 			return null;
 		}
 
@@ -314,7 +322,7 @@ public class HuggingFaceModelConverter {
 			loadSpecialTokens(tokenizerConfig, tokenizer);
 		}
 
-		LOGGER.info("Loaded tokenizer with " + tokenizer.tokens.size() + " tokens");
+		logger.log(System.Logger.Level.INFO, "Loaded tokenizer with " + tokenizer.tokens.size() + " tokens");
 		return tokenizer;
 	}
 
@@ -352,7 +360,7 @@ public class HuggingFaceModelConverter {
 	private void loadSentencePieceTokenizer(Path modelPath, TokenizerInfo tokenizer) throws IOException {
 		// This would require a SentencePiece library integration
 		// For now, we'll implement a simple reader for the basic format
-		LOGGER.warning("SentencePiece tokenizer loading not fully implemented");
+		logger.log(System.Logger.Level.WARNING, "SentencePiece tokenizer loading not fully implemented");
 		tokenizer.tokenizerType = "SentencePiece";
 	}
 
@@ -497,7 +505,7 @@ public class HuggingFaceModelConverter {
 		}
 
 		if (config.verbose) {
-			LOGGER.info("Written metadata for architecture: " + architecture.name);
+			logger.log(System.Logger.Level.INFO, "Written metadata for architecture: " + architecture.name);
 		}
 	}
 
@@ -589,7 +597,7 @@ public class HuggingFaceModelConverter {
 		}
 
 		if (config.verbose) {
-			LOGGER.info("Written tokenizer with " + tokens.length + " tokens");
+			logger.log(System.Logger.Level.INFO, "Written tokenizer with " + tokens.length + " tokens");
 		}
 	}
 
@@ -605,7 +613,7 @@ public class HuggingFaceModelConverter {
 
 		for (Path modelFile : modelFiles) {
 			if (config.verbose) {
-				LOGGER.info("Loading tensors from: " + modelFile.getFileName());
+				logger.log(System.Logger.Level.INFO, "Loading tensors from: " + modelFile.getFileName());
 			}
 
 			if (modelFile.toString().endsWith(".safetensors")) {
@@ -621,13 +629,13 @@ public class HuggingFaceModelConverter {
 	private void loadSafetensorsTensors(Path file, Map<String, TensorData> tensors, ModelArchitecture architecture) throws IOException {
 		// This would require a SafeTensors library integration
 		// For now, we'll provide a placeholder implementation
-		LOGGER.warning("SafeTensors loading not fully implemented");
+		logger.log(System.Logger.Level.WARNING, "SafeTensors loading not fully implemented");
 	}
 
 	private void loadPyTorchTensors(Path file, Map<String, TensorData> tensors, ModelArchitecture architecture) throws IOException {
 		// This would require PyTorch model loading
 		// For now, we'll provide a placeholder implementation
-		LOGGER.warning("PyTorch tensor loading not fully implemented");
+		logger.log(System.Logger.Level.WARNING, "PyTorch tensor loading not fully implemented");
 	}
 
 	private String mapTensorName(String originalName, ModelArchitecture architecture) {
@@ -683,73 +691,72 @@ public class HuggingFaceModelConverter {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(HuggingFaceModelConverter::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length < 2) {
 			printUsage();
-			System.exit(1);
+			throw new IllegalArgumentException("Insufficient arguments");
 		}
 
-		try {
-			Path modelDir = Paths.get(args[0]);
-			ConversionConfig config = new ConversionConfig().outputPath(args[1]);
+		Path modelDir = Paths.get(args[0]);
+		ConversionConfig config = new ConversionConfig().outputPath(args[1]);
 
-			// Parse options
-			for (int i = 2; i < args.length; i++) {
-				switch (args[i]) {
-					case "--quantize":
-						if (i + 1 < args.length) {
-							config.quantization(GGUFConstants.GGMLQuantizationType.valueOf(args[++i]));
-						}
-						break;
-					case "--verbose":
-					case "-v":
-						config.verbose(true);
-						break;
-					case "--dry-run":
-						config.dryRun(true);
-						break;
-					case "--vocab-type":
-						if (i + 1 < args.length) {
-							config.vocabType(args[++i]);
-						}
-						break;
-					case "--context-length":
-						if (i + 1 < args.length) {
-							config.contextLength(Integer.parseInt(args[++i]));
-						}
-						break;
-					case "--skip-tokenizer":
-						config.skipTokenizer(true);
-						break;
-					case "--metadata":
-						if (i + 2 < args.length) {
-							config.addMetadata(args[++i], args[++i]);
-						}
-						break;
-					case "--help":
-					case "-h":
-						printUsage();
-						System.exit(0);
-						break;
-				}
+		// Parse options
+		for (int i = 2; i < args.length; i++) {
+			switch (args[i]) {
+				case "--quantize":
+					if (i + 1 < args.length) {
+						config.quantization(GGUFConstants.GGMLQuantizationType.valueOf(args[++i]));
+					}
+					break;
+				case "--verbose":
+				case "-v":
+					config.verbose(true);
+					break;
+				case "--dry-run":
+					config.dryRun(true);
+					break;
+				case "--vocab-type":
+					if (i + 1 < args.length) {
+						config.vocabType(args[++i]);
+					}
+					break;
+				case "--context-length":
+					if (i + 1 < args.length) {
+						config.contextLength(Integer.parseInt(args[++i]));
+					}
+					break;
+				case "--skip-tokenizer":
+					config.skipTokenizer(true);
+					break;
+				case "--metadata":
+					if (i + 2 < args.length) {
+						config.addMetadata(args[++i], args[++i]);
+					}
+					break;
+				case "--help":
+				case "-h":
+					printUsage();
+					return;
 			}
+		}
 
-			HuggingFaceModelConverter converter = new HuggingFaceModelConverter(modelDir, config);
-			ConversionResult result = converter.convert();
+		HuggingFaceModelConverter converter = new HuggingFaceModelConverter(modelDir, config);
+		ConversionResult result = converter.convert();
 
-			if (result.success) {
-				System.out.println("Conversion successful!");
-				System.out.println("Output: " + result.outputPath);
-				System.out.println("Architecture: " + result.architecture.name);
-				System.out.println("Tensors: " + result.tensorCount);
-				System.out.println("Time: " + result.conversionTime + "ms");
-			} else {
-				System.err.println("Conversion failed: " + result.error);
-				System.exit(1);
-			}
-
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Conversion failed", e);
-			System.exit(1);
+		if (result.success) {
+			System.out.println("Conversion successful!");
+			System.out.println("Output: " + result.outputPath);
+			System.out.println("Architecture: " + result.architecture.name);
+			System.out.println("Tensors: " + result.tensorCount);
+			System.out.println("Time: " + result.conversionTime + "ms");
+		} else {
+			throw new RuntimeException("Conversion failed: " + result.error);
 		}
 	}
 

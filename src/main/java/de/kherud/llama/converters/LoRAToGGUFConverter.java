@@ -1,19 +1,25 @@
 package de.kherud.llama.converters;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.kherud.llama.gguf.GGUFConstants;
 import de.kherud.llama.gguf.GGUFWriter;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.*;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import java.nio.file.*;
-import java.util.*;
-import java.util.logging.Logger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -514,13 +520,20 @@ public class LoRAToGGUFConverter {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(LoRAToGGUFConverter::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length < 2) {
 			System.err.println("Usage: LoRAToGGUFConverter <adapter_path> <output_path> [options]");
 			System.err.println("Options:");
 			System.err.println("  --arch <name>      Base model architecture (default: llama)");
 			System.err.println("  --merge-norms      Include layer normalization weights");
 			System.err.println("  --verbose          Enable verbose output");
-			System.exit(1);
+			throw new IllegalArgumentException("Insufficient arguments");
 		}
 
 		try {
@@ -543,9 +556,11 @@ public class LoRAToGGUFConverter {
 			LoRAToGGUFConverter converter = new LoRAToGGUFConverter(adapterPath, outputPath, config);
 			converter.convert();
 
+		} catch (IOException e) {
+			throw e; // Re-throw IO exceptions
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Conversion failed", e);
-			System.exit(1);
+			throw new RuntimeException("Conversion failed", e);
 		}
 	}
 }

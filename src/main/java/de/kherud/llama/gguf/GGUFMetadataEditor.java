@@ -3,12 +3,17 @@ package de.kherud.llama.gguf;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -350,112 +355,106 @@ public class GGUFMetadataEditor {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(GGUFMetadataEditor::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length == 0) {
 			printUsage();
-			System.exit(1);
+			throw new IllegalArgumentException("No arguments provided");
 		}
 
-		try {
-			EditOptions options = new EditOptions();
-			List<MetadataOperation> operations = new ArrayList<>();
-			String filePath = null;
+		EditOptions options = new EditOptions();
+		List<MetadataOperation> operations = new ArrayList<>();
+		String filePath = null;
 
-			// Parse arguments
-			for (int i = 0; i < args.length; i++) {
-				switch (args[i]) {
-					case "--set":
-						if (i + 2 < args.length) {
-							String key = args[++i];
-							String valueStr = args[++i];
-							Object value = parseValue(valueStr);
-							operations.add(MetadataOperation.set(key, value));
-						}
-						break;
-					case "--delete":
-						if (i + 1 < args.length) {
-							operations.add(MetadataOperation.delete(args[++i]));
-						}
-						break;
-					case "--rename":
-						if (i + 2 < args.length) {
-							String oldKey = args[++i];
-							String newKey = args[++i];
-							operations.add(MetadataOperation.rename(oldKey, newKey));
-						}
-						break;
-					case "--json":
-						if (i + 1 < args.length) {
-							Path jsonPath = Paths.get(args[++i]);
-							operations.addAll(loadOperationsFromJson(jsonPath));
-						}
-						break;
-					case "--verbose":
-					case "-v":
-						options.verbose(true);
-						break;
-					case "--dry-run":
-						options.dryRun(true);
-						break;
-					case "--no-backup":
-						options.backup(false);
-						break;
-					case "--backup-suffix":
-						if (i + 1 < args.length) {
-							options.backupSuffix(args[++i]);
-						}
-						break;
-					case "--force":
-						options.force(true);
-						break;
-					case "--help":
-					case "-h":
-						printUsage();
-						System.exit(0);
-						break;
-					default:
-						if (!args[i].startsWith("-")) {
-							filePath = args[i];
-						}
-				}
+		// Parse arguments
+		for (int i = 0; i < args.length; i++) {
+			switch (args[i]) {
+				case "--set":
+					if (i + 2 < args.length) {
+						String key = args[++i];
+						String valueStr = args[++i];
+						Object value = parseValue(valueStr);
+						operations.add(MetadataOperation.set(key, value));
+					}
+					break;
+				case "--delete":
+					if (i + 1 < args.length) {
+						operations.add(MetadataOperation.delete(args[++i]));
+					}
+					break;
+				case "--rename":
+					if (i + 2 < args.length) {
+						String oldKey = args[++i];
+						String newKey = args[++i];
+						operations.add(MetadataOperation.rename(oldKey, newKey));
+					}
+					break;
+				case "--json":
+					if (i + 1 < args.length) {
+						Path jsonPath = Paths.get(args[++i]);
+						operations.addAll(loadOperationsFromJson(jsonPath));
+					}
+					break;
+				case "--verbose":
+				case "-v":
+					options.verbose(true);
+					break;
+				case "--dry-run":
+					options.dryRun(true);
+					break;
+				case "--no-backup":
+					options.backup(false);
+					break;
+				case "--backup-suffix":
+					if (i + 1 < args.length) {
+						options.backupSuffix(args[++i]);
+					}
+					break;
+				case "--force":
+					options.force(true);
+					break;
+				case "--help":
+				case "-h":
+					printUsage();
+					return;
+				default:
+					if (!args[i].startsWith("-")) {
+						filePath = args[i];
+					}
 			}
+		}
 
-			if (filePath == null) {
-				System.err.println("Error: No input file specified");
-				printUsage();
-				System.exit(1);
+		if (filePath == null) {
+			printUsage();
+			throw new IllegalArgumentException("No input file specified");
+		}
+
+		if (operations.isEmpty()) {
+			printUsage();
+			throw new IllegalArgumentException("No operations specified");
+		}
+
+		GGUFMetadataEditor editor = new GGUFMetadataEditor(Paths.get(filePath), options);
+		EditResult result = editor.applyOperations(operations);
+
+		if (result.isSuccess()) {
+			System.out.println(result.getMessage());
+			if (result.hasChanges()) {
+				System.out.println("Changes made:");
+				result.getChangedMetadata().forEach((k, v) ->
+					System.out.println("  Set " + k + " = " + v));
+				result.getDeletedKeys().forEach(k ->
+					System.out.println("  Deleted " + k));
+				result.getRenamedKeys().forEach((old, newKey) ->
+					System.out.println("  Renamed " + old + " -> " + newKey));
 			}
-
-			if (operations.isEmpty()) {
-				System.err.println("Error: No operations specified");
-				printUsage();
-				System.exit(1);
-			}
-
-			GGUFMetadataEditor editor = new GGUFMetadataEditor(Paths.get(filePath), options);
-			EditResult result = editor.applyOperations(operations);
-
-			if (result.isSuccess()) {
-				System.out.println(result.getMessage());
-				if (result.hasChanges()) {
-					System.out.println("Changes made:");
-					result.getChangedMetadata().forEach((k, v) ->
-						System.out.println("  Set " + k + " = " + v));
-					result.getDeletedKeys().forEach(k ->
-						System.out.println("  Deleted " + k));
-					result.getRenamedKeys().forEach((old, newKey) ->
-						System.out.println("  Renamed " + old + " -> " + newKey));
-				}
-			} else {
-				System.err.println("Error: " + result.getMessage());
-				System.exit(1);
-			}
-
-		} catch (Exception e) {
-			System.err.println("Error: " + e.getMessage());
-			if (Arrays.asList(args).contains("--verbose") || Arrays.asList(args).contains("-v")) {
-				e.printStackTrace();
-			}
-			System.exit(1);
+		} else {
+			throw new RuntimeException(result.getMessage());
 		}
 	}
 

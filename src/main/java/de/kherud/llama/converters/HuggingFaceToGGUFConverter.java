@@ -1,25 +1,32 @@
 package de.kherud.llama.converters;
 
-import de.kherud.llama.gguf.GGUFConstants;
-import de.kherud.llama.gguf.GGUFWriter;
-import de.kherud.llama.gguf.TensorInfo;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.kherud.llama.gguf.GGUFConstants;
+import de.kherud.llama.gguf.GGUFWriter;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import java.nio.file.*;
-import java.util.*;
-import java.util.logging.Logger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
-import java.util.concurrent.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 /**
  * Converts HuggingFace models to GGUF format.
@@ -541,13 +548,20 @@ public class HuggingFaceToGGUFConverter {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(HuggingFaceToGGUFConverter::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length < 2) {
 			System.err.println("Usage: HuggingFaceToGGUFConverter <model_path> <output_path> [options]");
 			System.err.println("Options:");
 			System.err.println("  --quantize <type>  Quantization type (F32, F16, Q4_0, Q4_1, Q5_0, Q5_1, Q8_0, etc.)");
 			System.err.println("  --threads <n>      Number of threads to use");
 			System.err.println("  --verbose          Enable verbose output");
-			System.exit(1);
+			throw new IllegalArgumentException("Insufficient arguments");
 		}
 
 		try {
@@ -571,9 +585,11 @@ public class HuggingFaceToGGUFConverter {
 			HuggingFaceToGGUFConverter converter = new HuggingFaceToGGUFConverter(modelPath, outputPath, config);
 			converter.convert();
 
+		} catch (IOException e) {
+			throw e; // Re-throw IO exceptions
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Conversion failed", e);
-			System.exit(1);
+			throw new RuntimeException("Conversion failed", e);
 		}
 	}
 }

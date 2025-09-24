@@ -3,19 +3,27 @@ package de.kherud.llama.testing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Server testing framework.
@@ -1059,6 +1067,13 @@ public class ServerTestFramework {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(ServerTestFramework::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		TestConfig config = new TestConfig();
 
 		// Parse arguments
@@ -1091,8 +1106,7 @@ public class ServerTestFramework {
 				case "--help":
 				case "-h":
 					printUsage();
-					System.exit(0);
-					break;
+					return;
 			}
 		}
 
@@ -1102,13 +1116,12 @@ public class ServerTestFramework {
 			List<TestSuite> results = framework.runTests();
 			framework.printSummary(results);
 
-			// Exit with non-zero status if any tests failed
+			// Throw exception if any tests failed
 			boolean anyFailed = results.stream().anyMatch(suite -> suite.failed > 0);
-			System.exit(anyFailed ? 1 : 0);
+			if (anyFailed) {
+				throw new RuntimeException("Some tests failed");
+			}
 
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Test framework failed", e);
-			System.exit(1);
 		} finally {
 			framework.close();
 		}

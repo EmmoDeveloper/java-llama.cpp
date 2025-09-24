@@ -3,9 +3,12 @@ package de.kherud.llama.testing;
 import de.kherud.llama.LlamaModel;
 import de.kherud.llama.ModelParameters;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -18,6 +21,23 @@ public class TokenizerTester {
 	private final TokenizerStats stats;
 
 	public TokenizerTester(String modelPath) {
+		// Validate model path
+		if (modelPath == null || modelPath.isEmpty()) {
+			throw new IllegalArgumentException("Model path cannot be null or empty");
+		}
+
+		// Check if file exists and has content
+		java.io.File modelFile = new java.io.File(modelPath);
+		if (!modelFile.exists()) {
+			throw new IllegalArgumentException("Model file does not exist: " + modelPath);
+		}
+		if (!modelFile.isFile()) {
+			throw new IllegalArgumentException("Model path is not a file: " + modelPath);
+		}
+		if (modelFile.length() < 1024) { // GGUF files are at least several KB
+			throw new IllegalArgumentException("Model file is too small to be valid: " + modelFile.length() + " bytes");
+		}
+
 		ModelParameters params = new ModelParameters()
 			.setModel(modelPath)
 			.setCtxSize(4096);
@@ -317,9 +337,15 @@ public class TokenizerTester {
 	}
 
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(TokenizerTester::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length != 1) {
-			System.err.println("Usage: TokenizerTester <model_path>");
-			System.exit(1);
+			throw new IllegalArgumentException("Usage: TokenizerTester <model_path>");
 		}
 
 		TokenizerTester tester = new TokenizerTester(args[0]);

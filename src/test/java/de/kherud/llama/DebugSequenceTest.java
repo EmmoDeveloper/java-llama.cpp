@@ -26,7 +26,6 @@ public class DebugSequenceTest {
 					logger.log(DEBUG, "SUCCESS: Unused sequence 0 state size: " + seqStateSize);
 				} catch (Exception e) {
 					logger.log(DEBUG, "FAILED: " + e.getMessage());
-					e.printStackTrace();
 				}
 
 				// Try regular state size for comparison
@@ -40,7 +39,6 @@ public class DebugSequenceTest {
 					logger.log(DEBUG, "SUCCESS: Model state size: " + stateSize);
 				} catch (Exception e) {
 					logger.log(DEBUG, "FAILED: " + e.getMessage());
-					e.printStackTrace();
 				}
 
 				// Now try sequence state after using the model
@@ -50,12 +48,10 @@ public class DebugSequenceTest {
 					logger.log(DEBUG, "SUCCESS: Used sequence 0 state size: " + seqStateSize);
 				} catch (Exception e) {
 					logger.log(DEBUG, "FAILED: " + e.getMessage());
-					e.printStackTrace();
 				}
 			}
 		} catch (Exception e) {
 			System.err.println("Exception occurred: " + e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 		logger.log(DEBUG, "=== Debug Complete ===");

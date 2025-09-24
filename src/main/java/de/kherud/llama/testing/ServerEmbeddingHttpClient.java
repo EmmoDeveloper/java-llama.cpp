@@ -1,5 +1,7 @@
 package de.kherud.llama.testing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -10,8 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ServerEmbeddingHttpClient extends ServerEmbeddingClient {
 
@@ -153,10 +153,16 @@ public class ServerEmbeddingHttpClient extends ServerEmbeddingClient {
 		// HttpClient doesn't need explicit closing in modern Java
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(ServerEmbeddingHttpClient::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length < 1) {
-			System.err.println("Usage: ServerEmbeddingHttpClient <server_url> [text]");
-			System.exit(1);
+			throw new IllegalArgumentException("Usage: ServerEmbeddingHttpClient <server_url> [text]");
 		}
 
 		String serverUrl = args[0];
@@ -164,13 +170,12 @@ public class ServerEmbeddingHttpClient extends ServerEmbeddingClient {
 
 		ServerEmbeddingHttpClient client = new ServerEmbeddingHttpClient(serverUrl);
 
-		try {
-			// Check server health
-			if (!client.isServerHealthy()) {
-				System.err.println("Server is not healthy at " + serverUrl);
-				System.exit(1);
-			}
+		// Check server health
+		if (!client.isServerHealthy()) {
+			throw new RuntimeException("Server is not healthy at " + serverUrl);
+		}
 
+		try {
 			System.out.println("Server is healthy, generating embeddings...");
 
 			// Test single embedding

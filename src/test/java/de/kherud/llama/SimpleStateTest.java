@@ -37,7 +37,6 @@ public class SimpleStateTest {
 			}
 		} catch (Exception e) {
 			System.err.println("Exception occurred: " + e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 		logger.log(DEBUG, "=== Test Complete ===");

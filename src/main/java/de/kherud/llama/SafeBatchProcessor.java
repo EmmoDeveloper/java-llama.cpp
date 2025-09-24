@@ -1,8 +1,10 @@
 package de.kherud.llama;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Safe batch processor that implements batch processing at the Java level
@@ -13,7 +15,7 @@ import java.util.logging.Logger;
  * guaranteed stability.
  */
 public class SafeBatchProcessor implements AutoCloseable {
-	private static final Logger LOGGER = Logger.getLogger(SafeBatchProcessor.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(SafeBatchProcessor.class.getName());
 
 	private final int maxTokenCount;
 	private final int embeddingDimension;
@@ -33,7 +35,7 @@ public class SafeBatchProcessor implements AutoCloseable {
 		this.embeddingDimension = embeddingDimension;
 		this.maxSequenceCount = maxSequenceCount;
 
-		LOGGER.info(String.format("SafeBatchProcessor initialized: maxTokens=%d, embedDim=%d, maxSeq=%d",
+		LOGGER.log(System.Logger.Level.INFO,String.format("SafeBatchProcessor initialized: maxTokens=%d, embedDim=%d, maxSeq=%d",
 			maxTokenCount, embeddingDimension, maxSequenceCount));
 	}
 
@@ -77,7 +79,7 @@ public class SafeBatchProcessor implements AutoCloseable {
 				int sequenceId = entry.getKey();
 				List<BatchItem> items = entry.getValue();
 
-				LOGGER.fine(String.format("Processing sequence %d with %d items", sequenceId, items.size()));
+				LOGGER.log(System.Logger.Level.DEBUG,String.format("Processing sequence %d with %d items", sequenceId, items.size()));
 
 				if (isContextEncoding) {
 					result = processSequenceContext(model, sequenceId, items);
@@ -86,20 +88,20 @@ public class SafeBatchProcessor implements AutoCloseable {
 				}
 
 				if (result < 0) {
-					LOGGER.warning(String.format("Failed to process sequence %d, result: %d", sequenceId, result));
+					LOGGER.log(System.Logger.Level.WARNING,String.format("Failed to process sequence %d, result: %d", sequenceId, result));
 					return result;
 				}
 
 				totalProcessed += items.size();
 			}
 
-			LOGGER.fine(String.format("Successfully processed %d tokens across %d sequences",
+			LOGGER.log(System.Logger.Level.DEBUG,String.format("Successfully processed %d tokens across %d sequences",
 				totalProcessed, sequenceGroups.size()));
 
 			return totalProcessed;
 
 		} catch (Exception e) {
-			LOGGER.severe("Error in batch processing: " + e.getMessage());
+			LOGGER.log(System.Logger.Level.ERROR,"Error in batch processing: " + e.getMessage());
 			return -1;
 		}
 	}
@@ -150,7 +152,7 @@ public class SafeBatchProcessor implements AutoCloseable {
 			return result != null && !result.isEmpty() ? 0 : -1; // Success if we get any output
 
 		} catch (Exception e) {
-			LOGGER.warning("Context encoding failed for sequence " + sequenceId + ": " + e.getMessage());
+			LOGGER.log(System.Logger.Level.WARNING,"Context encoding failed for sequence " + sequenceId + ": " + e.getMessage());
 			return -1;
 		}
 	}
@@ -175,7 +177,7 @@ public class SafeBatchProcessor implements AutoCloseable {
 				}
 
 			} catch (Exception e) {
-				LOGGER.warning("Token decoding failed for token " + item.token + ": " + e.getMessage());
+				LOGGER.log(System.Logger.Level.WARNING,"Token decoding failed for token " + item.token + ": " + e.getMessage());
 				return -1;
 			}
 		}
@@ -258,7 +260,7 @@ public class SafeBatchProcessor implements AutoCloseable {
 			logitFlags = null;
 			tokenCount = 0;
 			closed = true;
-			LOGGER.fine("SafeBatchProcessor closed");
+			LOGGER.log(System.Logger.Level.DEBUG,"SafeBatchProcessor closed");
 		}
 	}
 

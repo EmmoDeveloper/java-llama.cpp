@@ -2,15 +2,30 @@ package de.kherud.llama.tools;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.*;
-import java.lang.management.*;
-import java.nio.file.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Development utilities and debugging tools.
@@ -19,7 +34,7 @@ import java.util.regex.Pattern;
  * memory analysis, profiling, and development workflow utilities.
  */
 public class DevelopmentUtils {
-	private static final Logger LOGGER = Logger.getLogger(DevelopmentUtils.class.getName());
+	private static final System.Logger logger = System.getLogger(DevelopmentUtils.class.getName());
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 	private static final MemoryMXBean MEMORY_BEAN = ManagementFactory.getMemoryMXBean();
 	private static final List<GarbageCollectorMXBean> GC_BEANS = ManagementFactory.getGarbageCollectorMXBeans();
@@ -41,7 +56,7 @@ public class DevelopmentUtils {
 			// Monitor system metrics every second
 			scheduler.scheduleAtFixedRate(this::collectSystemMetrics, 0, 1, TimeUnit.SECONDS);
 
-			LOGGER.info("Performance monitor started");
+			logger.log(System.Logger.Level.INFO, "Performance monitor started");
 		}
 
 		public void stop() {
@@ -52,7 +67,7 @@ public class DevelopmentUtils {
 				scheduler.shutdown();
 			}
 
-			LOGGER.info("Performance monitor stopped");
+			logger.log(System.Logger.Level.INFO, "Performance monitor stopped");
 		}
 
 		public void startTimer(String name) {
@@ -179,7 +194,7 @@ public class DevelopmentUtils {
 				MAPPER.writerWithDefaultPrettyPrinter().writeValue(writer, report);
 			}
 
-			LOGGER.info("Performance report saved to: " + outputFile);
+			logger.log(System.Logger.Level.INFO, "Performance report saved to: " + outputFile);
 		}
 	}
 
@@ -222,7 +237,7 @@ public class DevelopmentUtils {
 		public void takeBaseline() {
 			baseline = new MemorySnapshot();
 			snapshots.clear();
-			LOGGER.info("Memory baseline captured");
+			logger.log(System.Logger.Level.INFO, "Memory baseline captured");
 		}
 
 		public void takeSnapshot() {
@@ -233,7 +248,7 @@ public class DevelopmentUtils {
 			MemorySnapshot snapshot = new MemorySnapshot();
 			// In a more complete implementation, you'd store the label
 			snapshots.add(snapshot);
-			LOGGER.info("Memory snapshot taken: " + label);
+			logger.log(System.Logger.Level.INFO, "Memory snapshot taken: " + label);
 		}
 
 		public void analyzeMemoryLeak() {
@@ -364,7 +379,7 @@ public class DevelopmentUtils {
 				MAPPER.writerWithDefaultPrettyPrinter().writeValue(writer, report);
 			}
 
-			LOGGER.info("Memory analysis report saved to: " + outputFile);
+			logger.log(System.Logger.Level.INFO, "Memory analysis report saved to: " + outputFile);
 		}
 	}
 
@@ -539,7 +554,7 @@ public class DevelopmentUtils {
 				return callable.call();
 			} finally {
 				long duration = System.nanoTime() - startTime;
-				LOGGER.info(String.format("Profile [%s]: %.2fms", name, duration / 1_000_000.0));
+				logger.log(System.Logger.Level.INFO, String.format("Profile [%s]: %.2fms", name, duration / 1_000_000.0));
 			}
 		}
 
@@ -549,7 +564,7 @@ public class DevelopmentUtils {
 				runnable.run();
 			} finally {
 				long duration = System.nanoTime() - startTime;
-				LOGGER.info(String.format("Profile [%s]: %.2fms", name, duration / 1_000_000.0));
+				logger.log(System.Logger.Level.INFO, String.format("Profile [%s]: %.2fms", name, duration / 1_000_000.0));
 			}
 		}
 	}
@@ -624,9 +639,16 @@ public class DevelopmentUtils {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
+		de.kherud.llama.util.CliRunner.runWithExit(DevelopmentUtils::runCli, args);
+	}
+
+	/**
+	 * CLI runner that can be tested without System.exit
+	 */
+	public static void runCli(String[] args) throws Exception {
 		if (args.length < 1) {
 			printUsage();
-			System.exit(1);
+			throw new IllegalArgumentException("No command specified");
 		}
 
 		try {
@@ -649,15 +671,15 @@ public class DevelopmentUtils {
 					new ThreadAnalyzer().printThreadDump();
 					break;
 				default:
-					System.err.println("Unknown command: " + command);
 					printUsage();
-					System.exit(1);
+					throw new IllegalArgumentException("Unknown command: " + command);
 			}
 
+		} catch (IOException e) {
+			throw e; // Re-throw IO exceptions
 		} catch (Exception e) {
-			LOGGER.severe("Command failed: " + e.getMessage());
-			e.printStackTrace();
-			System.exit(1);
+			logger.log(System.Logger.Level.ERROR, "Command failed: " + e.getMessage());
+			throw new RuntimeException("Command failed", e);
 		}
 	}
 
