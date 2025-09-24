@@ -22,8 +22,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Server testing framework.
@@ -32,7 +30,7 @@ import java.util.logging.Logger;
  * including correctness, performance, concurrency, and edge case handling.
  */
 public class ServerTestFramework {
-	private static final Logger LOGGER = Logger.getLogger(ServerTestFramework.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(ServerTestFramework.class.getName());
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	public static class TestConfig {
@@ -153,9 +151,9 @@ public class ServerTestFramework {
 	 * Run all configured test suites
 	 */
 	public List<TestSuite> runTests() {
-		LOGGER.info("Starting server test framework");
-		LOGGER.info("Server URL: " + config.serverUrl);
-		LOGGER.info("Test suites: " + config.testSuites);
+		LOGGER.log(System.Logger.Level.INFO,"Starting server test framework");
+		LOGGER.log(System.Logger.Level.INFO,"Server URL: " + config.serverUrl);
+		LOGGER.log(System.Logger.Level.INFO,"Test suites: " + config.testSuites);
 
 		List<TestSuite> results = new ArrayList<>();
 
@@ -172,7 +170,7 @@ public class ServerTestFramework {
 	}
 
 	private TestSuite runTestSuite(String suiteName) {
-		LOGGER.info("Running test suite: " + suiteName);
+		LOGGER.log(System.Logger.Level.INFO,"Running test suite: " + suiteName);
 		TestSuite suite = new TestSuite(suiteName);
 		suite.startTime = Instant.now();
 
@@ -194,7 +192,7 @@ public class ServerTestFramework {
 					throw new IllegalArgumentException("Unknown test suite: " + suiteName);
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Test suite failed: " + suiteName, e);
+			LOGGER.log(System.Logger.Level.ERROR, "Test suite failed: " + suiteName, e);
 			suite.addResult(new TestResult("suite_execution").fail("Suite execution failed", e));
 		}
 

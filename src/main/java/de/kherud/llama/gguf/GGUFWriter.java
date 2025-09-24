@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * Port of llama.cpp/gguf-py/gguf/gguf_writer.py
  */
 public class GGUFWriter implements AutoCloseable {
-	private static final Logger LOGGER = Logger.getLogger(GGUFWriter.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(GGUFWriter.class.getName());
 
 	public enum WriterState {
 		NO_FILE,
@@ -58,7 +58,7 @@ public class GGUFWriter implements AutoCloseable {
 		this.state = WriterState.NO_FILE;
 		this.currentPosition = 0;
 
-		LOGGER.info("GGUF: This GGUF file is for " +
+		LOGGER.log(System.Logger.Level.INFO,"GGUF: This GGUF file is for " +
 			(endianess == GGUFConstants.GGUFEndian.BIG ? "Big" : "Little") + " Endian only");
 
 		// Add required architecture metadata

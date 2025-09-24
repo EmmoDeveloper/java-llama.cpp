@@ -24,7 +24,7 @@ import java.util.logging.Logger;
  * and other computationally intensive tasks used by the utility classes.
  */
 public class PerformanceOptimizer {
-	private static final Logger LOGGER = Logger.getLogger(PerformanceOptimizer.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(PerformanceOptimizer.class.getName());
 
 	// Optimal buffer sizes for different operations
 	private static final int HASH_BUFFER_SIZE = 1024 * 1024; // 1MB for hashing

@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 
 public class ServerEmbeddingHttpClient extends ServerEmbeddingClient {
 
-	private static final Logger LOGGER = Logger.getLogger(ServerEmbeddingHttpClient.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(ServerEmbeddingHttpClient.class.getName());
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	private final String serverUrl;
@@ -139,7 +139,7 @@ public class ServerEmbeddingHttpClient extends ServerEmbeddingClient {
 
 		while (System.currentTimeMillis() - startTime < maxWaitMillis) {
 			if (isServerHealthy()) {
-				LOGGER.info("Server is healthy and ready");
+				LOGGER.log(System.Logger.Level.INFO,"Server is healthy and ready");
 				return;
 			}
 			Thread.sleep(1000);

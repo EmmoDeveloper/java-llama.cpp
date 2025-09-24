@@ -18,8 +18,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -35,7 +33,7 @@ import java.util.stream.Collectors;
  * The output is compatible with llama.cpp's loadLoRAAdapter() method.
  */
 public class LoRAToGGUFConverter {
-	private static final Logger LOGGER = Logger.getLogger(LoRAToGGUFConverter.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(LoRAToGGUFConverter.class.getName());
 
 	private final Path adapterPath;
 	private final Path outputPath;
@@ -105,9 +103,9 @@ public class LoRAToGGUFConverter {
 	 * Main conversion method
 	 */
 	public void convert() throws IOException {
-		LOGGER.info("Starting LoRA to GGUF conversion");
-		LOGGER.info("Adapter path: " + adapterPath);
-		LOGGER.info("Output path: " + outputPath);
+		LOGGER.log(System.Logger.Level.INFO,"Starting LoRA to GGUF conversion");
+		LOGGER.log(System.Logger.Level.INFO,"Adapter path: " + adapterPath);
+		LOGGER.log(System.Logger.Level.INFO,"Output path: " + outputPath);
 
 		// Step 1: Load adapter configuration
 		loadAdapterConfig();
@@ -121,7 +119,7 @@ public class LoRAToGGUFConverter {
 		// Step 4: Write GGUF file
 		writeGGUF();
 
-		LOGGER.info("Conversion completed successfully!");
+		LOGGER.log(System.Logger.Level.INFO,"Conversion completed successfully!");
 	}
 
 	private void loadAdapterConfig() throws IOException {
@@ -138,13 +136,13 @@ public class LoRAToGGUFConverter {
 
 			JsonNode targetModules = adapterConfig.path("target_modules");
 			if (targetModules.isArray()) {
-				LOGGER.info("Target modules: " + targetModules.toString());
+				LOGGER.log(System.Logger.Level.INFO,"Target modules: " + targetModules.toString());
 			}
 
-			LOGGER.info("LoRA config: alpha=" + loraAlpha + ", rank=" + loraRank);
+			LOGGER.log(System.Logger.Level.INFO,"LoRA config: alpha=" + loraAlpha + ", rank=" + loraRank);
 		} else {
 			// Try to infer from file structure
-			LOGGER.warning("adapter_config.json not found, using defaults");
+			LOGGER.log(System.Logger.Level.WARNING,"adapter_config.json not found, using defaults");
 			loraAlpha = 16.0f;
 			// Rank will be inferred from tensor shapes
 		}
@@ -154,7 +152,7 @@ public class LoRAToGGUFConverter {
 		// Look for SafeTensors format first
 		Path safetensorsPath = adapterPath.resolve("adapter_model.safetensors");
 		if (Files.exists(safetensorsPath)) {
-			LOGGER.info("Loading from SafeTensors format");
+			LOGGER.log(System.Logger.Level.INFO,"Loading from SafeTensors format");
 			loadFromSafeTensors(safetensorsPath);
 			return;
 		}
@@ -162,7 +160,7 @@ public class LoRAToGGUFConverter {
 		// Look for PyTorch bin format
 		Path binPath = adapterPath.resolve("adapter_model.bin");
 		if (Files.exists(binPath)) {
-			LOGGER.info("Loading from PyTorch bin format");
+			LOGGER.log(System.Logger.Level.INFO,"Loading from PyTorch bin format");
 			loadFromPyTorchBin(binPath);
 			return;
 		}
@@ -176,7 +174,7 @@ public class LoRAToGGUFConverter {
 			.collect(Collectors.toList());
 
 		if (!loraFiles.isEmpty()) {
-			LOGGER.info("Loading from individual LoRA files");
+			LOGGER.log(System.Logger.Level.INFO,"Loading from individual LoRA files");
 			for (Path file : loraFiles) {
 				if (file.toString().endsWith(".safetensors")) {
 					loadFromSafeTensors(file);
@@ -241,7 +239,7 @@ public class LoRAToGGUFConverter {
 				processLoRATensor(tensorName, shape, dtype, data);
 
 				if (config.verbose) {
-					LOGGER.info("  Loaded tensor: " + tensorName + " shape=" + Arrays.toString(shape));
+					LOGGER.log(System.Logger.Level.INFO,"  Loaded tensor: " + tensorName + " shape=" + Arrays.toString(shape));
 				}
 			}
 		}
@@ -275,7 +273,7 @@ public class LoRAToGGUFConverter {
 			// Infer rank from shape if not set
 			if (loraRank == 0 && shape.length >= 1) {
 				loraRank = (int) shape[shape.length - 1];
-				LOGGER.info("Inferred LoRA rank: " + loraRank);
+				LOGGER.log(System.Logger.Level.INFO,"Inferred LoRA rank: " + loraRank);
 			}
 		} else if (isLoraB) {
 			tensor.loraB = data;
@@ -285,10 +283,10 @@ public class LoRAToGGUFConverter {
 			if (config.mergeLayerNorms) {
 				tensor.hasLayerNorm = true;
 				tensor.layerNormWeight = data;
-				LOGGER.info("Found layer norm weight: " + tensorName);
+				LOGGER.log(System.Logger.Level.INFO,"Found layer norm weight: " + tensorName);
 			}
 		} else if (!tensorName.contains(".base_layer.weight")) {
-			LOGGER.warning("Unexpected tensor name pattern: " + tensorName);
+			LOGGER.log(System.Logger.Level.WARNING,"Unexpected tensor name pattern: " + tensorName);
 		}
 	}
 
@@ -320,13 +318,13 @@ public class LoRAToGGUFConverter {
 				}
 			} else {
 				incompleteCount++;
-				LOGGER.warning("Incomplete LoRA tensor: " + entry.getKey() +
+				LOGGER.log(System.Logger.Level.WARNING,"Incomplete LoRA tensor: " + entry.getKey() +
 					" (has A: " + (tensor.loraA != null) +
 					", has B: " + (tensor.loraB != null) + ")");
 			}
 		}
 
-		LOGGER.info("Tensor validation: " + completeCount + " complete, " + incompleteCount + " incomplete");
+		LOGGER.log(System.Logger.Level.INFO,"Tensor validation: " + completeCount + " complete, " + incompleteCount + " incomplete");
 
 		if (completeCount == 0) {
 			throw new IOException("No complete LoRA tensor pairs found");
@@ -351,7 +349,7 @@ public class LoRAToGGUFConverter {
 				}
 			}
 
-			LOGGER.info("Writing " + tensorCount + " tensors to GGUF");
+			LOGGER.log(System.Logger.Level.INFO,"Writing " + tensorCount + " tensors to GGUF");
 
 			// Add tensor information
 			for (Map.Entry<String, LoRATensor> entry : loraTensors.entrySet()) {
@@ -360,7 +358,7 @@ public class LoRAToGGUFConverter {
 
 				String ggufBaseName = mapToGGUFName(entry.getKey());
 				if (ggufBaseName == null) {
-					LOGGER.warning("No GGUF mapping for: " + entry.getKey());
+					LOGGER.log(System.Logger.Level.WARNING,"No GGUF mapping for: " + entry.getKey());
 					continue;
 				}
 
@@ -397,7 +395,7 @@ public class LoRAToGGUFConverter {
 			// Write tensor data
 			writeTensorData(writer);
 
-			LOGGER.info("GGUF adapter file written to: " + outputPath);
+			LOGGER.log(System.Logger.Level.INFO,"GGUF adapter file written to: " + outputPath);
 		}
 	}
 
@@ -421,7 +419,7 @@ public class LoRAToGGUFConverter {
 			}
 
 			if (config.verbose) {
-				LOGGER.info("Wrote LoRA tensors for: " + ggufBaseName);
+				LOGGER.log(System.Logger.Level.INFO,"Wrote LoRA tensors for: " + ggufBaseName);
 			}
 		}
 	}
@@ -433,7 +431,7 @@ public class LoRAToGGUFConverter {
 		byte[] data = new byte[buffer.remaining()];
 		buffer.get(data);
 		// writer.writeTensorData(tensorName, data); // This method would need to be added to GGUFWriter
-		LOGGER.fine("Writing tensor data: " + tensorName + " (" + data.length + " bytes)");
+		LOGGER.log(System.Logger.Level.DEBUG,"Writing tensor data: " + tensorName + " (" + data.length + " bytes)");
 	}
 
 	private String mapToGGUFName(String tensorName) {
@@ -559,7 +557,7 @@ public class LoRAToGGUFConverter {
 		} catch (IOException e) {
 			throw e; // Re-throw IO exceptions
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Conversion failed", e);
+			LOGGER.log(System.Logger.Level.ERROR, "Conversion failed", e);
 			throw new RuntimeException("Conversion failed", e);
 		}
 	}

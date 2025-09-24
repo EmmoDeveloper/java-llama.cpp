@@ -21,8 +21,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Model validation utilities.
@@ -33,7 +31,7 @@ import java.util.logging.Logger;
  * - verify-checksum-models.py - File integrity verification
  */
 public class ModelValidator {
-	private static final Logger LOGGER = Logger.getLogger(ModelValidator.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(ModelValidator.class.getName());
 
 	public static class ValidationOptions {
 		private double nmseTolerance = 1e-6;
@@ -245,7 +243,7 @@ public class ModelValidator {
 						validComparisons++;
 
 						if (options.verbose) {
-							LOGGER.info(String.format("Prompt: %s... | Similarity: %.4f | Diff: %.4f",
+							LOGGER.log(System.Logger.Level.INFO,String.format("Prompt: %s... | Similarity: %.4f | Diff: %.4f",
 								prompt.substring(0, Math.min(20, prompt.length())), similarity, logitDiff));
 						}
 
@@ -313,7 +311,7 @@ public class ModelValidator {
 				try {
 					future.get();
 				} catch (InterruptedException | ExecutionException e) {
-					LOGGER.log(Level.WARNING, "Validation task failed", e);
+					LOGGER.log(System.Logger.Level.WARNING, "Validation task failed", e);
 				}
 			}
 
@@ -351,7 +349,7 @@ public class ModelValidator {
 			if (!expectedHash.equalsIgnoreCase(actualHash)) {
 				result.addError("Checksum mismatch for " + filename);
 			} else if (options.verbose) {
-				LOGGER.info("Checksum verified for " + filename);
+				LOGGER.log(System.Logger.Level.INFO,"Checksum verified for " + filename);
 			}
 
 		} catch (Exception e) {

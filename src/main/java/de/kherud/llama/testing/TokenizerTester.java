@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 public class TokenizerTester {
 
-	private static final Logger LOGGER = Logger.getLogger(TokenizerTester.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(TokenizerTester.class.getName());
 	private static final int MAX_ERRORS = 10;
 
 	private final LlamaModel model;
@@ -71,7 +71,7 @@ public class TokenizerTester {
 	}
 
 	public void testBasicTokenization() {
-		LOGGER.info("Testing basic tokenization...");
+		LOGGER.log(System.Logger.Level.INFO,"Testing basic tokenization...");
 		String[] testCases = {
 			"",
 			" ",
@@ -101,7 +101,7 @@ public class TokenizerTester {
 	}
 
 	public void testEdgeCases() {
-		LOGGER.info("Testing edge cases...");
+		LOGGER.log(System.Logger.Level.INFO,"Testing edge cases...");
 		String[] edgeCases = {
 			"\u001f-a",      // unicode control
 			"¼-a",           // unicode digit
@@ -133,7 +133,7 @@ public class TokenizerTester {
 	}
 
 	public void testAsciiCharacters() {
-		LOGGER.info("Testing ASCII character combinations...");
+		LOGGER.log(System.Logger.Level.INFO,"Testing ASCII character combinations...");
 		String[] whitespaces = {"", " ", "  "};
 
 		Stream<String> asciiTests = generateAsciiCombinations(whitespaces, 500);
@@ -141,13 +141,13 @@ public class TokenizerTester {
 	}
 
 	public void testUnicodeCharacters() {
-		LOGGER.info("Testing Unicode characters...");
+		LOGGER.log(System.Logger.Level.INFO,"Testing Unicode characters...");
 		Stream<String> unicodeTests = generateUnicodeTests(200);
 		testTokenization("Unicode Tests", unicodeTests);
 	}
 
 	public void testRandomText() {
-		LOGGER.info("Testing random text generation...");
+		LOGGER.log(System.Logger.Level.INFO,"Testing random text generation...");
 		Stream<String> randomTests = generateRandomText(100);
 		testTokenization("Random Tests", randomTests);
 	}
@@ -192,12 +192,12 @@ public class TokenizerTester {
 			}
 
 			if (errors.get() >= MAX_ERRORS) {
-				LOGGER.warning("Max errors reached for " + testName);
+				LOGGER.log(System.Logger.Level.WARNING,"Max errors reached for " + testName);
 				return;
 			}
 		});
 
-		LOGGER.info(String.format("%s completed: %d tests, %d errors",
+		LOGGER.log(System.Logger.Level.INFO,String.format("%s completed: %d tests, %d errors",
 			testName, testCount.get(), errors.get()));
 	}
 
@@ -309,7 +309,7 @@ public class TokenizerTester {
 	}
 
 	public void runAllTests() {
-		LOGGER.info("Starting comprehensive tokenizer tests...");
+		LOGGER.log(System.Logger.Level.INFO,"Starting comprehensive tokenizer tests...");
 		stats.reset();
 
 		testBasicTokenization();
@@ -318,11 +318,10 @@ public class TokenizerTester {
 		testUnicodeCharacters();
 		testRandomText();
 
-		LOGGER.info("All tests completed: " + stats);
+		LOGGER.log(System.Logger.Level.INFO,"All tests completed: " + stats);
 
 		if (!stats.errorSamples.isEmpty()) {
-			LOGGER.warning("Error samples:");
-			stats.errorSamples.forEach(LOGGER::warning);
+			LOGGER.log(System.Logger.Level.WARNING,"Error samples:");
 		}
 	}
 

@@ -23,8 +23,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,7 +40,7 @@ import java.util.stream.IntStream;
  * - Quantization during conversion
  */
 public class HuggingFaceToGGUFConverter {
-	private static final Logger LOGGER = Logger.getLogger(HuggingFaceToGGUFConverter.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(HuggingFaceToGGUFConverter.class.getName());
 
 	private final Path modelPath;
 	private final Path outputPath;
@@ -110,9 +108,9 @@ public class HuggingFaceToGGUFConverter {
 	 * Main conversion method
 	 */
 	public void convert() throws IOException {
-		LOGGER.info("Starting HuggingFace to GGUF conversion");
-		LOGGER.info("Model path: " + modelPath);
-		LOGGER.info("Output path: " + outputPath);
+		LOGGER.log(System.Logger.Level.INFO,"Starting HuggingFace to GGUF conversion");
+		LOGGER.log(System.Logger.Level.INFO,"Model path: " + modelPath);
+		LOGGER.log(System.Logger.Level.INFO,"Output path: " + outputPath);
 
 		// Step 1: Load model configuration
 		loadModelConfig();
@@ -126,7 +124,7 @@ public class HuggingFaceToGGUFConverter {
 		// Step 4: Write GGUF file
 		writeGGUF();
 
-		LOGGER.info("Conversion completed successfully!");
+		LOGGER.log(System.Logger.Level.INFO,"Conversion completed successfully!");
 	}
 
 	private void loadModelConfig() throws IOException {
@@ -139,7 +137,7 @@ public class HuggingFaceToGGUFConverter {
 		modelConfig = mapper.readTree(Files.newBufferedReader(configPath));
 
 		if (config.verbose) {
-			LOGGER.info("Loaded model config: " + modelConfig.get("model_type").asText());
+			LOGGER.log(System.Logger.Level.INFO,"Loaded model config: " + modelConfig.get("model_type").asText());
 		}
 	}
 
@@ -160,11 +158,11 @@ public class HuggingFaceToGGUFConverter {
 			modelArchitecture = "falcon";
 		} else {
 			// Default to llama for unknown architectures
-			LOGGER.warning("Unknown architecture: " + modelType + "/" + architectures + ", defaulting to llama");
+			LOGGER.log(System.Logger.Level.WARNING,"Unknown architecture: " + modelType + "/" + architectures + ", defaulting to llama");
 			modelArchitecture = "llama";
 		}
 
-		LOGGER.info("Detected architecture: " + modelArchitecture);
+		LOGGER.log(System.Logger.Level.INFO,"Detected architecture: " + modelArchitecture);
 	}
 
 	private void loadTensorIndex() throws IOException {
@@ -175,7 +173,7 @@ public class HuggingFaceToGGUFConverter {
 			.collect(Collectors.toList());
 
 		if (!safetensorFiles.isEmpty()) {
-			LOGGER.info("Found " + safetensorFiles.size() + " SafeTensors files");
+			LOGGER.log(System.Logger.Level.INFO,"Found " + safetensorFiles.size() + " SafeTensors files");
 			loadSafeTensors(safetensorFiles);
 			return;
 		}
@@ -187,7 +185,7 @@ public class HuggingFaceToGGUFConverter {
 			.collect(Collectors.toList());
 
 		if (!pytorchFiles.isEmpty()) {
-			LOGGER.info("Found " + pytorchFiles.size() + " PyTorch files");
+			LOGGER.log(System.Logger.Level.INFO,"Found " + pytorchFiles.size() + " PyTorch files");
 			loadPyTorchFiles(pytorchFiles);
 			return;
 		}
@@ -197,7 +195,7 @@ public class HuggingFaceToGGUFConverter {
 
 	private void loadSafeTensors(List<Path> files) throws IOException {
 		for (Path file : files) {
-			LOGGER.info("Loading SafeTensors file: " + file.getFileName());
+			LOGGER.log(System.Logger.Level.INFO,"Loading SafeTensors file: " + file.getFileName());
 
 			try (RandomAccessFile raf = new RandomAccessFile(file.toFile(), "r");
 			     FileChannel channel = raf.getChannel()) {
@@ -246,13 +244,13 @@ public class HuggingFaceToGGUFConverter {
 					tensors.put(tensorName, tensor);
 
 					if (config.verbose) {
-						LOGGER.info("  Tensor: " + tensorName + " shape=" + Arrays.toString(shape) + " dtype=" + dtype);
+						LOGGER.log(System.Logger.Level.INFO,"  Tensor: " + tensorName + " shape=" + Arrays.toString(shape) + " dtype=" + dtype);
 					}
 				}
 			}
 		}
 
-		LOGGER.info("Loaded " + tensors.size() + " tensors from SafeTensors files");
+		LOGGER.log(System.Logger.Level.INFO,"Loaded " + tensors.size() + " tensors from SafeTensors files");
 	}
 
 	private void loadPyTorchFiles(List<Path> files) throws IOException {
@@ -293,7 +291,7 @@ public class HuggingFaceToGGUFConverter {
 			// Write tensor data
 			writeTensorData(writer);
 
-			LOGGER.info("GGUF file written to: " + outputPath);
+			LOGGER.log(System.Logger.Level.INFO,"GGUF file written to: " + outputPath);
 		}
 	}
 
@@ -334,7 +332,7 @@ public class HuggingFaceToGGUFConverter {
 		Path tokenizerPath = modelPath.resolve("tokenizer.json");
 
 		if (!Files.exists(tokenizerPath)) {
-			LOGGER.warning("tokenizer.json not found, skipping vocabulary");
+			LOGGER.log(System.Logger.Level.WARNING,"tokenizer.json not found, skipping vocabulary");
 			return;
 		}
 
@@ -343,7 +341,7 @@ public class HuggingFaceToGGUFConverter {
 		JsonNode vocab = tokenizer.path("model").path("vocab");
 
 		if (vocab.isMissingNode()) {
-			LOGGER.warning("No vocabulary found in tokenizer.json");
+			LOGGER.log(System.Logger.Level.WARNING,"No vocabulary found in tokenizer.json");
 			return;
 		}
 
@@ -390,7 +388,7 @@ public class HuggingFaceToGGUFConverter {
 			}
 		}
 
-		LOGGER.info("Wrote vocabulary with " + vocabSize + " tokens");
+		LOGGER.log(System.Logger.Level.INFO,"Wrote vocabulary with " + vocabSize + " tokens");
 	}
 
 	private void writeTensorData(GGUFWriter writer) throws IOException {
@@ -424,7 +422,7 @@ public class HuggingFaceToGGUFConverter {
 		String ggufName = mapTensorName(tensor.name);
 		if (ggufName == null) {
 			if (config.verbose) {
-				LOGGER.info("Skipping unmapped tensor: " + tensor.name);
+				LOGGER.log(System.Logger.Level.INFO,"Skipping unmapped tensor: " + tensor.name);
 			}
 			return;
 		}
@@ -445,7 +443,7 @@ public class HuggingFaceToGGUFConverter {
 			synchronized (writer) {
 				// Note: Real implementation would need proper tensor data writing support in GGUFWriter
 				// This is a simplified version
-				LOGGER.fine("Writing tensor: " + ggufName + " (" + tensor.size + " bytes)");
+				LOGGER.log(System.Logger.Level.DEBUG,"Writing tensor: " + ggufName + " (" + tensor.size + " bytes)");
 			}
 		}
 	}
@@ -463,7 +461,7 @@ public class HuggingFaceToGGUFConverter {
 		}
 
 		// For other conversions, would need proper quantization implementation
-		LOGGER.warning("Tensor conversion from " + sourceDtype + " to " + targetType + " not fully implemented");
+		LOGGER.log(System.Logger.Level.WARNING,"Tensor conversion from " + sourceDtype + " to " + targetType + " not fully implemented");
 		return source;
 	}
 
@@ -588,7 +586,7 @@ public class HuggingFaceToGGUFConverter {
 		} catch (IOException e) {
 			throw e; // Re-throw IO exceptions
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Conversion failed", e);
+			LOGGER.log(System.Logger.Level.ERROR, "Conversion failed", e);
 			throw new RuntimeException("Conversion failed", e);
 		}
 	}

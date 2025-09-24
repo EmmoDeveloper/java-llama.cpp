@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 public class TokenizerBenchmark {
 
-	private static final Logger LOGGER = Logger.getLogger(TokenizerBenchmark.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(TokenizerBenchmark.class.getName());
 
 	private final LlamaModel model;
 	private final String modelName;
@@ -83,7 +83,7 @@ public class TokenizerBenchmark {
 	}
 
 	public BenchmarkResult benchmark(List<String> texts, int iterations) {
-		LOGGER.info(String.format("Starting benchmark: %d texts, %d iterations", texts.size(), iterations));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Starting benchmark: %d texts, %d iterations", texts.size(), iterations));
 
 		// Warmup
 		warmup(texts, Math.min(iterations / 10, 10));
@@ -115,12 +115,12 @@ public class TokenizerBenchmark {
 		BenchmarkResult result = new BenchmarkResult(
 			modelName, totalProcessed, totalTokens, totalEncodeTime, totalDecodeTime);
 
-		LOGGER.info("Benchmark completed: " + result);
+		LOGGER.log(System.Logger.Level.INFO,"Benchmark completed: " + result);
 		return result;
 	}
 
 	private void warmup(List<String> texts, int warmupIterations) {
-		LOGGER.info("Warming up with " + warmupIterations + " iterations");
+		LOGGER.log(System.Logger.Level.INFO,"Warming up with " + warmupIterations + " iterations");
 		for (int i = 0; i < warmupIterations; i++) {
 			for (String text : texts) {
 				int[] tokens = model.encode(text);
@@ -171,7 +171,7 @@ public class TokenizerBenchmark {
 			texts.add(sb.substring(0, Math.min(targetLength, sb.length())));
 		}
 
-		LOGGER.info(String.format("Benchmarking text lengths %d-%d chars with %d samples",
+		LOGGER.log(System.Logger.Level.INFO,String.format("Benchmarking text lengths %d-%d chars with %d samples",
 			minLength, maxLength, samples));
 
 		return benchmark(texts, iterations);
@@ -200,7 +200,7 @@ public class TokenizerBenchmark {
 	}
 
 	public void runComprehensiveBenchmark() {
-		LOGGER.info("Running comprehensive tokenizer benchmark for: " + modelName);
+		LOGGER.log(System.Logger.Level.INFO,"Running comprehensive tokenizer benchmark for: " + modelName);
 
 		// Standard texts
 		BenchmarkResult standard = benchmarkStandardTexts(100);

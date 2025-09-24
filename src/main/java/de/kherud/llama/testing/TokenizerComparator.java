@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 public class TokenizerComparator {
 
-	private static final Logger LOGGER = Logger.getLogger(TokenizerComparator.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(TokenizerComparator.class.getName());
 
 	private final LlamaModel model1;
 	private final LlamaModel model2;
@@ -156,7 +156,7 @@ public class TokenizerComparator {
 				}
 
 			} catch (Exception e) {
-				LOGGER.warning("Error processing text: " + escapeString(text) + " - " + e.getMessage());
+				LOGGER.log(System.Logger.Level.WARNING,"Error processing text: " + escapeString(text) + " - " + e.getMessage());
 			}
 		});
 
@@ -188,7 +188,7 @@ public class TokenizerComparator {
 	}
 
 	public ComparisonResult runStandardComparison() {
-		LOGGER.info("Running standard tokenizer comparison...");
+		LOGGER.log(System.Logger.Level.INFO,"Running standard tokenizer comparison...");
 
 		List<String> testTexts = new ArrayList<>();
 
@@ -226,11 +226,11 @@ public class TokenizerComparator {
 
 		ComparisonResult result = compareTokenizers(testTexts.stream());
 
-		LOGGER.info(String.format("Comparison completed: %s", result));
-		LOGGER.info(String.format("%s encode time: %dms", model1Name, result.model1EncodeTime));
-		LOGGER.info(String.format("%s encode time: %dms", model2Name, result.model2EncodeTime));
-		LOGGER.info(String.format("%s decode time: %dms", model1Name, result.model1DecodeTime));
-		LOGGER.info(String.format("%s decode time: %dms", model2Name, result.model2DecodeTime));
+		LOGGER.log(System.Logger.Level.INFO,String.format("Comparison completed: %s", result));
+		LOGGER.log(System.Logger.Level.INFO,String.format("%s encode time: %dms", model1Name, result.model1EncodeTime));
+		LOGGER.log(System.Logger.Level.INFO,String.format("%s encode time: %dms", model2Name, result.model2EncodeTime));
+		LOGGER.log(System.Logger.Level.INFO,String.format("%s decode time: %dms", model1Name, result.model1DecodeTime));
+		LOGGER.log(System.Logger.Level.INFO,String.format("%s decode time: %dms", model2Name, result.model2DecodeTime));
 
 		return result;
 	}

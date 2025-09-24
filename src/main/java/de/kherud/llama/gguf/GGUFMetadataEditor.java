@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  * without affecting tensor data.
  */
 public class GGUFMetadataEditor {
-	private static final Logger LOGGER = Logger.getLogger(GGUFMetadataEditor.class.getName());
+	private static final System.Logger LOGGER = System.getLogger(GGUFMetadataEditor.class.getName());
 
 	public static class MetadataOperation {
 		public enum Type {
@@ -167,7 +167,7 @@ public class GGUFMetadataEditor {
 			if (options.backup && !options.dryRun) {
 				backupPath = createBackup();
 				if (options.verbose) {
-					LOGGER.info("Created backup: " + backupPath);
+					LOGGER.log(System.Logger.Level.INFO,"Created backup: " + backupPath);
 				}
 			}
 
@@ -198,9 +198,9 @@ public class GGUFMetadataEditor {
 
 						if (options.verbose) {
 							if (oldValue != null) {
-								LOGGER.info(String.format("Updated %s: %s -> %s", op.getKey(), oldValue, op.getValue()));
+								LOGGER.log(System.Logger.Level.INFO,String.format("Updated %s: %s -> %s", op.getKey(), oldValue, op.getValue()));
 							} else {
-								LOGGER.info(String.format("Added %s: %s", op.getKey(), op.getValue()));
+								LOGGER.log(System.Logger.Level.INFO,String.format("Added %s: %s", op.getKey(), op.getValue()));
 							}
 						}
 						break;
@@ -211,10 +211,10 @@ public class GGUFMetadataEditor {
 							result.addDeletion(op.getKey());
 
 							if (options.verbose) {
-								LOGGER.info("Deleted: " + op.getKey());
+								LOGGER.log(System.Logger.Level.INFO,"Deleted: " + op.getKey());
 							}
 						} else if (options.verbose) {
-							LOGGER.warning("Key not found for deletion: " + op.getKey());
+							LOGGER.log(System.Logger.Level.WARNING,"Key not found for deletion: " + op.getKey());
 						}
 						break;
 
@@ -225,10 +225,10 @@ public class GGUFMetadataEditor {
 							result.addRename(op.getKey(), op.getNewKey());
 
 							if (options.verbose) {
-								LOGGER.info(String.format("Renamed %s -> %s", op.getKey(), op.getNewKey()));
+								LOGGER.log(System.Logger.Level.INFO,String.format("Renamed %s -> %s", op.getKey(), op.getNewKey()));
 							}
 						} else if (options.verbose) {
-							LOGGER.warning("Key not found for rename: " + op.getKey());
+							LOGGER.log(System.Logger.Level.WARNING,"Key not found for rename: " + op.getKey());
 						}
 						break;
 				}
@@ -237,15 +237,15 @@ public class GGUFMetadataEditor {
 			// Write modified file if not dry run
 			if (!options.dryRun && result.hasChanges()) {
 				// For now, skip writing - would need full GGUFWriter support
-				LOGGER.warning("File writing not implemented - metadata changes tracked but not persisted");
+				LOGGER.log(System.Logger.Level.WARNING,"File writing not implemented - metadata changes tracked but not persisted");
 
 				if (options.verbose) {
-					LOGGER.info("File updated: " + filePath);
+					LOGGER.log(System.Logger.Level.INFO,"File updated: " + filePath);
 				}
 			} else if (options.dryRun) {
 				result = new EditResult(true, "Dry run completed - no changes made");
 				if (options.verbose) {
-					LOGGER.info("Dry run - no changes written to file");
+					LOGGER.log(System.Logger.Level.INFO,"Dry run - no changes written to file");
 				}
 			} else if (!result.hasChanges()) {
 				result = new EditResult(true, "No changes needed");
