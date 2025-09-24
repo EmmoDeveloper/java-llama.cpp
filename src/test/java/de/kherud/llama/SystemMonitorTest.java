@@ -6,13 +6,13 @@ import org.junit.Test;
 
 import static java.lang.System.Logger.Level.DEBUG;
 
-public class ProductionMonitorTest {
-	private static final System.Logger logger = System.getLogger(ProductionMonitorTest.class.getName());
+public class SystemMonitorTest {
+	private static final System.Logger logger = System.getLogger(SystemMonitorTest.class.getName());
 
 	@Before
 	public void setUp() {
 		// Reset monitor state before each test
-		ProductionMonitor.reset();
+		SystemMonitor.reset();
 	}
 
 	@Test
@@ -20,20 +20,20 @@ public class ProductionMonitorTest {
 		logger.log(DEBUG, "\n=== Basic Metrics Collection Test ===");
 
 		// Initially empty
-		ProductionMonitor.SystemMetrics initial = ProductionMonitor.getSystemMetrics();
+		SystemMonitor.SystemMetrics initial = SystemMonitor.getSystemMetrics();
 		Assert.assertEquals("No inferences initially", 0, initial.getTotalInferences());
 		Assert.assertEquals("No tokens initially", 0, initial.getTotalTokens());
 		Assert.assertEquals("No active models initially", 0, initial.getActiveModels());
 
 		// Create a model and record activity
-		ProductionMonitor.recordModelCreated("test-model-1");
-		Assert.assertEquals("One active model", 1, ProductionMonitor.getSystemMetrics().getActiveModels());
+		SystemMonitor.recordModelCreated("test-model-1");
+		Assert.assertEquals("One active model", 1, SystemMonitor.getSystemMetrics().getActiveModels());
 
 		// Record some inferences
-		ProductionMonitor.recordInference("test-model-1", 50, 100); // 50 tokens in 100ms
-		ProductionMonitor.recordInference("test-model-1", 30, 80);  // 30 tokens in 80ms
+		SystemMonitor.recordInference("test-model-1", 50, 100); // 50 tokens in 100ms
+		SystemMonitor.recordInference("test-model-1", 30, 80);  // 30 tokens in 80ms
 
-		ProductionMonitor.SystemMetrics metrics = ProductionMonitor.getSystemMetrics();
+		SystemMonitor.SystemMetrics metrics = SystemMonitor.getSystemMetrics();
 		Assert.assertEquals("Two inferences recorded", 2, metrics.getTotalInferences());
 		Assert.assertEquals("80 total tokens", 80, metrics.getTotalTokens());
 		Assert.assertEquals("180ms total processing time", 180, metrics.getTotalProcessingTime());
@@ -53,19 +53,19 @@ public class ProductionMonitorTest {
 		logger.log(DEBUG, "\n=== Model-Specific Statistics Test ===");
 
 		// Create multiple models
-		ProductionMonitor.recordModelCreated("model-fast");
-		ProductionMonitor.recordModelCreated("model-slow");
+		SystemMonitor.recordModelCreated("model-fast");
+		SystemMonitor.recordModelCreated("model-slow");
 
 		// Record different performance patterns
-		ProductionMonitor.recordInference("model-fast", 10, 20); // Fast model: 500 tokens/sec
-		ProductionMonitor.recordInference("model-fast", 15, 30); // Fast model: 500 tokens/sec
+		SystemMonitor.recordInference("model-fast", 10, 20); // Fast model: 500 tokens/sec
+		SystemMonitor.recordInference("model-fast", 15, 30); // Fast model: 500 tokens/sec
 
-		ProductionMonitor.recordInference("model-slow", 20, 200); // Slow model: 100 tokens/sec
-		ProductionMonitor.recordInference("model-slow", 25, 250); // Slow model: 100 tokens/sec
+		SystemMonitor.recordInference("model-slow", 20, 200); // Slow model: 100 tokens/sec
+		SystemMonitor.recordInference("model-slow", 25, 250); // Slow model: 100 tokens/sec
 
 		// Check model-specific stats
-		ProductionMonitor.ModelStats fastStats = ProductionMonitor.getModelStats("model-fast");
-		ProductionMonitor.ModelStats slowStats = ProductionMonitor.getModelStats("model-slow");
+		SystemMonitor.ModelStats fastStats = SystemMonitor.getModelStats("model-fast");
+		SystemMonitor.ModelStats slowStats = SystemMonitor.getModelStats("model-slow");
 
 		Assert.assertNotNull("Fast model stats exist", fastStats);
 		Assert.assertNotNull("Slow model stats exist", slowStats);
@@ -91,26 +91,26 @@ public class ProductionMonitorTest {
 	public void testErrorTracking() {
 		logger.log(DEBUG, "\n=== Error Tracking Test ===");
 
-		ProductionMonitor.recordModelCreated("error-prone-model");
+		SystemMonitor.recordModelCreated("error-prone-model");
 
 		// Record successful operations
-		ProductionMonitor.recordInference("error-prone-model", 10, 50);
-		ProductionMonitor.recordInference("error-prone-model", 12, 60);
+		SystemMonitor.recordInference("error-prone-model", 10, 50);
+		SystemMonitor.recordInference("error-prone-model", 12, 60);
 
 		// Record errors
-		ProductionMonitor.recordError("error-prone-model", "Out of memory");
-		ProductionMonitor.recordError("error-prone-model", "Model file corrupted");
+		SystemMonitor.recordError("error-prone-model", "Out of memory");
+		SystemMonitor.recordError("error-prone-model", "Model file corrupted");
 
-		ProductionMonitor.ModelStats stats = ProductionMonitor.getModelStats("error-prone-model");
+		SystemMonitor.ModelStats stats = SystemMonitor.getModelStats("error-prone-model");
 		Assert.assertNotNull("Model stats exist", stats);
 		Assert.assertEquals("Two errors recorded", 2, stats.getErrors());
 		Assert.assertEquals("Last error message", "Model file corrupted", stats.getLastError());
 
 		// System should be considered unhealthy with high error rate (2 errors / 2 successes = 50%)
-		Assert.assertFalse("System should be unhealthy with high error rate", ProductionMonitor.isHealthy());
-		Assert.assertEquals("Health status should be DEGRADED", "DEGRADED", ProductionMonitor.getHealthStatus());
+		Assert.assertFalse("System should be unhealthy with high error rate", SystemMonitor.isHealthy());
+		Assert.assertEquals("Health status should be DEGRADED", "DEGRADED", SystemMonitor.getHealthStatus());
 
-		logger.log(DEBUG, "Health status: " + ProductionMonitor.getHealthStatus());
+		logger.log(DEBUG, "Health status: " + SystemMonitor.getHealthStatus());
 		logger.log(DEBUG, "✅ Error tracking test passed!");
 	}
 
@@ -118,26 +118,26 @@ public class ProductionMonitorTest {
 	public void testHealthySystem() {
 		logger.log(DEBUG, "\n=== Healthy System Test ===");
 
-		ProductionMonitor.recordModelCreated("reliable-model");
+		SystemMonitor.recordModelCreated("reliable-model");
 
 		// Record many successful operations with very few errors
 		for (int i = 0; i < 100; i++) {
-			ProductionMonitor.recordInference("reliable-model", 10 + i % 5, 50 + i % 20);
+			SystemMonitor.recordInference("reliable-model", 10 + i % 5, 50 + i % 20);
 		}
 
 		// Add a few errors (but less than 5% error rate)
-		ProductionMonitor.recordError("reliable-model", "Rare network timeout");
-		ProductionMonitor.recordError("reliable-model", "Temporary resource unavailable");
+		SystemMonitor.recordError("reliable-model", "Rare network timeout");
+		SystemMonitor.recordError("reliable-model", "Temporary resource unavailable");
 
 		// 2 errors out of 100 operations = 2% error rate, should be healthy
-		Assert.assertTrue("System should be healthy with low error rate", ProductionMonitor.isHealthy());
-		Assert.assertEquals("Health status should be HEALTHY", "HEALTHY", ProductionMonitor.getHealthStatus());
+		Assert.assertTrue("System should be healthy with low error rate", SystemMonitor.isHealthy());
+		Assert.assertEquals("Health status should be HEALTHY", "HEALTHY", SystemMonitor.getHealthStatus());
 
-		ProductionMonitor.SystemMetrics metrics = ProductionMonitor.getSystemMetrics();
+		SystemMonitor.SystemMetrics metrics = SystemMonitor.getSystemMetrics();
 		Assert.assertEquals("100 inferences", 100, metrics.getTotalInferences());
 		Assert.assertTrue("Should have generated many tokens", metrics.getTotalTokens() > 1000);
 
-		logger.log(DEBUG, "Health status: " + ProductionMonitor.getHealthStatus());
+		logger.log(DEBUG, "Health status: " + SystemMonitor.getHealthStatus());
 		logger.log(DEBUG, "System metrics: " + metrics);
 		logger.log(DEBUG, "✅ Healthy system test passed!");
 	}
@@ -147,21 +147,21 @@ public class ProductionMonitorTest {
 		logger.log(DEBUG, "\n=== Status Report Test ===");
 
 		// Create a realistic scenario
-		ProductionMonitor.recordModelCreated("chatbot-model");
-		ProductionMonitor.recordModelCreated("code-completion-model");
+		SystemMonitor.recordModelCreated("chatbot-model");
+		SystemMonitor.recordModelCreated("code-completion-model");
 
 		// Simulate chatbot activity
-		ProductionMonitor.recordInference("chatbot-model", 45, 200);
-		ProductionMonitor.recordInference("chatbot-model", 52, 230);
-		ProductionMonitor.recordInference("chatbot-model", 38, 180);
+		SystemMonitor.recordInference("chatbot-model", 45, 200);
+		SystemMonitor.recordInference("chatbot-model", 52, 230);
+		SystemMonitor.recordInference("chatbot-model", 38, 180);
 
 		// Simulate code completion activity
-		ProductionMonitor.recordInference("code-completion-model", 15, 50);
-		ProductionMonitor.recordInference("code-completion-model", 12, 40);
-		ProductionMonitor.recordError("code-completion-model", "Syntax error in prompt");
+		SystemMonitor.recordInference("code-completion-model", 15, 50);
+		SystemMonitor.recordInference("code-completion-model", 12, 40);
+		SystemMonitor.recordError("code-completion-model", "Syntax error in prompt");
 
 		// Generate and verify status report
-		String report = ProductionMonitor.getStatusReport();
+		String report = SystemMonitor.getStatusReport();
 		logger.log(DEBUG, "\nGenerated Status Report:");
 		logger.log(DEBUG, report);
 
@@ -179,19 +179,19 @@ public class ProductionMonitorTest {
 		logger.log(DEBUG, "\n=== Model Lifecycle Test ===");
 
 		// Test model creation and destruction tracking
-		Assert.assertEquals("Initially no active models", 0, ProductionMonitor.getSystemMetrics().getActiveModels());
+		Assert.assertEquals("Initially no active models", 0, SystemMonitor.getSystemMetrics().getActiveModels());
 
-		ProductionMonitor.recordModelCreated("temp-model-1");
-		ProductionMonitor.recordModelCreated("temp-model-2");
-		ProductionMonitor.recordModelCreated("temp-model-3");
-		Assert.assertEquals("Three active models", 3, ProductionMonitor.getSystemMetrics().getActiveModels());
+		SystemMonitor.recordModelCreated("temp-model-1");
+		SystemMonitor.recordModelCreated("temp-model-2");
+		SystemMonitor.recordModelCreated("temp-model-3");
+		Assert.assertEquals("Three active models", 3, SystemMonitor.getSystemMetrics().getActiveModels());
 
-		ProductionMonitor.recordModelDestroyed("temp-model-1");
-		Assert.assertEquals("Two active models after destruction", 2, ProductionMonitor.getSystemMetrics().getActiveModels());
+		SystemMonitor.recordModelDestroyed("temp-model-1");
+		Assert.assertEquals("Two active models after destruction", 2, SystemMonitor.getSystemMetrics().getActiveModels());
 
-		ProductionMonitor.recordModelDestroyed("temp-model-2");
-		ProductionMonitor.recordModelDestroyed("temp-model-3");
-		Assert.assertEquals("No active models after all destroyed", 0, ProductionMonitor.getSystemMetrics().getActiveModels());
+		SystemMonitor.recordModelDestroyed("temp-model-2");
+		SystemMonitor.recordModelDestroyed("temp-model-3");
+		Assert.assertEquals("No active models after all destroyed", 0, SystemMonitor.getSystemMetrics().getActiveModels());
 
 		logger.log(DEBUG, "✅ Model lifecycle test passed!");
 	}

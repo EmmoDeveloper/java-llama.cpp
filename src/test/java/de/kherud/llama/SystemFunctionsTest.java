@@ -151,9 +151,11 @@ public class SystemFunctionsTest {
 		logger.log(DEBUG, "Flash attention type 1: " + type1);
 	}
 
-	@Ignore
 	@Test
 	public void testChatBuiltinTemplates() {
+		// Initialize backend first to ensure proper library state
+		LlamaUtils.initializeBackend();
+
 		String[] templates = LlamaUtils.getChatBuiltinTemplates();
 
 		Assert.assertNotNull("Built-in templates should not be null", templates);

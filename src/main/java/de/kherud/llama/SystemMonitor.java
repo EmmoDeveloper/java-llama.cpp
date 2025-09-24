@@ -6,10 +6,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Production monitoring and metrics collection for llama.cpp operations.
+ * System monitoring and metrics collection for llama.cpp operations.
  * Tracks performance, resource usage, and operational statistics.
  */
-public class ProductionMonitor {
+public class SystemMonitor {
 
 	// Global performance counters
 	private static final AtomicLong totalInferences = new AtomicLong(0);
@@ -171,7 +171,7 @@ public class ProductionMonitor {
 	}
 
 	/**
-	 * Get a comprehensive status report.
+	 * Get a status report.
 	 */
 	public static String getStatusReport() {
 		SystemMetrics metrics = getSystemMetrics();
