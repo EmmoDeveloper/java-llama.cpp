@@ -3,10 +3,10 @@ package de.kherud.llama;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SystemInfo {
+public class LlamaSystemInfo {
 	static { LlamaLoader.initialize(); }
 
-	private SystemInfo() {}
+	private LlamaSystemInfo() {}
 
 	public static String getSystemInfo() {
 		return getSystemInfoNative();

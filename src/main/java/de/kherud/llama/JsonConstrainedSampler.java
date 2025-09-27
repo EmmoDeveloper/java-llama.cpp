@@ -41,7 +41,7 @@ public class JsonConstrainedSampler implements AutoCloseable {
 		PARTIAL           // Allow incomplete objects
 	}
 
-	private final AdvancedSamplerManager.DynamicSampler dynamicSampler;
+	private final AISamplerManager.DynamicSampler dynamicSampler;
 	private final ObjectMapper objectMapper;
 	private final Stack<JsonState> stateStack;
 	private final Stack<String> contextStack;
@@ -63,7 +63,7 @@ public class JsonConstrainedSampler implements AutoCloseable {
 	}
 
 	public JsonConstrainedSampler(SchemaConstraint constraintMode, String jsonSchema) {
-		this.dynamicSampler = new AdvancedSamplerManager.DynamicSampler();
+		this.dynamicSampler = new AISamplerManager.DynamicSampler();
 		this.objectMapper = new ObjectMapper();
 		this.stateStack = new Stack<>();
 		this.contextStack = new Stack<>();
@@ -198,22 +198,22 @@ public class JsonConstrainedSampler implements AutoCloseable {
 
 	private void setupJsonSamplers() {
 		// High precision sampler for JSON structure tokens
-		AdvancedSamplerManager.SamplerConfig structureSampler = new AdvancedSamplerManager.SamplerConfig("json_structure")
-			.addStep(new AdvancedSamplerManager.SamplerStep(AdvancedSamplerManager.SamplerType.TOP_K)
+		AISamplerManager.SamplerConfig structureSampler = new AISamplerManager.SamplerConfig("json_structure")
+			.addStep(new AISamplerManager.SamplerStep(AISamplerManager.SamplerType.TOP_K)
 				.param("k", 5))
-			.addStep(new AdvancedSamplerManager.SamplerStep(AdvancedSamplerManager.SamplerType.TEMPERATURE)
+			.addStep(new AISamplerManager.SamplerStep(AISamplerManager.SamplerType.TEMPERATURE)
 				.param("temperature", 0.1f));
 
 		// Medium precision for keys and values
-		AdvancedSamplerManager.SamplerConfig contentSampler = new AdvancedSamplerManager.SamplerConfig("json_content")
-			.addStep(new AdvancedSamplerManager.SamplerStep(AdvancedSamplerManager.SamplerType.TOP_P)
+		AISamplerManager.SamplerConfig contentSampler = new AISamplerManager.SamplerConfig("json_content")
+			.addStep(new AISamplerManager.SamplerStep(AISamplerManager.SamplerType.TOP_P)
 				.param("p", 0.8f))
-			.addStep(new AdvancedSamplerManager.SamplerStep(AdvancedSamplerManager.SamplerType.TEMPERATURE)
+			.addStep(new AISamplerManager.SamplerStep(AISamplerManager.SamplerType.TEMPERATURE)
 				.param("temperature", 0.3f));
 
 		// Register samplers with different contexts
-		dynamicSampler.registerContext(AdvancedSamplerManager.SamplingContext.JSON_GENERATION, structureSampler);
-		dynamicSampler.registerContext(AdvancedSamplerManager.SamplingContext.GENERAL, contentSampler);
+		dynamicSampler.registerContext(AISamplerManager.SamplingContext.JSON_GENERATION, structureSampler);
+		dynamicSampler.registerContext(AISamplerManager.SamplingContext.GENERAL, contentSampler);
 	}
 
 	private void updateJsonState(String jsonText) {
@@ -249,14 +249,14 @@ public class JsonConstrainedSampler implements AutoCloseable {
 			case OBJECT_COMMA:
 			case ARRAY_START:
 			case ARRAY_COMMA:
-				dynamicSampler.switchContext(AdvancedSamplerManager.SamplingContext.JSON_GENERATION);
+				dynamicSampler.switchContext(AISamplerManager.SamplingContext.JSON_GENERATION);
 				break;
 
 			case OBJECT_KEY:
 			case OBJECT_VALUE:
 			case ARRAY_VALUE:
 			default:
-				dynamicSampler.switchContext(AdvancedSamplerManager.SamplingContext.GENERAL);
+				dynamicSampler.switchContext(AISamplerManager.SamplingContext.GENERAL);
 				break;
 		}
 	}

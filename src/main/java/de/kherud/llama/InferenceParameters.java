@@ -241,6 +241,15 @@ public final class InferenceParameters extends JsonParameters {
 	}
 
 	/**
+	 * Set the RNG seed (default: -1, use random seed for &lt; 0)
+	 * Note: Converted to uint32_t in native code, so values outside [0, 2^32-1] may wrap.
+	 */
+	public InferenceParameters setSeed(long seed) {
+		parameters.put(PARAM_SEED, String.valueOf(seed));
+		return this;
+	}
+
+	/**
 	 * Set the amount top tokens probabilities to output if greater than 0.
 	 */
 	public InferenceParameters setNProbs(int nProbs) {

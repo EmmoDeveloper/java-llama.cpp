@@ -18,6 +18,27 @@ set(LLAMA_BUILD_COMMON ON CACHE BOOL "Build common library" FORCE)
 # Add llama.cpp as a subdirectory
 add_subdirectory(${LLAMA_CPP_DIR} ${CMAKE_BINARY_DIR}/llama.cpp)
 
+#################### Use local stable-diffusion.cpp source ####################
+
+# Use the real stable-diffusion.cpp source at /opt/stable-diffusion.cpp
+set(STABLE_DIFFUSION_CPP_DIR "/opt/stable-diffusion.cpp")
+
+# Check for separately built stable-diffusion
+if(DEFINED STABLE_DIFFUSION_BUILD_DIR AND EXISTS "${STABLE_DIFFUSION_BUILD_DIR}/bin/libstable-diffusion.so")
+    message(STATUS "Found separately built stable-diffusion at ${STABLE_DIFFUSION_BUILD_DIR}")
+    set(BUILD_STABLE_DIFFUSION ON)
+    set(STABLE_DIFFUSION_LIBRARY "${STABLE_DIFFUSION_BUILD_DIR}/bin/libstable-diffusion.so")
+    set(STABLE_DIFFUSION_INCLUDE_DIR "${STABLE_DIFFUSION_CPP_DIR}")
+elseif(NOT EXISTS "${STABLE_DIFFUSION_CPP_DIR}/CMakeLists.txt")
+    message(STATUS "stable-diffusion.cpp not found at ${STABLE_DIFFUSION_CPP_DIR}")
+    message(STATUS "Building without Stable Diffusion support")
+    set(BUILD_STABLE_DIFFUSION OFF)
+else()
+    message(STATUS "Found stable-diffusion.cpp source but no built library")
+    message(STATUS "Building without Stable Diffusion support")
+    set(BUILD_STABLE_DIFFUSION OFF)
+endif()
+
 #################### jllama ####################
 
 # Find OS and architecture info
@@ -75,7 +96,7 @@ add_library(jllama SHARED
     src/main/cpp/state_manager.cpp
     src/main/cpp/jni_error_handler.cpp
     src/main/cpp/lora_adapter_manager.cpp
-    src/main/cpp/advanced_sampler_manager.cpp
+    src/main/cpp/ai_sampler_manager.cpp
     src/main/cpp/kv_cache_manager.cpp
     src/main/cpp/model_info_manager.cpp
     src/main/cpp/quantization_manager.cpp
@@ -98,6 +119,12 @@ add_library(jllama SHARED
     ${LLAMA_CPP_DIR}/common/log.cpp
 )
 
+# Conditionally add stable-diffusion manager
+if(BUILD_STABLE_DIFFUSION)
+    target_sources(jllama PRIVATE src/main/cpp/stable_diffusion_manager.cpp)
+    target_compile_definitions(jllama PRIVATE BUILD_STABLE_DIFFUSION)
+endif()
+
 set_target_properties(jllama PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     PREFIX ""  # Remove the "lib" prefix to get jllama.so instead of libjllama.so
@@ -112,12 +139,22 @@ target_include_directories(jllama PRIVATE
     ${LLAMA_CPP_DIR}/vendor
 )
 
+# Conditionally add stable-diffusion include directories
+if(BUILD_STABLE_DIFFUSION)
+    target_include_directories(jllama PRIVATE ${STABLE_DIFFUSION_INCLUDE_DIR})
+endif()
+
 # Link against the real llama.cpp libraries
 target_link_libraries(jllama PRIVATE
     llama
     ggml
     build_info
 )
+
+# Conditionally link stable-diffusion
+if(BUILD_STABLE_DIFFUSION)
+    target_link_libraries(jllama PRIVATE ${STABLE_DIFFUSION_LIBRARY})
+endif()
 
 target_compile_features(jllama PRIVATE cxx_std_17)
 
@@ -137,6 +174,11 @@ endif()
 # Copy metal file if needed
 if (LLAMA_METAL AND NOT LLAMA_METAL_EMBED_LIBRARY)
     configure_file(${LLAMA_CPP_DIR}/ggml-metal.metal ${JLLAMA_DIR}/ggml-metal.metal COPYONLY)
+endif()
+
+# Copy stable-diffusion library if built
+if(BUILD_STABLE_DIFFUSION)
+    configure_file(${STABLE_DIFFUSION_LIBRARY} ${JLLAMA_DIR}/libstable-diffusion.so COPYONLY)
 endif()
 
 # Build training process executable

@@ -33,8 +33,8 @@ import java.util.concurrent.TimeUnit;
  * Equivalent to development and debugging scripts - provides performance monitoring,
  * memory analysis, profiling, and development workflow utilities.
  */
-public class DevelopmentUtils {
-	private static final System.Logger logger = System.getLogger(DevelopmentUtils.class.getName());
+public class LlamaDevelopmentUtils {
+	private static final System.Logger logger = System.getLogger(LlamaDevelopmentUtils.class.getName());
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 	private static final MemoryMXBean MEMORY_BEAN = ManagementFactory.getMemoryMXBean();
 	private static final List<GarbageCollectorMXBean> GC_BEANS = ManagementFactory.getGarbageCollectorMXBeans();
@@ -572,7 +572,7 @@ public class DevelopmentUtils {
 	/**
 	 * System information utilities
 	 */
-	public static class SystemInfo {
+	public static class DevSystemInfo {
 		public static void printSystemInformation() {
 			System.out.println("=== SYSTEM INFORMATION ===");
 
@@ -639,7 +639,7 @@ public class DevelopmentUtils {
 	 * Command-line interface
 	 */
 	public static void main(String[] args) {
-		de.kherud.llama.util.CliRunner.runWithExit(DevelopmentUtils::runCli, args);
+		de.kherud.llama.util.CliRunner.runWithExit(LlamaDevelopmentUtils::runCli, args);
 	}
 
 	/**
@@ -656,7 +656,7 @@ public class DevelopmentUtils {
 
 			switch (command) {
 				case "sysinfo":
-					SystemInfo.printSystemInformation();
+					DevSystemInfo.printSystemInformation();
 					break;
 				case "monitor":
 					handleMonitorCommand(args);

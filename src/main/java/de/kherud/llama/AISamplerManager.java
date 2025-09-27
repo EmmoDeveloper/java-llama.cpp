@@ -8,11 +8,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * Advanced sampler management system for AI IDE integration.
+ * AI sampler management system for IDE integration.
  * Provides dynamic sampler switching, context-aware sampling, and specialized
  * sampling strategies for code completion, JSON generation, and other AI IDE tasks.
  */
-public class AdvancedSamplerManager {
+public class AISamplerManager {
 
 	/**
 	 * Context types for different AI IDE scenarios

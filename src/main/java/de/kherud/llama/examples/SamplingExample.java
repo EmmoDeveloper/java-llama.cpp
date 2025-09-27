@@ -1,6 +1,6 @@
 package de.kherud.llama.examples;
 
-import de.kherud.llama.AdvancedSamplerManager;
+import de.kherud.llama.AISamplerManager;
 import de.kherud.llama.CodeCompletionSampler;
 import de.kherud.llama.JsonConstrainedSampler;
 
@@ -8,10 +8,10 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Example demonstrating the Advanced Sampling Ecosystem for AI IDE integration.
+ * Example demonstrating AI sampling for IDE integration.
  * Shows how to use dynamic samplers, code completion sampling, and JSON constraints.
  */
-public class AdvancedSamplingExample {
+public class SamplingExample {
 
 	public static void main(String[] args) {
 		demonstrateDynamicSampling();
@@ -25,31 +25,31 @@ public class AdvancedSamplingExample {
 	public static void demonstrateDynamicSampling() {
 		System.out.println("=== Dynamic Sampling Demo ===");
 
-		try (AdvancedSamplerManager.DynamicSampler dynamicSampler =
-				new AdvancedSamplerManager.DynamicSampler()) {
+		try (AISamplerManager.DynamicSampler dynamicSampler =
+				new AISamplerManager.DynamicSampler()) {
 
 			// Register different contexts with specialized samplers
 			dynamicSampler.registerContext(
-				AdvancedSamplerManager.SamplingContext.CODE_COMPLETION,
-				AdvancedSamplerManager.PresetConfigs.codeCompletion());
+				AISamplerManager.SamplingContext.CODE_COMPLETION,
+				AISamplerManager.PresetConfigs.codeCompletion());
 
 			dynamicSampler.registerContext(
-				AdvancedSamplerManager.SamplingContext.JSON_GENERATION,
-				AdvancedSamplerManager.PresetConfigs.jsonGeneration());
+				AISamplerManager.SamplingContext.JSON_GENERATION,
+				AISamplerManager.PresetConfigs.jsonGeneration());
 
 			dynamicSampler.registerContext(
-				AdvancedSamplerManager.SamplingContext.DOCUMENTATION,
-				AdvancedSamplerManager.PresetConfigs.documentation());
+				AISamplerManager.SamplingContext.DOCUMENTATION,
+				AISamplerManager.PresetConfigs.documentation());
 
 			// Demonstrate context switching
 			System.out.println("Initial context: " + dynamicSampler.getCurrentContext());
 			System.out.println("Initial sampler: " + dynamicSampler.getCurrentSampler());
 
-			dynamicSampler.switchContext(AdvancedSamplerManager.SamplingContext.JSON_GENERATION);
+			dynamicSampler.switchContext(AISamplerManager.SamplingContext.JSON_GENERATION);
 			System.out.println("Switched to JSON generation");
 			System.out.println("New sampler: " + dynamicSampler.getCurrentSampler());
 
-			dynamicSampler.switchContext(AdvancedSamplerManager.SamplingContext.DOCUMENTATION);
+			dynamicSampler.switchContext(AISamplerManager.SamplingContext.DOCUMENTATION);
 			System.out.println("Switched to documentation");
 			System.out.println("New sampler: " + dynamicSampler.getCurrentSampler());
 
@@ -140,17 +140,17 @@ public class AdvancedSamplingExample {
 	/**
 	 * Example of building custom sampler configurations
 	 */
-	public static AdvancedSamplerManager.SamplerConfig createCustomConfig() {
-		return new AdvancedSamplerManager.SamplerConfig("custom_ai_ide")
-			.addStep(new AdvancedSamplerManager.SamplerStep(AdvancedSamplerManager.SamplerType.PENALTIES)
+	public static AISamplerManager.SamplerConfig createCustomConfig() {
+		return new AISamplerManager.SamplerConfig("custom_ai_ide")
+			.addStep(new AISamplerManager.SamplerStep(AISamplerManager.SamplerType.PENALTIES)
 				.param("last_n", 128)
 				.param("repeat", 1.1f)
 				.param("freq", 0.1f))
-			.addStep(new AdvancedSamplerManager.SamplerStep(AdvancedSamplerManager.SamplerType.TOP_K)
+			.addStep(new AISamplerManager.SamplerStep(AISamplerManager.SamplerType.TOP_K)
 				.param("k", 25))
-			.addStep(new AdvancedSamplerManager.SamplerStep(AdvancedSamplerManager.SamplerType.TOP_P)
+			.addStep(new AISamplerManager.SamplerStep(AISamplerManager.SamplerType.TOP_P)
 				.param("p", 0.85f))
-			.addStep(new AdvancedSamplerManager.SamplerStep(AdvancedSamplerManager.SamplerType.TEMPERATURE)
+			.addStep(new AISamplerManager.SamplerStep(AISamplerManager.SamplerType.TEMPERATURE)
 				.param("temperature", 0.4f))
 			.setParameter("description", "Custom AI IDE optimized sampling");
 	}

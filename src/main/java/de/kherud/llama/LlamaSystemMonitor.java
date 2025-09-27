@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * System monitoring and metrics collection for llama.cpp operations.
  * Tracks performance, resource usage, and operational statistics.
  */
-public class SystemMonitor {
+public class LlamaSystemMonitor {
 
 	// Global performance counters
 	private static final AtomicLong totalInferences = new AtomicLong(0);

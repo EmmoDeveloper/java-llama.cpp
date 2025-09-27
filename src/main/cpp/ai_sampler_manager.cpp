@@ -1,4 +1,4 @@
-#include "advanced_sampler_manager.h"
+#include "ai_sampler_manager.h"
 #include "jni_utils.h"
 #include "jni_error_handler.h"
 #include "llama_server.h"
@@ -31,7 +31,7 @@ static void ensureBackendInitialized() {
 
 // Basic samplers
 
-jlong AdvancedSamplerManager::createGreedySampler(JNIEnv* env) {
+jlong AISamplerManager::createGreedySampler(JNIEnv* env) {
 	JNI_TRY(env)
 	
 	// Ensure backend is initialized
@@ -48,7 +48,7 @@ jlong AdvancedSamplerManager::createGreedySampler(JNIEnv* env) {
 	JNI_CATCH_RET(env, -1)
 }
 
-jlong AdvancedSamplerManager::createDistributionSampler(JNIEnv* env, jint seed) {
+jlong AISamplerManager::createDistributionSampler(JNIEnv* env, jint seed) {
 	JNI_TRY(env)
 	
 	ensureBackendInitialized();
@@ -65,7 +65,7 @@ jlong AdvancedSamplerManager::createDistributionSampler(JNIEnv* env, jint seed) 
 
 // Top-K and Top-P samplers
 
-jlong AdvancedSamplerManager::createTopKSampler(JNIEnv* env, jint k) {
+jlong AISamplerManager::createTopKSampler(JNIEnv* env, jint k) {
 	JNI_TRY(env)
 	
 	ensureBackendInitialized();
@@ -85,7 +85,7 @@ jlong AdvancedSamplerManager::createTopKSampler(JNIEnv* env, jint k) {
 	JNI_CATCH_RET(env, -1)
 }
 
-jlong AdvancedSamplerManager::createTopPSampler(JNIEnv* env, jfloat p, jint minKeep) {
+jlong AISamplerManager::createTopPSampler(JNIEnv* env, jfloat p, jint minKeep) {
 	JNI_TRY(env)
 	
 	ensureBackendInitialized();
@@ -110,7 +110,7 @@ jlong AdvancedSamplerManager::createTopPSampler(JNIEnv* env, jfloat p, jint minK
 	JNI_CATCH_RET(env, -1)
 }
 
-jlong AdvancedSamplerManager::createMinPSampler(JNIEnv* env, jfloat p, jint minKeep) {
+jlong AISamplerManager::createMinPSampler(JNIEnv* env, jfloat p, jint minKeep) {
 	JNI_TRY(env)
 	
 	if (p < 0.0f || p > 1.0f) {
@@ -136,7 +136,7 @@ jlong AdvancedSamplerManager::createMinPSampler(JNIEnv* env, jfloat p, jint minK
 
 // Temperature samplers
 
-jlong AdvancedSamplerManager::createTemperatureSampler(JNIEnv* env, jfloat temperature) {
+jlong AISamplerManager::createTemperatureSampler(JNIEnv* env, jfloat temperature) {
 	JNI_TRY(env)
 	
 	ensureBackendInitialized();
@@ -156,7 +156,7 @@ jlong AdvancedSamplerManager::createTemperatureSampler(JNIEnv* env, jfloat tempe
 	JNI_CATCH_RET(env, -1)
 }
 
-jlong AdvancedSamplerManager::createExtendedTemperatureSampler(JNIEnv* env, jfloat temp, jfloat delta, jfloat exponent) {
+jlong AISamplerManager::createExtendedTemperatureSampler(JNIEnv* env, jfloat temp, jfloat delta, jfloat exponent) {
 	JNI_TRY(env)
 	
 	if (temp < 0.0f) {
@@ -177,7 +177,7 @@ jlong AdvancedSamplerManager::createExtendedTemperatureSampler(JNIEnv* env, jflo
 
 // Advanced samplers
 
-jlong AdvancedSamplerManager::createTypicalSampler(JNIEnv* env, jfloat p, jint minKeep) {
+jlong AISamplerManager::createTypicalSampler(JNIEnv* env, jfloat p, jint minKeep) {
 	JNI_TRY(env)
 	
 	if (p < 0.0f || p > 1.0f) {
@@ -201,7 +201,7 @@ jlong AdvancedSamplerManager::createTypicalSampler(JNIEnv* env, jfloat p, jint m
 	JNI_CATCH_RET(env, -1)
 }
 
-jlong AdvancedSamplerManager::createXtcSampler(JNIEnv* env, jfloat p, jfloat t, jint minKeep, jint seed) {
+jlong AISamplerManager::createXtcSampler(JNIEnv* env, jfloat p, jfloat t, jint minKeep, jint seed) {
 	JNI_TRY(env)
 	
 	if (p < 0.0f || p > 1.0f) {
@@ -230,7 +230,7 @@ jlong AdvancedSamplerManager::createXtcSampler(JNIEnv* env, jfloat p, jfloat t, 
 	JNI_CATCH_RET(env, -1)
 }
 
-jlong AdvancedSamplerManager::createTopNSigmaSampler(JNIEnv* env, jfloat n) {
+jlong AISamplerManager::createTopNSigmaSampler(JNIEnv* env, jfloat n) {
 	JNI_TRY(env)
 	
 	if (n <= 0.0f) {
@@ -251,7 +251,7 @@ jlong AdvancedSamplerManager::createTopNSigmaSampler(JNIEnv* env, jfloat n) {
 
 // Mirostat samplers
 
-jlong AdvancedSamplerManager::createMirostatSampler(JNIEnv* env, jint nVocab, jint seed, jfloat tau, jfloat eta, jint m) {
+jlong AISamplerManager::createMirostatSampler(JNIEnv* env, jint nVocab, jint seed, jfloat tau, jfloat eta, jint m) {
 	JNI_TRY(env)
 	
 	if (nVocab <= 0) {
@@ -291,7 +291,7 @@ jlong AdvancedSamplerManager::createMirostatSampler(JNIEnv* env, jint nVocab, ji
 	JNI_CATCH_RET(env, -1)
 }
 
-jlong AdvancedSamplerManager::createMirostatV2Sampler(JNIEnv* env, jint seed, jfloat tau, jfloat eta) {
+jlong AISamplerManager::createMirostatV2Sampler(JNIEnv* env, jint seed, jfloat tau, jfloat eta) {
 	JNI_TRY(env)
 	
 	if (tau <= 0.0f) {
@@ -321,7 +321,7 @@ jlong AdvancedSamplerManager::createMirostatV2Sampler(JNIEnv* env, jint seed, jf
 
 // Penalty and bias samplers
 
-jlong AdvancedSamplerManager::createPenaltiesSampler(JNIEnv* env, jint penaltyLastN, 
+jlong AISamplerManager::createPenaltiesSampler(JNIEnv* env, jint penaltyLastN, 
 		jfloat penaltyRepeat, jfloat penaltyFreq, jfloat penaltyPresent) {
 	JNI_TRY(env)
 	
@@ -346,7 +346,7 @@ jlong AdvancedSamplerManager::createPenaltiesSampler(JNIEnv* env, jint penaltyLa
 	JNI_CATCH_RET(env, -1)
 }
 
-jlong AdvancedSamplerManager::createDrySampler(JNIEnv* env, jobject model, jint nCtxTrain, jfloat multiplier, jfloat base, 
+jlong AISamplerManager::createDrySampler(JNIEnv* env, jobject model, jint nCtxTrain, jfloat multiplier, jfloat base, 
 		jint allowedLength, jint penaltyLastN, jintArray sequenceBreakers) {
 	JNI_TRY(env)
 	
@@ -429,7 +429,7 @@ jlong AdvancedSamplerManager::createDrySampler(JNIEnv* env, jobject model, jint 
 	JNI_CATCH_RET(env, -1)
 }
 
-jlong AdvancedSamplerManager::createLogitBiasSampler(JNIEnv* env, jint nVocab, jint nLogitBias, jintArray biasTokens, jfloatArray biasValues) {
+jlong AISamplerManager::createLogitBiasSampler(JNIEnv* env, jint nVocab, jint nLogitBias, jintArray biasTokens, jfloatArray biasValues) {
 	JNI_TRY(env)
 	
 	if (nVocab <= 0) {
@@ -503,7 +503,7 @@ jlong AdvancedSamplerManager::createLogitBiasSampler(JNIEnv* env, jint nVocab, j
 
 // Grammar and pattern samplers
 
-jlong AdvancedSamplerManager::createGrammarSampler(JNIEnv* env, jobject model, jstring grammarStr, jstring rootRule) {
+jlong AISamplerManager::createGrammarSampler(JNIEnv* env, jobject model, jstring grammarStr, jstring rootRule) {
 	JNI_TRY(env)
 	
 	if (!JNIErrorHandler::validate_string(env, grammarStr, "grammarStr")) {
@@ -529,7 +529,7 @@ jlong AdvancedSamplerManager::createGrammarSampler(JNIEnv* env, jobject model, j
 	JNI_CATCH_RET(env, -1)
 }
 
-jlong AdvancedSamplerManager::createInfillSampler(JNIEnv* env, jobject model) {
+jlong AISamplerManager::createInfillSampler(JNIEnv* env, jobject model) {
 	JNI_TRY(env)
 	
 	const llama_vocab* vocab = getVocab(env, model);
@@ -550,7 +550,7 @@ jlong AdvancedSamplerManager::createInfillSampler(JNIEnv* env, jobject model) {
 
 // Sampler chain management
 
-jlong AdvancedSamplerManager::createSamplerChain(JNIEnv* env) {
+jlong AISamplerManager::createSamplerChain(JNIEnv* env) {
 	JNI_TRY(env)
 	
 	ensureBackendInitialized();
@@ -566,7 +566,7 @@ jlong AdvancedSamplerManager::createSamplerChain(JNIEnv* env) {
 	JNI_CATCH_RET(env, -1)
 }
 
-void AdvancedSamplerManager::addToSamplerChain(JNIEnv* env, jlong chainHandle, jlong samplerHandle) {
+void AISamplerManager::addToSamplerChain(JNIEnv* env, jlong chainHandle, jlong samplerHandle) {
 	JNI_TRY(env)
 	
 	if (!validateSamplerHandle(chainHandle) || !validateSamplerHandle(samplerHandle)) {
@@ -582,7 +582,7 @@ void AdvancedSamplerManager::addToSamplerChain(JNIEnv* env, jlong chainHandle, j
 	JNI_CATCH(env)
 }
 
-jlong AdvancedSamplerManager::cloneSampler(JNIEnv* env, jlong samplerHandle) {
+jlong AISamplerManager::cloneSampler(JNIEnv* env, jlong samplerHandle) {
 	JNI_TRY(env)
 	
 	if (!validateSamplerHandle(samplerHandle)) {
@@ -602,7 +602,7 @@ jlong AdvancedSamplerManager::cloneSampler(JNIEnv* env, jlong samplerHandle) {
 	JNI_CATCH_RET(env, -1)
 }
 
-void AdvancedSamplerManager::freeSampler(JNIEnv* env, jlong samplerHandle) {
+void AISamplerManager::freeSampler(JNIEnv* env, jlong samplerHandle) {
 	JNI_TRY(env)
 	
 	// Early validation to prevent crashes
@@ -622,7 +622,7 @@ void AdvancedSamplerManager::freeSampler(JNIEnv* env, jlong samplerHandle) {
 
 // Sampling operations
 
-jint AdvancedSamplerManager::sampleToken(JNIEnv* env, jobject obj, jlong samplerHandle) {
+jint AISamplerManager::sampleToken(JNIEnv* env, jobject obj, jlong samplerHandle) {
 	JNI_TRY(env)
 	
 	if (!validateSamplerHandle(samplerHandle)) {
@@ -643,7 +643,7 @@ jint AdvancedSamplerManager::sampleToken(JNIEnv* env, jobject obj, jlong sampler
 	JNI_CATCH_RET(env, -1)
 }
 
-void AdvancedSamplerManager::acceptToken(JNIEnv* env, jlong samplerHandle, jint token) {
+void AISamplerManager::acceptToken(JNIEnv* env, jlong samplerHandle, jint token) {
 	JNI_TRY(env)
 	
 	if (!validateSamplerHandle(samplerHandle)) {
@@ -657,7 +657,7 @@ void AdvancedSamplerManager::acceptToken(JNIEnv* env, jlong samplerHandle, jint 
 	JNI_CATCH(env)
 }
 
-void AdvancedSamplerManager::resetSampler(JNIEnv* env, jlong samplerHandle) {
+void AISamplerManager::resetSampler(JNIEnv* env, jlong samplerHandle) {
 	JNI_TRY(env)
 	
 	if (!validateSamplerHandle(samplerHandle)) {
@@ -673,7 +673,7 @@ void AdvancedSamplerManager::resetSampler(JNIEnv* env, jlong samplerHandle) {
 
 // Sampler configuration and info
 
-jstring AdvancedSamplerManager::getSamplerName(JNIEnv* env, jlong samplerHandle) {
+jstring AISamplerManager::getSamplerName(JNIEnv* env, jlong samplerHandle) {
 	JNI_TRY(env)
 	
 	if (!validateSamplerHandle(samplerHandle)) {
@@ -695,7 +695,7 @@ jstring AdvancedSamplerManager::getSamplerName(JNIEnv* env, jlong samplerHandle)
 
 // Helper methods
 
-struct llama_context* AdvancedSamplerManager::getContext(JNIEnv* env, jobject obj) {
+struct llama_context* AISamplerManager::getContext(JNIEnv* env, jobject obj) {
 	jclass cls = env->GetObjectClass(obj);
 	if (!cls) {
 		JNIErrorHandler::throw_runtime_exception(env, "Failed to get object class");
@@ -718,7 +718,7 @@ struct llama_context* AdvancedSamplerManager::getContext(JNIEnv* env, jobject ob
 	return server->ctx;
 }
 
-const struct llama_vocab* AdvancedSamplerManager::getVocab(JNIEnv* env, jobject obj) {
+const struct llama_vocab* AISamplerManager::getVocab(JNIEnv* env, jobject obj) {
 	jclass cls = env->GetObjectClass(obj);
 	if (!cls) {
 		JNIErrorHandler::throw_runtime_exception(env, "Failed to get object class");
@@ -741,7 +741,7 @@ const struct llama_vocab* AdvancedSamplerManager::getVocab(JNIEnv* env, jobject 
 	return llama_model_get_vocab(server->model);
 }
 
-bool AdvancedSamplerManager::validateSamplerHandle(jlong handle) {
+bool AISamplerManager::validateSamplerHandle(jlong handle) {
 	// Reject invalid handles immediately
 	if (handle <= 0 || handle == -1) {
 		return false;

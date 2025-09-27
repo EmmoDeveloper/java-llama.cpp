@@ -5,10 +5,10 @@
 #include "llama.h"
 
 /**
- * Advanced Sampler Manager for comprehensive sampling strategies.
+ * AI Sampler Manager for comprehensive sampling strategies.
  * Provides Java JNI bindings for all llama.cpp sampler functions.
  */
-class AdvancedSamplerManager {
+class AISamplerManager {
 public:
 	// Basic samplers
 	static jlong createGreedySampler(JNIEnv* env);

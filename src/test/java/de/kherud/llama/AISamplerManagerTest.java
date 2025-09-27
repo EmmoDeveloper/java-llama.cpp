@@ -9,11 +9,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Test class for the new LlamaSampler API design.
+ * Test class for the AISamplerManager API.
  * Tests both the utility class methods and model-dependent instance methods.
  */
 @Ignore
-public class AdvancedSamplingTest {
+public class AISamplerManagerTest {
 
 	@BeforeClass
 	public static void setup() {

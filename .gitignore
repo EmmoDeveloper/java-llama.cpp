@@ -10,3 +10,4 @@ hs_err_*.log
 /src/main/resources/de/kherud/llama/
 /src/main/cpp/de_kherud_llama_*.h
 build-llama/
+/stable-diffusion-build/

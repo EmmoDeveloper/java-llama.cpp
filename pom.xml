@@ -128,8 +128,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<executions>
-					<!-- We have to perform a separate build pass for cuda
-					classifier -->
+					<!-- We have to perform a separate build pass for cuda classifier -->
 					<execution>
 						<id>gpu</id>
 						<phase>compile</phase>

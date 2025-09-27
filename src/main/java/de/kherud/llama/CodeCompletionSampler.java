@@ -51,14 +51,14 @@ public class CodeCompletionSampler implements AutoCloseable {
 		}
 	}
 
-	private final AdvancedSamplerManager.DynamicSampler dynamicSampler;
+	private final AISamplerManager.DynamicSampler dynamicSampler;
 	private final Map<CodeContext, ContextAnalyzer> analyzers;
 	private final Map<Language, LanguageProfile> languageProfiles;
 	private Language currentLanguage = Language.UNKNOWN;
 	private CodeContext currentContext = CodeContext.GENERIC;
 
 	public CodeCompletionSampler() {
-		this.dynamicSampler = new AdvancedSamplerManager.DynamicSampler();
+		this.dynamicSampler = new AISamplerManager.DynamicSampler();
 		this.analyzers = createContextAnalyzers();
 		this.languageProfiles = createLanguageProfiles();
 		setupDefaultSamplers();
@@ -136,17 +136,75 @@ public class CodeCompletionSampler implements AutoCloseable {
 
 			int score = 0;
 			for (String keyword : lang.keywords) {
-				if (codeText.contains(keyword)) {
+				if (containsKeywordAsToken(codeText, keyword)) {
 					score++;
 				}
 			}
 			scores.put(lang, score);
 		}
 
-		return scores.entrySet().stream()
-			.max(Map.Entry.comparingByValue())
+		// Find languages with highest score
+		int maxScore = scores.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+		if (maxScore == 0) {
+			return Language.UNKNOWN;
+		}
+
+		List<Language> topScorers = scores.entrySet().stream()
+			.filter(entry -> entry.getValue() == maxScore)
 			.map(Map.Entry::getKey)
-			.orElse(Language.UNKNOWN);
+			.collect(ArrayList::new, (list, item) -> list.add(item), ArrayList::addAll);
+
+		// If tie, prefer based on language-specific patterns
+		if (topScorers.size() > 1) {
+			return resolveTie(codeText, topScorers);
+		}
+
+		return topScorers.get(0);
+	}
+
+	private boolean containsKeywordAsToken(String text, String keyword) {
+		// Use word boundaries to match keywords as complete tokens, not as substrings
+		String pattern = "\\b" + Pattern.quote(keyword) + "\\b";
+		return Pattern.compile(pattern).matcher(text).find();
+	}
+
+	private Language resolveTie(String codeText, List<Language> candidates) {
+		// JavaScript-specific patterns
+		if (candidates.contains(Language.JAVASCRIPT)) {
+			if (codeText.contains("function") && (codeText.contains("{") && codeText.contains("}"))) {
+				return Language.JAVASCRIPT;
+			}
+			if (codeText.contains("=>") || codeText.contains("const ") || codeText.contains("let ")) {
+				return Language.JAVASCRIPT;
+			}
+		}
+
+		// Python-specific patterns
+		if (candidates.contains(Language.PYTHON)) {
+			if (codeText.contains("def ") && codeText.contains(":")) {
+				return Language.PYTHON;
+			}
+			if (codeText.contains("import ") && codeText.contains("from ")) {
+				return Language.PYTHON;
+			}
+		}
+
+		// Java-specific patterns
+		if (candidates.contains(Language.JAVA)) {
+			if (codeText.contains("public ") || codeText.contains("private ") || codeText.contains("protected ")) {
+				return Language.JAVA;
+			}
+		}
+
+		// C++ specific patterns
+		if (candidates.contains(Language.CPP)) {
+			if (codeText.contains("#include") || codeText.contains("::")) {
+				return Language.CPP;
+			}
+		}
+
+		// Default: return first candidate
+		return candidates.get(0);
 	}
 
 	private String getFileExtension(String filename) {
@@ -167,40 +225,40 @@ public class CodeCompletionSampler implements AutoCloseable {
 		dynamicSampler.switchContext(mapToSamplingContext(context));
 	}
 
-	private AdvancedSamplerManager.SamplingContext mapToSamplingContext(CodeContext context) {
+	private AISamplerManager.SamplingContext mapToSamplingContext(CodeContext context) {
 		switch (context) {
 			case FUNCTION_SIGNATURE:
 			case VARIABLE_DECLARATION:
 			case CLASS_MEMBER:
-				return AdvancedSamplerManager.SamplingContext.FUNCTION_NAME;
+				return AISamplerManager.SamplingContext.FUNCTION_NAME;
 			case IMPORT_STATEMENT:
-				return AdvancedSamplerManager.SamplingContext.CODE_COMPLETION;
+				return AISamplerManager.SamplingContext.CODE_COMPLETION;
 			case COMMENT_BLOCK:
-				return AdvancedSamplerManager.SamplingContext.DOCUMENTATION;
+				return AISamplerManager.SamplingContext.DOCUMENTATION;
 			case STRING_LITERAL:
-				return AdvancedSamplerManager.SamplingContext.GENERAL;
+				return AISamplerManager.SamplingContext.GENERAL;
 			default:
-				return AdvancedSamplerManager.SamplingContext.CODE_COMPLETION;
+				return AISamplerManager.SamplingContext.CODE_COMPLETION;
 		}
 	}
 
 	private void setupDefaultSamplers() {
 		// Register specialized samplers for each context
 		dynamicSampler.registerContext(
-			AdvancedSamplerManager.SamplingContext.CODE_COMPLETION,
-			AdvancedSamplerManager.PresetConfigs.codeCompletion());
+			AISamplerManager.SamplingContext.CODE_COMPLETION,
+			AISamplerManager.PresetConfigs.codeCompletion());
 
 		dynamicSampler.registerContext(
-			AdvancedSamplerManager.SamplingContext.FUNCTION_NAME,
-			AdvancedSamplerManager.PresetConfigs.naming());
+			AISamplerManager.SamplingContext.FUNCTION_NAME,
+			AISamplerManager.PresetConfigs.naming());
 
 		dynamicSampler.registerContext(
-			AdvancedSamplerManager.SamplingContext.DOCUMENTATION,
-			AdvancedSamplerManager.PresetConfigs.documentation());
+			AISamplerManager.SamplingContext.DOCUMENTATION,
+			AISamplerManager.PresetConfigs.documentation());
 
 		dynamicSampler.registerContext(
-			AdvancedSamplerManager.SamplingContext.DEBUGGING,
-			AdvancedSamplerManager.PresetConfigs.debugging());
+			AISamplerManager.SamplingContext.DEBUGGING,
+			AISamplerManager.PresetConfigs.debugging());
 	}
 
 	private Map<CodeContext, ContextAnalyzer> createContextAnalyzers() {

@@ -7,13 +7,13 @@ import java.util.Map;
 
 import static java.lang.System.Logger.Level.DEBUG;
 
-public class SystemInfoTest {
+public class LlamaSystemInfoTest {
 
-	private static final System.Logger logger = System.getLogger(SystemInfoTest.class.getName());
+	private static final System.Logger logger = System.getLogger(LlamaSystemInfoTest.class.getName());
 
 	@Test
 	public void testGetSystemInfo() {
-		String systemInfo = SystemInfo.getSystemInfo();
+		String systemInfo = LlamaSystemInfo.getSystemInfo();
 		Assert.assertNotNull("System info should not be null", systemInfo);
 		Assert.assertFalse("System info should not be empty", systemInfo.isEmpty());
 
@@ -26,7 +26,7 @@ public class SystemInfoTest {
 
 	@Test
 	public void testGetHighPrecisionTime() {
-		long time1 = SystemInfo.getHighPrecisionTime();
+		long time1 = LlamaSystemInfo.getHighPrecisionTime();
 		Assert.assertTrue("Time should be positive", time1 > 0);
 
 		// Small delay
@@ -36,7 +36,7 @@ public class SystemInfoTest {
 			Thread.currentThread().interrupt();
 		}
 
-		long time2 = SystemInfo.getHighPrecisionTime();
+		long time2 = LlamaSystemInfo.getHighPrecisionTime();
 		Assert.assertTrue("Time should increase", time2 > time1);
 
 		long diff = time2 - time1;
@@ -47,7 +47,7 @@ public class SystemInfoTest {
 
 	@Test
 	public void testSupportsMemoryMapping() {
-		boolean supportsMemoryMapping = SystemInfo.supportsMemoryMapping();
+		boolean supportsMemoryMapping = LlamaSystemInfo.supportsMemoryMapping();
 		// Just check it returns a value without throwing
 		logger.log(DEBUG, "Memory mapping support: " + supportsMemoryMapping);
 
@@ -60,7 +60,7 @@ public class SystemInfoTest {
 
 	@Test
 	public void testSupportsMemoryLocking() {
-		boolean supportsMemoryLocking = SystemInfo.supportsMemoryLocking();
+		boolean supportsMemoryLocking = LlamaSystemInfo.supportsMemoryLocking();
 		logger.log(DEBUG, "Memory locking support: " + supportsMemoryLocking);
 		// Boolean primitives can't be null, just verify it returns true or false
 		Assert.assertTrue("Memory locking support should return a boolean",
@@ -69,7 +69,7 @@ public class SystemInfoTest {
 
 	@Test
 	public void testSupportsGpuOffload() {
-		boolean supportsGpu = SystemInfo.supportsGpuOffload();
+		boolean supportsGpu = LlamaSystemInfo.supportsGpuOffload();
 		logger.log(DEBUG, "GPU offload support: " + supportsGpu);
 		// Boolean primitives can't be null, just verify it returns true or false
 		Assert.assertTrue("GPU support should return a boolean",
@@ -78,7 +78,7 @@ public class SystemInfoTest {
 
 	@Test
 	public void testSupportsRemoteProcedureCall() {
-		boolean supportsRemoteProcedureCall = SystemInfo.supportsRemoteProcedureCall();
+		boolean supportsRemoteProcedureCall = LlamaSystemInfo.supportsRemoteProcedureCall();
 		logger.log(DEBUG, "Remote procedure call support: " + supportsRemoteProcedureCall);
 		// Boolean primitives can't be null, just verify it returns true or false
 		Assert.assertTrue("Remote procedure call support should return a boolean",
@@ -87,7 +87,7 @@ public class SystemInfoTest {
 
 	@Test
 	public void testGetCapabilities() {
-		Map<String, Boolean> capabilities = SystemInfo.getCapabilities();
+		Map<String, Boolean> capabilities = LlamaSystemInfo.getCapabilities();
 		Assert.assertNotNull("Capabilities map should not be null", capabilities);
 		Assert.assertFalse("Capabilities map should not be empty", capabilities.isEmpty());
 
@@ -102,7 +102,7 @@ public class SystemInfoTest {
 
 	@Test
 	public void testGetCapabilitiesSummary() {
-		String summary = SystemInfo.getCapabilitiesSummary();
+		String summary = LlamaSystemInfo.getCapabilitiesSummary();
 		Assert.assertNotNull("Summary should not be null", summary);
 		Assert.assertFalse("Summary should not be empty", summary.isEmpty());
 
@@ -118,7 +118,7 @@ public class SystemInfoTest {
 
 	@Test
 	public void testGetSystemInfoMap() {
-		Map<String, String> infoMap = SystemInfo.getSystemInfoMap();
+		Map<String, String> infoMap = LlamaSystemInfo.getSystemInfoMap();
 		Assert.assertNotNull("Info map should not be null", infoMap);
 		// Map might be empty if system info format is unexpected, but shouldn't be null
 		logger.log(DEBUG, "System info map size: " + infoMap.size());
@@ -129,7 +129,7 @@ public class SystemInfoTest {
 	public void testPrintSystemInfo() {
 		// This just ensures printSystemInfo doesn't throw
 		try {
-			SystemInfo.printSystemInfo();
+			LlamaSystemInfo.printSystemInfo();
 		} catch (Exception e) {
 			Assert.fail("printSystemInfo should not throw: " + e.getMessage());
 		}
@@ -139,7 +139,7 @@ public class SystemInfoTest {
 	public void testTimeIncreases() {
 		long[] times = new long[5];
 		for (int i = 0; i < times.length; i++) {
-			times[i] = SystemInfo.getHighPrecisionTime();
+			times[i] = LlamaSystemInfo.getHighPrecisionTime();
 			if (i > 0) {
 				Assert.assertTrue(
 					"Time should not go backwards: " + times[i-1] + " -> " + times[i],

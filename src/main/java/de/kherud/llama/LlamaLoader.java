@@ -41,7 +41,7 @@ import static java.lang.System.Logger.Level.DEBUG;
  * @author leo
  */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-class LlamaLoader {
+public class LlamaLoader {
 	private static final System.Logger logger = System.getLogger(LlamaLoader.class.getName());
 	private static boolean initialized = false;
 
@@ -51,7 +51,7 @@ class LlamaLoader {
 	/**
 	 * Loads the llama and jllama shared libraries
 	 */
-	static synchronized void initialize() throws UnsatisfiedLinkError {
+	public static synchronized void initialize() throws UnsatisfiedLinkError {
 		// only cleanup before the first extract
 		if (!initialized) {
 			cleanup();
@@ -65,6 +65,13 @@ class LlamaLoader {
 				System.err.println("'ggml-metal.metal' not found");
 			}
 		}
+		// Load stable-diffusion library first if it exists
+		try {
+			loadNativeLibrary("stable-diffusion");
+		} catch (UnsatisfiedLinkError e) {
+			// Stable diffusion library not available, continue without it
+		}
+
 		loadNativeLibrary("jllama");
 		initialized = true;
 	}
@@ -83,7 +90,7 @@ class LlamaLoader {
 
 	private static boolean shouldCleanPath(Path path) {
 		String fileName = path.getFileName().toString();
-		return fileName.startsWith("jllama") || fileName.startsWith("llama");
+		return fileName.startsWith("jllama") || fileName.startsWith("llama") || fileName.startsWith("libstable-diffusion");
 	}
 
 	private static void cleanPath(Path path) {

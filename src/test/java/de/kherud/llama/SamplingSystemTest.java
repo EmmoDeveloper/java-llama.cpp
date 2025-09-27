@@ -12,14 +12,14 @@ import java.util.Set;
 import static java.lang.System.Logger.Level.DEBUG;
 
 /**
- * Comprehensive test suite for the Advanced Sampling Ecosystem.
+ * Test suite for the AI sampling system.
  * Tests dynamic sampler switching, code completion constraints, JSON generation,
  * and context-aware sampling strategies.
  */
-public class AdvancedSamplingEcosystemTest {
+public class SamplingSystemTest {
 
-	private static final System.Logger logger = System.getLogger(AdvancedSamplingEcosystemTest.class.getName());
-	private AdvancedSamplerManager.DynamicSampler dynamicSampler;
+	private static final System.Logger logger = System.getLogger(SamplingSystemTest.class.getName());
+	private AISamplerManager.DynamicSampler dynamicSampler;
 	private CodeCompletionSampler codeCompletionSampler;
 	private JsonConstrainedSampler jsonConstrainedSampler;
 
@@ -32,7 +32,7 @@ public class AdvancedSamplingEcosystemTest {
 			logger.log(DEBUG, "Backend already initialized or unavailable: " + e.getMessage());
 		}
 
-		dynamicSampler = new AdvancedSamplerManager.DynamicSampler();
+		dynamicSampler = new AISamplerManager.DynamicSampler();
 		codeCompletionSampler = new CodeCompletionSampler();
 		jsonConstrainedSampler = new JsonConstrainedSampler();
 	}
@@ -58,12 +58,12 @@ public class AdvancedSamplingEcosystemTest {
 
 		// Register different contexts
 		dynamicSampler.registerContext(
-			AdvancedSamplerManager.SamplingContext.CODE_COMPLETION,
-			AdvancedSamplerManager.PresetConfigs.codeCompletion());
+			AISamplerManager.SamplingContext.CODE_COMPLETION,
+			AISamplerManager.PresetConfigs.codeCompletion());
 
 		dynamicSampler.registerContext(
-			AdvancedSamplerManager.SamplingContext.JSON_GENERATION,
-			AdvancedSamplerManager.PresetConfigs.jsonGeneration());
+			AISamplerManager.SamplingContext.JSON_GENERATION,
+			AISamplerManager.PresetConfigs.jsonGeneration());
 
 		long currentSampler = dynamicSampler.getCurrentSampler();
 		Assert.assertTrue("Should have valid sampler handle", currentSampler > 0);
@@ -78,30 +78,30 @@ public class AdvancedSamplingEcosystemTest {
 
 		// Register multiple contexts
 		dynamicSampler.registerContext(
-			AdvancedSamplerManager.SamplingContext.CODE_COMPLETION,
-			AdvancedSamplerManager.PresetConfigs.codeCompletion());
+			AISamplerManager.SamplingContext.CODE_COMPLETION,
+			AISamplerManager.PresetConfigs.codeCompletion());
 
 		dynamicSampler.registerContext(
-			AdvancedSamplerManager.SamplingContext.DOCUMENTATION,
-			AdvancedSamplerManager.PresetConfigs.documentation());
+			AISamplerManager.SamplingContext.DOCUMENTATION,
+			AISamplerManager.PresetConfigs.documentation());
 
 		long initialSampler = dynamicSampler.getCurrentSampler();
-		AdvancedSamplerManager.SamplingContext initialContext = dynamicSampler.getCurrentContext();
+		AISamplerManager.SamplingContext initialContext = dynamicSampler.getCurrentContext();
 
 		logger.log(DEBUG, "Initial context: " + initialContext);
 		logger.log(DEBUG, "Initial sampler: " + initialSampler);
 
 		// Switch context
-		dynamicSampler.switchContext(AdvancedSamplerManager.SamplingContext.DOCUMENTATION);
+		dynamicSampler.switchContext(AISamplerManager.SamplingContext.DOCUMENTATION);
 
 		long newSampler = dynamicSampler.getCurrentSampler();
-		AdvancedSamplerManager.SamplingContext newContext = dynamicSampler.getCurrentContext();
+		AISamplerManager.SamplingContext newContext = dynamicSampler.getCurrentContext();
 
 		logger.log(DEBUG, "New context: " + newContext);
 		logger.log(DEBUG, "New sampler: " + newSampler);
 
 		Assert.assertEquals("Context should have switched",
-			AdvancedSamplerManager.SamplingContext.DOCUMENTATION, newContext);
+			AISamplerManager.SamplingContext.DOCUMENTATION, newContext);
 		Assert.assertTrue("Should have valid sampler after switch", newSampler > 0);
 
 		logger.log(DEBUG, "✅ Context switching works correctly");
@@ -173,29 +173,29 @@ public class AdvancedSamplingEcosystemTest {
 		logger.log(DEBUG, "\n=== Preset Configurations Test ===");
 
 		// Test all preset configurations
-		AdvancedSamplerManager.SamplerConfig codeConfig =
-			AdvancedSamplerManager.PresetConfigs.codeCompletion();
+		AISamplerManager.SamplerConfig codeConfig =
+			AISamplerManager.PresetConfigs.codeCompletion();
 		Assert.assertNotNull("Code completion config should not be null", codeConfig);
 		Assert.assertEquals("Should have correct name", "code_completion", codeConfig.name);
 		Assert.assertFalse("Should have sampling steps", codeConfig.steps.isEmpty());
 
-		AdvancedSamplerManager.SamplerConfig jsonConfig =
-			AdvancedSamplerManager.PresetConfigs.jsonGeneration();
+		AISamplerManager.SamplerConfig jsonConfig =
+			AISamplerManager.PresetConfigs.jsonGeneration();
 		Assert.assertNotNull("JSON generation config should not be null", jsonConfig);
 		Assert.assertEquals("Should have correct name", "json_generation", jsonConfig.name);
 
-		AdvancedSamplerManager.SamplerConfig docConfig =
-			AdvancedSamplerManager.PresetConfigs.documentation();
+		AISamplerManager.SamplerConfig docConfig =
+			AISamplerManager.PresetConfigs.documentation();
 		Assert.assertNotNull("Documentation config should not be null", docConfig);
 		Assert.assertEquals("Should have correct name", "documentation", docConfig.name);
 
-		AdvancedSamplerManager.SamplerConfig namingConfig =
-			AdvancedSamplerManager.PresetConfigs.naming();
+		AISamplerManager.SamplerConfig namingConfig =
+			AISamplerManager.PresetConfigs.naming();
 		Assert.assertNotNull("Naming config should not be null", namingConfig);
 		Assert.assertEquals("Should have correct name", "naming", namingConfig.name);
 
-		AdvancedSamplerManager.SamplerConfig debugConfig =
-			AdvancedSamplerManager.PresetConfigs.debugging();
+		AISamplerManager.SamplerConfig debugConfig =
+			AISamplerManager.PresetConfigs.debugging();
 		Assert.assertNotNull("Debugging config should not be null", debugConfig);
 		Assert.assertEquals("Should have correct name", "debugging", debugConfig.name);
 
@@ -238,11 +238,11 @@ public class AdvancedSamplingEcosystemTest {
 		logger.log(DEBUG, "\n=== Sampler Config Construction Test ===");
 
 		// Build custom sampler configuration
-		AdvancedSamplerManager.SamplerConfig customConfig =
-			new AdvancedSamplerManager.SamplerConfig("custom_test")
-				.addStep(new AdvancedSamplerManager.SamplerStep(AdvancedSamplerManager.SamplerType.TOP_K)
+		AISamplerManager.SamplerConfig customConfig =
+			new AISamplerManager.SamplerConfig("custom_test")
+				.addStep(new AISamplerManager.SamplerStep(AISamplerManager.SamplerType.TOP_K)
 					.param("k", 30))
-				.addStep(new AdvancedSamplerManager.SamplerStep(AdvancedSamplerManager.SamplerType.TEMPERATURE)
+				.addStep(new AISamplerManager.SamplerStep(AISamplerManager.SamplerType.TEMPERATURE)
 					.param("temperature", 0.5f))
 				.setParameter("description", "Custom test configuration");
 
@@ -252,15 +252,15 @@ public class AdvancedSamplingEcosystemTest {
 			customConfig.parameters.containsKey("description"));
 
 		// Test step parameters
-		AdvancedSamplerManager.SamplerStep topKStep = customConfig.steps.get(0);
+		AISamplerManager.SamplerStep topKStep = customConfig.steps.get(0);
 		Assert.assertEquals("First step should be TOP_K",
-			AdvancedSamplerManager.SamplerType.TOP_K, topKStep.type);
+			AISamplerManager.SamplerType.TOP_K, topKStep.type);
 		Assert.assertEquals("Should have correct k parameter",
 			30.0f, topKStep.params.get("k"), 0.001f);
 
-		AdvancedSamplerManager.SamplerStep tempStep = customConfig.steps.get(1);
+		AISamplerManager.SamplerStep tempStep = customConfig.steps.get(1);
 		Assert.assertEquals("Second step should be TEMPERATURE",
-			AdvancedSamplerManager.SamplerType.TEMPERATURE, tempStep.type);
+			AISamplerManager.SamplerType.TEMPERATURE, tempStep.type);
 		Assert.assertEquals("Should have correct temperature parameter",
 			0.5f, tempStep.params.get("temperature"), 0.001f);
 

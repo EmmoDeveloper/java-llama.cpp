@@ -55,12 +55,12 @@ Adapter functions (12 total):
 - ✅ A-LoRA invocation tokens (`getAloraInvocationTokenCountNative`)
 - ✅ Adapter clearing and management (`clearLoRAAdaptersNative`)
 
-### 4. Advanced Sampling Ecosystem - **✅ FULLY IMPLEMENTED** (100%)
+### 4. AI Sampling System - **✅ FULLY IMPLEMENTED** (100%)
 
 Comprehensive sampling system with 18+ native samplers and advanced AI IDE features:
 - ✅ **Basic Samplers**: Greedy, Distribution, Temperature (standard & extended)
 - ✅ **Top-X Samplers**: Top-K, Top-P, Min-P, Typical sampling
-- ✅ **Advanced Samplers**: XTC (Exclude Top Choices), Top-N Sigma
+- ✅ **AI Samplers**: XTC (Exclude Top Choices), Top-N Sigma
 - ✅ **Adaptive Samplers**: Mirostat v1/v2 with dynamic temperature adjustment
 - ✅ **Repetition Control**: DRY sampler, Penalties (frequency, presence, repetition)
 - ✅ **Context-Aware**: Grammar (GBNF), Infill, Logit Bias
@@ -132,8 +132,8 @@ The Java wrapper extends beyond basic API bindings with additional features:
 - **StructuredOutputGenerator**: Multiple output generation with scoring
 - **BatchOptimizer**: Batch processing optimization
 
-### Advanced Sampling Ecosystem
-- **AdvancedSamplerManager**: Dynamic sampler switching and context-aware sampling
+### AI Sampling System
+- **AISamplerManager**: Dynamic sampler switching and context-aware sampling
 - **CodeCompletionSampler**: AI IDE-optimized sampling with language and context awareness
 - **JsonConstrainedSampler**: Schema-aware JSON generation with syntax validation
 - **DynamicSampler**: Multi-context sampler management with automatic switching
@@ -366,7 +366,7 @@ The C++ implementation follows a clean separation of concerns:
 // Core Managers
 StateManager         -> State persistence operations
 LoRAAdapterManager   -> LoRA adapter lifecycle
-AdvancedSamplerManager -> Sampling algorithm implementations
+AISamplerManager -> Sampling algorithm implementations
 KVCacheManager       -> Memory and sequence management
 ModelInfoManager     -> Model introspection
 CompletionManager    -> Text generation pipeline

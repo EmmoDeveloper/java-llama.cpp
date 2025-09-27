@@ -21,7 +21,7 @@
 #include "tokenization_handler.h"
 #include "state_manager.h"
 #include "lora_adapter_manager.h"
-#include "advanced_sampler_manager.h"
+#include "ai_sampler_manager.h"
 #include "kv_cache_manager.h"
 #include "model_info_manager.h"
 #include "quantization_manager.h"
@@ -36,6 +36,9 @@
 #include "system_info_manager.h"
 #include "batch_manager.h"
 #include "training_manager.h"
+#ifdef BUILD_STABLE_DIFFUSION
+#include "stable_diffusion_manager.h"
+#endif
 
 // Global server management
 std::mutex g_servers_mutex;
@@ -264,218 +267,218 @@ JNIEXPORT jintArray JNICALL Java_de_kherud_llama_LlamaModel_getAloraInvocationTo
 // Advanced sampling functions
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createGreedySamplerNative
   (JNIEnv* env, jclass cls) {
-    return AdvancedSamplerManager::createGreedySampler(env);
+    return AISamplerManager::createGreedySampler(env);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createDistributionSamplerNative
   (JNIEnv* env, jclass cls, jint seed) {
-    return AdvancedSamplerManager::createDistributionSampler(env, seed);
+    return AISamplerManager::createDistributionSampler(env, seed);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createTopKSamplerNative
   (JNIEnv* env, jclass cls, jint k) {
-    return AdvancedSamplerManager::createTopKSampler(env, k);
+    return AISamplerManager::createTopKSampler(env, k);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createTopPSamplerNative
   (JNIEnv* env, jclass cls, jfloat p, jint minKeep) {
-    return AdvancedSamplerManager::createTopPSampler(env, p, minKeep);
+    return AISamplerManager::createTopPSampler(env, p, minKeep);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createMinPSamplerNative
   (JNIEnv* env, jclass cls, jfloat p, jint minKeep) {
-    return AdvancedSamplerManager::createMinPSampler(env, p, minKeep);
+    return AISamplerManager::createMinPSampler(env, p, minKeep);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createTemperatureSamplerNative
   (JNIEnv* env, jclass cls, jfloat temperature) {
-    return AdvancedSamplerManager::createTemperatureSampler(env, temperature);
+    return AISamplerManager::createTemperatureSampler(env, temperature);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createExtendedTemperatureSamplerNative
   (JNIEnv* env, jclass cls, jfloat temp, jfloat delta, jfloat exponent) {
-    return AdvancedSamplerManager::createExtendedTemperatureSampler(env, temp, delta, exponent);
+    return AISamplerManager::createExtendedTemperatureSampler(env, temp, delta, exponent);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createTypicalSamplerNative
   (JNIEnv* env, jclass cls, jfloat p, jint minKeep) {
-    return AdvancedSamplerManager::createTypicalSampler(env, p, minKeep);
+    return AISamplerManager::createTypicalSampler(env, p, minKeep);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createXtcSamplerNative
   (JNIEnv* env, jclass cls, jfloat p, jfloat t, jint minKeep, jint seed) {
-    return AdvancedSamplerManager::createXtcSampler(env, p, t, minKeep, seed);
+    return AISamplerManager::createXtcSampler(env, p, t, minKeep, seed);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createTopNSigmaSamplerNative
   (JNIEnv* env, jclass cls, jfloat n) {
-    return AdvancedSamplerManager::createTopNSigmaSampler(env, n);
+    return AISamplerManager::createTopNSigmaSampler(env, n);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createMirostatSamplerNative
   (JNIEnv* env, jclass cls, jint nVocab, jint seed, jfloat tau, jfloat eta, jint m) {
-    return AdvancedSamplerManager::createMirostatSampler(env, nVocab, seed, tau, eta, m);
+    return AISamplerManager::createMirostatSampler(env, nVocab, seed, tau, eta, m);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createMirostatV2SamplerNative
   (JNIEnv* env, jclass cls, jint seed, jfloat tau, jfloat eta) {
-    return AdvancedSamplerManager::createMirostatV2Sampler(env, seed, tau, eta);
+    return AISamplerManager::createMirostatV2Sampler(env, seed, tau, eta);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createPenaltiesSamplerNative
   (JNIEnv* env, jclass cls, jint penaltyLastN, jfloat penaltyRepeat, jfloat penaltyFreq, jfloat penaltyPresent) {
-    return AdvancedSamplerManager::createPenaltiesSampler(env, penaltyLastN, penaltyRepeat, penaltyFreq, penaltyPresent);
+    return AISamplerManager::createPenaltiesSampler(env, penaltyLastN, penaltyRepeat, penaltyFreq, penaltyPresent);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createDrySamplerNative
   (JNIEnv* env, jobject obj, jint nCtxTrain, jfloat multiplier, jfloat base, jint allowedLength, jint penaltyLastN, jintArray sequenceBreakers) {
-    return AdvancedSamplerManager::createDrySampler(env, obj, nCtxTrain, multiplier, base, allowedLength, penaltyLastN, sequenceBreakers);
+    return AISamplerManager::createDrySampler(env, obj, nCtxTrain, multiplier, base, allowedLength, penaltyLastN, sequenceBreakers);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createLogitBiasSamplerNative
   (JNIEnv* env, jclass cls, jint nVocab, jint nLogitBias, jintArray biasTokens, jfloatArray biasValues) {
-    return AdvancedSamplerManager::createLogitBiasSampler(env, nVocab, nLogitBias, biasTokens, biasValues);
+    return AISamplerManager::createLogitBiasSampler(env, nVocab, nLogitBias, biasTokens, biasValues);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createGrammarSamplerNative
   (JNIEnv* env, jobject obj, jstring grammarStr, jstring rootRule) {
-    return AdvancedSamplerManager::createGrammarSampler(env, obj, grammarStr, rootRule);
+    return AISamplerManager::createGrammarSampler(env, obj, grammarStr, rootRule);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createInfillSamplerNative
   (JNIEnv* env, jobject obj) {
-    return AdvancedSamplerManager::createInfillSampler(env, obj);
+    return AISamplerManager::createInfillSampler(env, obj);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_createSamplerChainNative
   (JNIEnv* env, jclass cls) {
-    return AdvancedSamplerManager::createSamplerChain(env);
+    return AISamplerManager::createSamplerChain(env);
 }
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_addToSamplerChainNative
   (JNIEnv* env, jclass cls, jlong chainHandle, jlong samplerHandle) {
-    AdvancedSamplerManager::addToSamplerChain(env, chainHandle, samplerHandle);
+    AISamplerManager::addToSamplerChain(env, chainHandle, samplerHandle);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaModel_cloneSamplerNative
   (JNIEnv* env, jclass cls, jlong samplerHandle) {
-    return AdvancedSamplerManager::cloneSampler(env, samplerHandle);
+    return AISamplerManager::cloneSampler(env, samplerHandle);
 }
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_freeSamplerNative
   (JNIEnv* env, jclass cls, jlong samplerHandle) {
-    AdvancedSamplerManager::freeSampler(env, samplerHandle);
+    AISamplerManager::freeSampler(env, samplerHandle);
 }
 
 JNIEXPORT jint JNICALL Java_de_kherud_llama_LlamaModel_sampleTokenNative
   (JNIEnv* env, jobject obj, jlong samplerHandle) {
-    return AdvancedSamplerManager::sampleToken(env, obj, samplerHandle);
+    return AISamplerManager::sampleToken(env, obj, samplerHandle);
 }
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_acceptTokenNative
   (JNIEnv* env, jclass cls, jlong samplerHandle, jint token) {
-    AdvancedSamplerManager::acceptToken(env, samplerHandle, token);
+    AISamplerManager::acceptToken(env, samplerHandle, token);
 }
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaModel_resetSamplerNative
   (JNIEnv* env, jclass cls, jlong samplerHandle) {
-    AdvancedSamplerManager::resetSampler(env, samplerHandle);
+    AISamplerManager::resetSampler(env, samplerHandle);
 }
 
 JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaModel_getSamplerNameNative
   (JNIEnv* env, jclass cls, jlong samplerHandle) {
-    return AdvancedSamplerManager::getSamplerName(env, samplerHandle);
+    return AISamplerManager::getSamplerName(env, samplerHandle);
 }
 
 // JNI bindings for LlamaSampler class
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createGreedySamplerNative
   (JNIEnv* env, jclass cls) {
-    return AdvancedSamplerManager::createGreedySampler(env);
+    return AISamplerManager::createGreedySampler(env);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createDistributionSamplerNative
   (JNIEnv* env, jclass cls, jint seed) {
-    return AdvancedSamplerManager::createDistributionSampler(env, seed);
+    return AISamplerManager::createDistributionSampler(env, seed);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createTopKSamplerNative
   (JNIEnv* env, jclass cls, jint k) {
-    return AdvancedSamplerManager::createTopKSampler(env, k);
+    return AISamplerManager::createTopKSampler(env, k);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createTopPSamplerNative
   (JNIEnv* env, jclass cls, jfloat p, jint minKeep) {
-    return AdvancedSamplerManager::createTopPSampler(env, p, minKeep);
+    return AISamplerManager::createTopPSampler(env, p, minKeep);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createMinPSamplerNative
   (JNIEnv* env, jclass cls, jfloat p, jint minKeep) {
-    return AdvancedSamplerManager::createMinPSampler(env, p, minKeep);
+    return AISamplerManager::createMinPSampler(env, p, minKeep);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createTemperatureSamplerNative
   (JNIEnv* env, jclass cls, jfloat temperature) {
-    return AdvancedSamplerManager::createTemperatureSampler(env, temperature);
+    return AISamplerManager::createTemperatureSampler(env, temperature);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createExtendedTemperatureSamplerNative
   (JNIEnv* env, jclass cls, jfloat temp, jfloat delta, jfloat exponent) {
-    return AdvancedSamplerManager::createExtendedTemperatureSampler(env, temp, delta, exponent);
+    return AISamplerManager::createExtendedTemperatureSampler(env, temp, delta, exponent);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createTypicalSamplerNative
   (JNIEnv* env, jclass cls, jfloat p, jint minKeep) {
-    return AdvancedSamplerManager::createTypicalSampler(env, p, minKeep);
+    return AISamplerManager::createTypicalSampler(env, p, minKeep);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createXtcSamplerNative
   (JNIEnv* env, jclass cls, jfloat p, jfloat t, jint minKeep, jint seed) {
-    return AdvancedSamplerManager::createXtcSampler(env, p, t, minKeep, seed);
+    return AISamplerManager::createXtcSampler(env, p, t, minKeep, seed);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createMirostatV2SamplerNative
   (JNIEnv* env, jclass cls, jint seed, jfloat tau, jfloat eta) {
-    return AdvancedSamplerManager::createMirostatV2Sampler(env, seed, tau, eta);
+    return AISamplerManager::createMirostatV2Sampler(env, seed, tau, eta);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createPenaltiesSamplerNative
   (JNIEnv* env, jclass cls, jint penaltyLastN, jfloat penaltyRepeat, jfloat penaltyFreq, jfloat penaltyPresent) {
-    return AdvancedSamplerManager::createPenaltiesSampler(env, penaltyLastN, penaltyRepeat, penaltyFreq, penaltyPresent);
+    return AISamplerManager::createPenaltiesSampler(env, penaltyLastN, penaltyRepeat, penaltyFreq, penaltyPresent);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_createSamplerChainNative
   (JNIEnv* env, jclass cls) {
-    return AdvancedSamplerManager::createSamplerChain(env);
+    return AISamplerManager::createSamplerChain(env);
 }
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaSampler_addToSamplerChainNative
   (JNIEnv* env, jclass cls, jlong chainHandle, jlong samplerHandle) {
-    AdvancedSamplerManager::addToSamplerChain(env, chainHandle, samplerHandle);
+    AISamplerManager::addToSamplerChain(env, chainHandle, samplerHandle);
 }
 
 JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSampler_cloneSamplerNative
   (JNIEnv* env, jclass cls, jlong samplerHandle) {
-    return AdvancedSamplerManager::cloneSampler(env, samplerHandle);
+    return AISamplerManager::cloneSampler(env, samplerHandle);
 }
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaSampler_freeSamplerNative
   (JNIEnv* env, jclass cls, jlong samplerHandle) {
-    AdvancedSamplerManager::freeSampler(env, samplerHandle);
+    AISamplerManager::freeSampler(env, samplerHandle);
 }
 
 JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaSampler_getSamplerNameNative
   (JNIEnv* env, jclass cls, jlong samplerHandle) {
-    return AdvancedSamplerManager::getSamplerName(env, samplerHandle);
+    return AISamplerManager::getSamplerName(env, samplerHandle);
 }
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaSampler_resetSamplerNative
   (JNIEnv* env, jclass cls, jlong samplerHandle) {
-    AdvancedSamplerManager::resetSampler(env, samplerHandle);
+    AISamplerManager::resetSampler(env, samplerHandle);
 }
 
 JNIEXPORT void JNICALL Java_de_kherud_llama_LlamaSampler_acceptTokenNative
   (JNIEnv* env, jclass cls, jlong samplerHandle, jint token) {
-    AdvancedSamplerManager::acceptToken(env, samplerHandle, token);
+    AISamplerManager::acceptToken(env, samplerHandle, token);
 }
 
 // KV Cache Management JNI bindings
@@ -946,32 +949,32 @@ JNIEXPORT jobjectArray JNICALL Java_de_kherud_llama_LlamaUtils_getChatBuiltinTem
 }
 
 // System Information JNI bindings
-JNIEXPORT jstring JNICALL Java_de_kherud_llama_SystemInfo_getSystemInfoNative
+JNIEXPORT jstring JNICALL Java_de_kherud_llama_LlamaSystemInfo_getSystemInfoNative
   (JNIEnv* env, jclass cls) {
     return SystemInfoManager::getSystemInfo(env);
 }
 
-JNIEXPORT jlong JNICALL Java_de_kherud_llama_SystemInfo_getHighPrecisionTimeNative
+JNIEXPORT jlong JNICALL Java_de_kherud_llama_LlamaSystemInfo_getHighPrecisionTimeNative
   (JNIEnv* env, jclass cls) {
     return SystemInfoManager::getTimeUs(env);
 }
 
-JNIEXPORT jboolean JNICALL Java_de_kherud_llama_SystemInfo_supportsMemoryMappingNative
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaSystemInfo_supportsMemoryMappingNative
   (JNIEnv* env, jclass cls) {
     return SystemInfoManager::supportsMmap(env);
 }
 
-JNIEXPORT jboolean JNICALL Java_de_kherud_llama_SystemInfo_supportsMemoryLockingNative
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaSystemInfo_supportsMemoryLockingNative
   (JNIEnv* env, jclass cls) {
     return SystemInfoManager::supportsMlock(env);
 }
 
-JNIEXPORT jboolean JNICALL Java_de_kherud_llama_SystemInfo_supportsGpuOffloadNative
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaSystemInfo_supportsGpuOffloadNative
   (JNIEnv* env, jclass cls) {
     return SystemInfoManager::supportsGpuOffload(env);
 }
 
-JNIEXPORT jboolean JNICALL Java_de_kherud_llama_SystemInfo_supportsRemoteProcedureCallNative
+JNIEXPORT jboolean JNICALL Java_de_kherud_llama_LlamaSystemInfo_supportsRemoteProcedureCallNative
   (JNIEnv* env, jclass cls) {
     return SystemInfoManager::supportsRpc(env);
 }
