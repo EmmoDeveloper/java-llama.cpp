@@ -3,7 +3,10 @@ package de.kherud.llama;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
 import java.util.regex.Pattern;
 
 /**

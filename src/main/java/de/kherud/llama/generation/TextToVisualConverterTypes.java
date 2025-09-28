@@ -3,9 +3,12 @@ package de.kherud.llama.generation;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 
 /**
  * Supporting types and data structures for TextToVisualConverter.

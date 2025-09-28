@@ -1,7 +1,6 @@
 package de.kherud.llama;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static java.lang.System.Logger.Level.DEBUG;

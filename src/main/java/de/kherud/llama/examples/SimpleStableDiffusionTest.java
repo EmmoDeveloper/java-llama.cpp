@@ -1,10 +1,10 @@
 package de.kherud.llama.examples;
 
-import de.kherud.llama.LlamaModel;
-import de.kherud.llama.ModelParameters;
 import de.kherud.llama.InferenceParameters;
 import de.kherud.llama.LlamaIterable;
+import de.kherud.llama.LlamaModel;
 import de.kherud.llama.LlamaOutput;
+import de.kherud.llama.ModelParameters;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

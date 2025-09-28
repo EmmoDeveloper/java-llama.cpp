@@ -1,6 +1,5 @@
 package de.kherud.llama.examples;
 
-import de.kherud.llama.multimodal.ImageProcessorLibrary;
 import de.kherud.llama.multimodal.VisionLanguageModelLibrary;
 
 import java.nio.file.Path;

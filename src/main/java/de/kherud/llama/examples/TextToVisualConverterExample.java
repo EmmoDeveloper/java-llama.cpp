@@ -1,7 +1,18 @@
 package de.kherud.llama.examples;
 
 import de.kherud.llama.generation.TextToVisualConverter;
-import de.kherud.llama.generation.TextToVisualConverterTypes.*;
+import de.kherud.llama.generation.TextToVisualConverterTypes.BatchGenerationResult;
+import de.kherud.llama.generation.TextToVisualConverterTypes.GenerationResult;
+import de.kherud.llama.generation.TextToVisualConverterTypes.ImageGenerationParameters;
+import de.kherud.llama.generation.TextToVisualConverterTypes.LightingStyle;
+import de.kherud.llama.generation.TextToVisualConverterTypes.MaterialQuality;
+import de.kherud.llama.generation.TextToVisualConverterTypes.SceneComplexity;
+import de.kherud.llama.generation.TextToVisualConverterTypes.SceneFormat;
+import de.kherud.llama.generation.TextToVisualConverterTypes.SceneGenerationParameters;
+import de.kherud.llama.generation.TextToVisualConverterTypes.SceneType;
+import de.kherud.llama.generation.TextToVisualConverterTypes.VideoFormat;
+import de.kherud.llama.generation.TextToVisualConverterTypes.VideoGenerationParameters;
+import de.kherud.llama.generation.TextToVisualConverterTypes.VideoQuality;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

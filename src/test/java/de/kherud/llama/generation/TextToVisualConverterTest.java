@@ -1,6 +1,18 @@
 package de.kherud.llama.generation;
 
-import de.kherud.llama.generation.TextToVisualConverterTypes.*;
+import de.kherud.llama.generation.TextToVisualConverterTypes.BatchGenerationResult;
+import de.kherud.llama.generation.TextToVisualConverterTypes.GenerationResult;
+import de.kherud.llama.generation.TextToVisualConverterTypes.ImageGenerationParameters;
+import de.kherud.llama.generation.TextToVisualConverterTypes.ImageQuality;
+import de.kherud.llama.generation.TextToVisualConverterTypes.LightingStyle;
+import de.kherud.llama.generation.TextToVisualConverterTypes.MaterialQuality;
+import de.kherud.llama.generation.TextToVisualConverterTypes.SceneComplexity;
+import de.kherud.llama.generation.TextToVisualConverterTypes.SceneFormat;
+import de.kherud.llama.generation.TextToVisualConverterTypes.SceneGenerationParameters;
+import de.kherud.llama.generation.TextToVisualConverterTypes.SceneType;
+import de.kherud.llama.generation.TextToVisualConverterTypes.VideoFormat;
+import de.kherud.llama.generation.TextToVisualConverterTypes.VideoGenerationParameters;
+import de.kherud.llama.generation.TextToVisualConverterTypes.VideoQuality;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -8,10 +20,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TextToVisualConverterTest {
 

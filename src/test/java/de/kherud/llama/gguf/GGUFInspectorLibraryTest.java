@@ -1,9 +1,7 @@
 package de.kherud.llama.gguf;
 
-import org.junit.Test;
 import org.junit.Before;
-import org.junit.After;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -11,6 +9,14 @@ import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test suite for the library-friendly GGUFInspectorLibrary.

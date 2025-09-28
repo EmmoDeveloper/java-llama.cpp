@@ -2,8 +2,8 @@ package de.kherud.llama.examples;
 
 import de.kherud.llama.multimodal.ImageProcessorLibrary;
 import de.kherud.llama.multimodal.VisionLanguageModelLibrary;
-import org.junit.Test;
 import org.junit.Before;
+import org.junit.Test;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -14,7 +14,12 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Simple unit tests for VisionLanguageModelLibrary and ImageProcessorLibrary using JUnit 4.

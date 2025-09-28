@@ -1,6 +1,5 @@
 package de.kherud.llama.diffusion;
 
-import de.kherud.llama.LlamaModel;
 import de.kherud.llama.LlamaLoader;
 
 /**

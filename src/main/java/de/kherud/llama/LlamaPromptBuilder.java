@@ -3,7 +3,14 @@ package de.kherud.llama;
 import java.util.ArrayList;
 import java.util.List;
 
-import static de.kherud.llama.LlamaTokens.*;
+import static de.kherud.llama.LlamaTokens.ASSISTANT_ROLE;
+import static de.kherud.llama.LlamaTokens.BEGIN_OF_TEXT;
+import static de.kherud.llama.LlamaTokens.END_HEADER_ID;
+import static de.kherud.llama.LlamaTokens.EOT_ID;
+import static de.kherud.llama.LlamaTokens.IPYTHON_ROLE;
+import static de.kherud.llama.LlamaTokens.START_HEADER_ID;
+import static de.kherud.llama.LlamaTokens.SYSTEM_ROLE;
+import static de.kherud.llama.LlamaTokens.USER_ROLE;
 
 /**
  * Utility class for building and parsing Llama 3.1+ instruction prompts.

@@ -1,7 +1,10 @@
 package de.kherud.llama.examples;
 
 import de.kherud.llama.generation.TextToVisualConverter;
-import de.kherud.llama.generation.TextToVisualConverterTypes.*;
+import de.kherud.llama.generation.TextToVisualConverterTypes.BatchGenerationResult;
+import de.kherud.llama.generation.TextToVisualConverterTypes.GenerationResult;
+import de.kherud.llama.generation.TextToVisualConverterTypes.ImageGenerationParameters;
+import de.kherud.llama.generation.TextToVisualConverterTypes.ImageQuality;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

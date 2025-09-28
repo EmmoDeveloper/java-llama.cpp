@@ -86,7 +86,7 @@ Model introspection functions (35+):
 - ✅ **Architecture Info**: Layer count, embedding dimensions, attention heads
 - ✅ **Model Capabilities**: Encoder/decoder detection, model type identification
 - ✅ **Vocabulary Access**: Token text, scores, attributes, special tokens (BOS/EOS/EOT/etc.)
-- ✅ **Configuration**: Rope type/frequency, chat templates, classifier labels
+- ✅ **Configuration**: Rope type/frequency, advanced chat templates with auto-detection, classifier labels
 
 ### 7. Performance & Threading - **✅ FULLY IMPLEMENTED** (100%)
 
@@ -115,7 +115,20 @@ System integration features:
 The Java wrapper extends beyond basic API bindings with additional features:
 
 ### Management Classes
-- **ConversationManager**: Multi-turn conversation handling with context management
+- **ConversationManager**: ✅ **ENHANCED** - Advanced multi-turn conversation handling with:
+  - Multiple chat template support (Llama3, ChatML, Alpaca, Mistral, Zephyr, Vicuna)
+  - Real tokenization using model's tokenizer (vs character approximation)
+  - Conversation persistence with JSON export/import
+  - Performance metrics tracking (tokens/second, inference time)
+  - Automatic retry logic with configurable delays
+  - Context window management with smart truncation
+  - Conversation forking for exploration branches
+  - Template auto-detection from model names
+- **ChatTemplateFormatter**: ✅ **NEW** - Comprehensive chat template system with:
+  - Built-in support for 7+ major chat formats
+  - Custom template builder for flexibility
+  - Auto-detection from model names and metadata
+  - Proper system prompt handling and message formatting
 - **MultiAgentConversationSystem**: Complex agent orchestration and communication
 - **StructuredOutput**: JSON schema validation with function calling support
 - **SystemMonitor**: Real-time performance monitoring and metrics collection
@@ -296,7 +309,11 @@ System utility functions:
 - ✅ **System Limits**: (`maxDevices()`, `maxParallelSequences()`) - Hardware capability queries
 - ✅ **File Splitting**: (`buildSplitPath()`, `extractSplitPrefix()`) - Multi-part model file utilities
 - ✅ **Flash Attention**: (`getFlashAttentionTypeName()`) - Attention optimization info
-- ✅ **Chat Templates**: (`getChatBuiltinTemplates()`) - Built-in conversation templates
+- ✅ **Chat Templates**: (`getChatBuiltinTemplates()`) - ✅ **ENHANCED** - Advanced template system with:
+  - Support for Llama3, ChatML, Alpaca, Llama2, Mistral, Zephyr, Vicuna formats
+  - Auto-detection from model names and metadata
+  - Custom template builder with flexible configuration
+  - Proper system prompt and conversation flow handling
 - ✅ **Test Coverage**: Comprehensive tests for all system utility functions
 
 ### 5. **Multi-Model Support & Ensemble Inference** - ✅ **FULLY IMPLEMENTED** (100%)
@@ -424,6 +441,13 @@ The java-llama.cpp project provides:
 - **✅ Tensor Naming**: Fixed compatibility with native llama.cpp tensor naming
 - **✅ AI IDE Integration**: Token-level logits/embeddings access for code analysis
 - **✅ Advanced Embedding Functions**: Complete embedding management system
+- **✅ Enhanced Conversation System**: Production-ready chat with:
+  - Multi-template support (Llama3, ChatML, Alpaca, Mistral, Zephyr, Vicuna)
+  - Real tokenization and performance metrics
+  - Conversation persistence and forking
+  - GPU-accelerated testing with real models
+  - Support for multiple model formats (.gguf, .bin, .safetensors, .pth)
+  - Soft-link resolution for model paths
 - Utility classes for production use
 - Performance optimization tools
 - Threading and resource management
@@ -473,6 +497,13 @@ The wrapper provides a Java interface to llama.cpp with additional utility featu
 - **GGUFCompatibilityTest**: All tests passing (single and multi-module LoRA)
 - **GGUFInspectorTest**: All tests passing (both GGUF v2 and v3)
 - **GGUFReaderTest**: All tests passing
+- **ConversationManagerTest**: ✅ **NEW** - Comprehensive testing with real models:
+  - GPU-accelerated model loading (Qwen3-Coder 30B)
+  - Multi-format support (.gguf, .bin, .safetensors, .pth)
+  - Soft-link resolution for model paths
+  - Template formatting validation for all major formats
+  - Context truncation and persistence testing
+  - Performance metrics and conversation forking
 - **Core LoRA Training**: Fully functional with native library integration
 - **GGUF Generation**: Creates files compatible with llama.cpp native loader
 
