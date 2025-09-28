@@ -263,6 +263,15 @@ public class NativeStableDiffusionWrapper implements AutoCloseable {
 		LOGGER.log(System.Logger.Level.INFO, "Created Stable Diffusion context for model: " + modelPath);
 	}
 
+	/**
+	 * Private constructor for creating a wrapper with an existing context handle.
+	 * Used by createWithXL() for Diffusers models.
+	 */
+	private NativeStableDiffusionWrapper(long contextHandle, String modelPath) {
+		this.contextHandle = contextHandle;
+		this.modelPath = modelPath;
+	}
+
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -498,6 +507,44 @@ public class NativeStableDiffusionWrapper implements AutoCloseable {
 			// Fallback: return raw data
 			return rgbData;
 		}
+	}
+
+
+	public static Optional<NativeStableDiffusionWrapper> createWithXL() {
+		Path modelsDir = Paths.get(System.getProperty("user.home"), "ai-models", "noob");
+
+		// Check if this is a valid Diffusers directory structure
+		Path unetDir = modelsDir.resolve("unet");
+		Path textEncoderDir = modelsDir.resolve("text_encoder");
+		Path textEncoder2Dir = modelsDir.resolve("text_encoder_2");
+
+		if (Files.exists(unetDir) && Files.isDirectory(unetDir) &&
+			Files.exists(textEncoderDir) && Files.isDirectory(textEncoderDir)) {
+
+			try {
+				// Use the new Diffusers-compatible native method
+				long contextHandle = NativeStableDiffusion.createContextFromDiffusers(
+					modelsDir.toString(),
+					Files.exists(textEncoderDir.resolve("model.safetensors")) ?
+						textEncoderDir.resolve("model.safetensors").toString() : null,
+					Files.exists(textEncoder2Dir.resolve("model.safetensors")) ?
+						textEncoder2Dir.resolve("model.safetensors").toString() : null,
+					true
+				);
+
+				if (contextHandle == 0) {
+					String error = NativeStableDiffusion.getLastError();
+					throw new IllegalStateException("Failed to create Stable Diffusion context from Diffusers: " + error);
+				}
+
+				LOGGER.log(System.Logger.Level.INFO, "Created SDXL Diffusers context for model: " + modelsDir);
+				return Optional.of(new NativeStableDiffusionWrapper(contextHandle, modelsDir.toString()));
+
+			} catch (Exception e) {
+				LOGGER.log(System.Logger.Level.WARNING, "Failed to create wrapper with Diffusers model", e);
+			}
+		}
+		return Optional.empty();
 	}
 
 	/**

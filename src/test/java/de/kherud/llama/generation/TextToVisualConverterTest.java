@@ -296,20 +296,27 @@ public class TextToVisualConverterTest {
 
 		try {
 			// Test if stable diffusion wrapper can be created with auto-detection
-			de.kherud.llama.diffusion.NativeStableDiffusionWrapper.createWithAutoDetection()
+			de.kherud.llama.diffusion.NativeStableDiffusionWrapper.createWithXL()
 					.ifPresentOrElse(
 							wrapper -> {
-								System.out.println("✅ Successfully detected SD3.5 model: " + wrapper.getModelPath());
+								System.out.println("✅ Successfully detected SDXL model: " + wrapper.getModelPath());
 								System.out.println("✅ Wrapper is available: " + wrapper.isAvailable());
 
-								// Test simple image generation
+								// Test simple image generation with reduced parameters to avoid memory issues
 								try {
-									System.out.println("🎨 Testing image generation...");
+									System.out.println("🎨 Testing image generation with reduced parameters...");
 
-									// Use a more detailed prompt for better results
-									String testPrompt = "a beautiful landscape with mountains, trees, and blue sky, photorealistic, high quality, detailed";
-									System.out.println("🎨 Using prompt: " + testPrompt);
-									de.kherud.llama.diffusion.StableDiffusionResult result = wrapper.generateImage(testPrompt);
+									// Use smaller size and fewer steps for SDXL to avoid memory issues
+									de.kherud.llama.diffusion.NativeStableDiffusionWrapper.GenerationParameters params =
+										de.kherud.llama.diffusion.NativeStableDiffusionWrapper.GenerationParameters.defaults()
+											.withPrompt("a simple red cube")
+											.withSize(256, 256)  // Much smaller size for testing
+											.withSteps(5)        // Fewer steps
+											.withCfgScale(7.0f)
+											.withSeed(42);
+
+									System.out.println("🎨 Using reduced parameters: 256x256, 5 steps");
+									de.kherud.llama.diffusion.StableDiffusionResult result = wrapper.generateImage(params);
 
 									if (result.isSuccess()) {
 										System.out.println("✅ Image generation successful!");
@@ -341,7 +348,7 @@ public class TextToVisualConverterTest {
 								wrapper.close();
 								System.out.println("✅ Wrapper closed successfully");
 							},
-							() -> System.out.println("❌ No SD3.5 models found via auto-detection")
+							() -> System.out.println("❌ No SDXL models found via auto-detection")
 					);
 
 			// Test system info

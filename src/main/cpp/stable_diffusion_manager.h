@@ -74,6 +74,11 @@ public:
 									  bool keep_clip_on_cpu = true,
 									  bool keep_control_net_on_cpu = false);
 
+	jlong createContextFromDiffusers(const std::string& diffusers_path,
+									 const std::string& clip_l_path = "",
+									 const std::string& clip_g_path = "",
+									 bool keep_clip_on_cpu = true);
+
 	bool destroyContext(jlong handle);
 
 	// Image generation
@@ -117,6 +122,11 @@ Java_de_kherud_llama_diffusion_NativeStableDiffusion_createContextWithControlNet
 	JNIEnv* env, jclass clazz, jstring model_path, jstring clip_l_path,
 	jstring clip_g_path, jstring t5xxl_path, jstring control_net_path,
 	jboolean keep_clip_on_cpu, jboolean keep_control_net_on_cpu);
+
+JNIEXPORT jlong JNICALL
+Java_de_kherud_llama_diffusion_NativeStableDiffusion_createContextFromDiffusers(
+	JNIEnv* env, jclass clazz, jstring diffusers_path, jstring clip_l_path,
+	jstring clip_g_path, jboolean keep_clip_on_cpu);
 
 JNIEXPORT jboolean JNICALL
 Java_de_kherud_llama_diffusion_NativeStableDiffusion_destroyContext(

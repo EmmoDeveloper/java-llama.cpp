@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <vector>
 #include <fstream>
+#include <filesystem>
 
 // Thread-local error storage
 thread_local std::string StableDiffusionManager::last_error_;
@@ -179,6 +180,82 @@ jlong StableDiffusionManager::createContextWithControlNet(const std::string& mod
 
 	} catch (const std::exception& e) {
 		last_error_ = "Exception creating stable diffusion context with ControlNet: " + std::string(e.what());
+		return 0;
+	}
+}
+
+jlong StableDiffusionManager::createContextFromDiffusers(const std::string& diffusers_path,
+														 const std::string& clip_l_path,
+														 const std::string& clip_g_path,
+														 bool keep_clip_on_cpu) {
+	try {
+		// Validate diffusers directory exists
+		if (!std::filesystem::exists(diffusers_path) || !std::filesystem::is_directory(diffusers_path)) {
+			last_error_ = "Diffusers directory not found: " + diffusers_path;
+			printf("[SD_DEBUG] Diffusers directory access failed: %s\n", diffusers_path.c_str());
+			fflush(stdout);
+			return 0;
+		}
+
+		// Initialize stable diffusion context parameters
+		sd_ctx_params_t ctx_params;
+		sd_ctx_params_init(&ctx_params);
+
+		// For SDXL Diffusers format, we need to use a special FP16-fixed VAE
+		// The standard VAE from Diffusers has FP16 NaN issues
+
+		// Try using model_path instead of diffusion_model_path and override the VAE
+		ctx_params.model_path = diffusers_path.c_str();
+
+		// Note: VAE files in the Diffusers directory have been replaced with FP16 fix
+		// to avoid SDXL VAE FP16 NaN issues. No separate VAE path needed.
+		printf("[SD_DEBUG] Using FP16-fixed VAE from Diffusers directory\n");
+
+		// Set separate text encoder paths if provided
+		if (!clip_l_path.empty()) {
+			ctx_params.clip_l_path = clip_l_path.c_str();
+		}
+		if (!clip_g_path.empty()) {
+			ctx_params.clip_g_path = clip_g_path.c_str();
+		}
+
+		// Configure performance settings
+		ctx_params.keep_clip_on_cpu = keep_clip_on_cpu;
+		ctx_params.n_threads = get_num_physical_cores();
+		ctx_params.wtype = SD_TYPE_F32; // Force FP32 to avoid VAE FP16 artifacts
+		ctx_params.rng_type = STD_DEFAULT_RNG;
+
+		// Log detailed parameters before context creation
+		printf("[SD_DEBUG] Creating SD context from Diffusers: path=%s, threads=%d, keep_clip_cpu=%s\n",
+			diffusers_path.c_str(), ctx_params.n_threads,
+			ctx_params.keep_clip_on_cpu ? "true" : "false");
+		fflush(stdout);
+
+		// Create the context
+		sd_ctx_t* ctx = new_sd_ctx(&ctx_params);
+		if (!ctx) {
+			std::string detailed_error = "Failed to create stable diffusion context from Diffusers: " + diffusers_path;
+			detailed_error += " (threads=" + std::to_string(ctx_params.n_threads) + ")";
+
+			printf("[SD_DEBUG] Diffusers context creation failed: %s\n", detailed_error.c_str());
+			fflush(stdout);
+			last_error_ = detailed_error;
+			return 0;
+		}
+
+		// Store context with unique handle
+		std::lock_guard<std::mutex> lock(contexts_mutex_);
+		jlong handle = next_handle_++;
+		contexts_[handle] = std::make_unique<ContextData>(ctx);
+		contexts_[handle]->model_path = diffusers_path;
+
+		JNILogger::log(JNILogger::Level::INFO,
+			"Created stable diffusion context from Diffusers %ld for path: %s", handle, diffusers_path.c_str());
+
+		return handle;
+
+	} catch (const std::exception& e) {
+		last_error_ = "Exception creating stable diffusion context from Diffusers: " + std::string(e.what());
 		return 0;
 	}
 }
@@ -495,6 +572,25 @@ Java_de_kherud_llama_diffusion_NativeStableDiffusion_createContextWithControlNet
 			control_net_path_str, static_cast<bool>(keep_clip_on_cpu),
 			static_cast<bool>(keep_control_net_on_cpu)
 		);
+	} catch (const std::exception& e) {
+		JNIErrorHandler::throw_java_exception(env, "java/lang/RuntimeException", e.what());
+		return 0;
+	}
+}
+
+JNIEXPORT jlong JNICALL
+Java_de_kherud_llama_diffusion_NativeStableDiffusion_createContextFromDiffusers(
+	JNIEnv* env, jclass clazz, jstring diffusers_path, jstring clip_l_path,
+	jstring clip_g_path, jboolean keep_clip_on_cpu) {
+
+	try {
+		std::string diffusers_path_str = JniUtils::jstring_to_string(env, diffusers_path);
+		std::string clip_l_path_str = clip_l_path ? JniUtils::jstring_to_string(env, clip_l_path) : "";
+		std::string clip_g_path_str = clip_g_path ? JniUtils::jstring_to_string(env, clip_g_path) : "";
+
+		return StableDiffusionManager::getInstance().createContextFromDiffusers(
+			diffusers_path_str, clip_l_path_str, clip_g_path_str, keep_clip_on_cpu);
+
 	} catch (const std::exception& e) {
 		JNIErrorHandler::throw_java_exception(env, "java/lang/RuntimeException", e.what());
 		return 0;

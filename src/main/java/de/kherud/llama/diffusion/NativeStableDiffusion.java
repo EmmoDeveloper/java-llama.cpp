@@ -67,6 +67,18 @@ public final class NativeStableDiffusion {
 														  boolean keepControlNetOnCpu);
 
 	/**
+	 * Create a new Stable Diffusion context using Diffusers directory format.
+	 *
+	 * @param diffusersPath Path to directory containing Diffusers model (unet/, text_encoder/, etc.)
+	 * @param clipLPath Path to CLIP-L text encoder (optional, can be null)
+	 * @param clipGPath Path to CLIP-G text encoder (optional, can be null)
+	 * @param keepClipOnCpu Whether to keep CLIP models on CPU to save GPU memory
+	 * @return Handle to the created context, or 0 if creation failed
+	 */
+	public static native long createContextFromDiffusers(String diffusersPath, String clipLPath,
+														 String clipGPath, boolean keepClipOnCpu);
+
+	/**
 	 * Destroy a Stable Diffusion context and free its resources.
 	 *
 	 * @param handle Handle to the context to destroy
